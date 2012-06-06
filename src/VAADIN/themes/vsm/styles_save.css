@@ -1,0 +1,177 @@
+@import "../reindeer/styles.css";
+
+@import "button/button.css";
+@import "window/window.css";
+@import "layout/layout.css";
+
+.v-sa .v-app,
+.v-sa .v-window,
+.v-sa .v-popupview-popup,
+.v-sa .v-tooltip,
+.v-sa .v-app input,
+.v-sa .v-app select,
+.v-sa .v-app button,
+.v-sa .v-app textarea,
+.v-sa .v-window input,
+.v-sa .v-window select,
+.v-sa .v-window button,
+.v-sa .v-window textarea,
+.v-sa .v-popupview-popup input,
+.v-sa .v-popupview-popup select,
+.v-sa .v-popupview-popup button,
+.v-sa .v-popupview-popup textarea,
+.v-sa .v-filterselect-suggestpopup,
+.v-sa .v-datefield-popup,
+.v-sa .v-contextmenu,
+.v-Notification,
+.v-menubar-submenu 
+{
+	font-family: Arial, Helvetica, "Lucida Grande", Geneva, Tahoma, Verdana, sans-serif;
+}
+
+.vsm, .vsm select, .vsm button 
+{
+	font-size: 11px;
+	line-height: 14px;
+	color: #000;
+	font-family: "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+.vsm .headerGrid
+{
+	background: transparent url(images/top-bg.png) repeat-x;
+}
+.vsm .viewmode-table,
+.vsm .viewmode-grid,
+.vsm .viewmode-coverflow {
+	border: none;
+	width: 27px;
+	height: 22px;
+	overflow: hidden;
+}
+
+.vsm .viewmode-table {
+	background: transparent url(images/table-view.png) no-repeat right top;
+}
+
+.vsm .viewmode-grid {
+	background: transparent url(images/grid-view.png) no-repeat;
+}
+
+.vsm .viewmode-coverflow {
+	background: transparent url(images/coverflow-view.png) no-repeat;
+}
+
+.vsm .v-splitpanel-horizontal .v-splitpanel-hsplitter {
+	width: 1px;
+	background: #404040;
+}
+
+.vsm .v-splitpanel-horizontal .v-splitpanel-hsplitter div {
+	width: 3px;
+	border: none;
+	background: transparent;
+}
+
+
+.vsm .sidebar {
+	background: #d1d7e2;
+}
+
+.vsm .sidebar .v-label {
+	padding: 7px 0 3px 10px;
+	font-weight: bold;
+	text-transform: uppercase;
+	color: #505d6d;
+	text-shadow: #fff 0 1px 0;
+}
+
+.vsm .sidebar .v-nativebutton {
+	text-align: left;
+	border: none;
+	background: transparent;
+	line-height: 15px;
+	padding: 2px 0;
+}
+
+.vsm .sidebar .v-nativebutton span {
+	padding-left: 25px;
+}
+
+.vsm .sidebar .selected {
+	background: transparent url(images/selected-bg.png) repeat-x;
+	color: #fff;
+	font-weight: bold;
+	text-shadow: #384359 0 1px 0;
+	padding: 0;
+}
+
+.vsm .sidebar .selected span {
+	display: block;
+	background: transparent url(images/icon-music.png) no-repeat 25px 1px;
+	padding: 2px 0 2px 45px;
+}
+
+.vsm .sidebar .v-caption {
+	background: transparent url(images/table-header-bg.png) repeat-x;
+	padding: 1px 0;
+	font-weight: bold;
+	text-shadow: #eee 0 1px 0;
+	text-align: center;
+	color: #202020;
+	border-top: 1px solid #404040;
+	border-bottom: 1px solid #555;
+}
+
+.vsm .sidebar .v-captiontext {
+	float: none;
+}
+
+.vsm .v-table-header-wrap {
+	height: 16px;
+	border: none;
+	border-bottom: 1px solid #555;
+	background: transparent url(images/table-header-bg.png) repeat-x;
+	position: relative;
+}
+
+.vsm .v-table-sort-indicator {
+	width: 0px;
+	height: 16px;
+}
+
+.vsm .v-table-caption-container {
+	font-size: 11px;
+	color: #000;
+	font-weight: bold;
+	text-shadow: #fff 0 1px 0;
+	padding-top: 1px;
+}
+
+.vsm .v-table-body {
+	border: none;
+}
+
+.vsm .v-table-row-odd {
+	background: #f1f5fa;
+}
+
+.vsm .v-table-row:hover {
+	background: #fff;
+}
+
+.vsm .v-table-row-odd:hover {
+	background: #f1f5fa;
+}
+
+.vsm .v-table .v-selected {
+	background: #3d80df;
+}
+
+.vsm .v-table-cell-content {
+	line-height: normal;
+}
+
+.vsm .v-table select {
+	padding: 0 2px;
+}
