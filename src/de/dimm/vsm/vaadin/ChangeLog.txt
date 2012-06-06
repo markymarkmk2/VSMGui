@@ -1,0 +1,11 @@
+Veränderungen in V0.7.1
+UPD: Excludes mit Ignore case
+
+
+Veränderungen in V0.7.0
+UPD: gelöschte Dateien sind sichtbar mit Schalter in WebGui -> Filesystem
+UPD: Dateien lassen sich im WebGui als gelöscht / ungelöscht markieren
+
+Veränderungen in V0.6.8
+FIX: Logginggröße default 25
+
