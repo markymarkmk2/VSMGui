@@ -994,7 +994,7 @@ public class ArchiveJobWin extends SidebarPanel
                 }
                 catch (Exception ex)
                 {
-                    main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_abgebrochen"));
+                    main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_abgebrochen") + ": "+ ex.getMessage() );
                 }
             }
 
