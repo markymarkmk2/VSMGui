@@ -94,6 +94,8 @@ public class FileSystemViewer extends SidebarPanel
         final Button btVol = new NativeButton("Mount Volume");
 
 
+
+
         btVol.addListener(new Button.ClickListener()
         {
 
@@ -111,10 +113,26 @@ public class FileSystemViewer extends SidebarPanel
                         String drive = txt_mnt_drive.getValue().toString();
                         Date timestamp = (Date) dta_ts.getValue();
 
+
                         mountWrapper = main.getGuiServerApi().getMounted(ip, port, pool);
 
                         if (!volMounted)
                         {
+                            Properties p = null;
+
+                            try
+                            {
+                                p = main.getGuiServerApi().getAgentProperties(ip, port);
+                            }
+                            catch (Exception e)
+                            {
+                            }
+                            if (p == null)
+                            {
+                                main.Msg().errmOk(VSMCMain.Txt("Der Agent ist nicht erreichbar"));
+                                return;
+                            }
+
                             if (mountWrapper != null && !mountWrapper.isPhysicallyMounted())
                             {
                                 main.getGuiServerApi().remountVolume(mountWrapper);
@@ -123,6 +141,11 @@ public class FileSystemViewer extends SidebarPanel
                             else
                             {
                                 mountWrapper = main.getGuiServerApi().mountVolume(ip, port, pool, timestamp, "", main.getGuiWrapper().getUser(), drive);
+                                if (mountWrapper == null)
+                                {
+                                    main.Msg().errmOk(VSMCMain.Txt("Der Mount schlug fehl"));
+                                    return;
+                                }
                             }
 
                             btVol.setCaption("Unmount Volume");
