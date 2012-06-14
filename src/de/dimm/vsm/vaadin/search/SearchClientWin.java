@@ -140,7 +140,7 @@ public class SearchClientWin extends SidebarPanel
         
         cb_type = new ComboBox(VSMCMain.Txt("Suche"), entries);
         cb_type.setNullSelectionAllowed(false);
-        cb_type.select(entries.get(0));
+        cb_type.select(entries.get(2));
 
         entries = new ArrayList<ComboEntry>();
         for (int i = 0; i < niceDf.length; i++)
@@ -360,7 +360,10 @@ public class SearchClientWin extends SidebarPanel
 
     void startSearch()
     {
-        if (txt_search_name.getValue().toString().isEmpty())
+        final String searchStr = txt_search_name.getValue().toString().replace('_', ' ').trim();
+
+
+        if (searchStr.isEmpty())
         {
             VSMCMain.notify(this, VSMCMain.Txt("Bitte_geben Sie einen Suchbegriff ein"), "");
             return;
@@ -376,10 +379,9 @@ public class SearchClientWin extends SidebarPanel
                 boolean ci = true;
 
                 ComboEntry cb = (ComboEntry) cb_type.getValue();
-                if (!txt_search_name.getValue().toString().isEmpty())
-                {
-                    slist.add( new SearchEntry(txt_search_name.getValue().toString(), SearchEntry.ARG_NAME,  cb.getDbEntry().toString(),  false, false, ci, null) );
-                }
+
+                slist.add( new SearchEntry(searchStr, SearchEntry.ARG_NAME,  cb.getDbEntry().toString(),  false, false, ci, null) );
+                
 
                 for (int i = 0; i < t_panels.length; i++)
                 {
