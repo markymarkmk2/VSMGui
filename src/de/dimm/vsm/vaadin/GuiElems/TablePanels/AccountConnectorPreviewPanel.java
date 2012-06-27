@@ -35,6 +35,7 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
 {
     CheckBox checkBoxDisabled;
     CheckBox checkBoxSSL;
+    CheckBox checkBoxEmptyPwd;
     
     ComboBox comboAuthType;
     JPATextField txtIp;
@@ -78,6 +79,7 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
             }
 
         });
+        checkBoxEmptyPwd = new CheckBox(X("Leere Passworte erlaubt"));
 
         comboAuthType = new ComboBox(X("Authentifizierung"), typeList);
         comboAuthType.setNullSelectionAllowed(false);
@@ -104,6 +106,7 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         // ADD TO LAYOUT
         addComponent(txtIp.createGui(node));
         addComponent(checkBoxSSL);
+        addComponent(checkBoxEmptyPwd);
         addComponent(txtPort.createGui(node));
         addComponent(txtUser.createGui(node));
         addComponent(txtPwd.createGui(node));
@@ -223,6 +226,7 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         }
         checkBoxDisabled.setValue((node.getFlags() & AccountConnector.FL_DISABLED) == AccountConnector.FL_DISABLED );
         checkBoxSSL.setValue((node.getFlags() & AccountConnector.FL_SSL) == AccountConnector.FL_SSL );
+        checkBoxSSL.setValue((node.getFlags() & AccountConnector.FL_ALLOW_EMPTY_PWD) == AccountConnector.FL_ALLOW_EMPTY_PWD );
 
     }
 
@@ -238,10 +242,16 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
             flags |= AccountConnector.FL_DISABLED;
         else
             flags &= ~AccountConnector.FL_DISABLED;
+
        if (((Boolean)checkBoxSSL.getValue()).booleanValue())
             flags |= AccountConnector.FL_SSL;
-        else
+       else
             flags &= ~AccountConnector.FL_SSL;
+
+       if (((Boolean)checkBoxEmptyPwd.getValue()).booleanValue())
+            flags |= AccountConnector.FL_ALLOW_EMPTY_PWD;
+       else
+            flags &= ~AccountConnector.FL_ALLOW_EMPTY_PWD;
 
         activeElem.setFlags(flags);
 

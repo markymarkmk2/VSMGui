@@ -1,3 +1,9 @@
+Veränderungen in V0.7.3
+UPD: FileInfoDialog enthält Tabelle mit zugeordneten ArchivJobs -> Restore über Contextmenü
+
+Veränderungen in V0.7.2
+UPD: RollenOption haben Attribut RestorePath, Restore ist auf diese Pfade
+
 Veränderungen in V0.7.1
 UPD: Excludes mit Ignore case
 

@@ -381,7 +381,7 @@ public class SearchClientWin extends SidebarPanel
                 ComboEntry cb = (ComboEntry) cb_type.getValue();
 
                 slist.add( new SearchEntry(searchStr, SearchEntry.ARG_NAME,  cb.getDbEntry().toString(),  false, false, ci, null) );
-                
+
 
                 for (int i = 0; i < t_panels.length; i++)
                 {
@@ -696,7 +696,7 @@ public class SearchClientWin extends SidebarPanel
 
     private void handleRestoreTargetDialog( final RemoteFSElemTreeElem rfstreeelem)
     {
-        final RestoreLocationDlg dlg = new RestoreLocationDlg(main.getIp(), 8082, "/",  /*allowOriginal*/false );
+        final RestoreLocationDlg dlg = new RestoreLocationDlg(main, main.getIp(), 8082, "",  /*allowOriginal*/false );
         Button.ClickListener okListener = new Button.ClickListener()
         {
             @Override

@@ -575,7 +575,7 @@ public class FileSystemViewer extends SidebarPanel
     {
         boolean allowOrig = !isHotfolderPath( rfstreeelem );
 
-        final RestoreLocationDlg dlg = new RestoreLocationDlg("127.0.0.1", 8082, "c:\\tmp", allowOrig);
+        final RestoreLocationDlg dlg = new RestoreLocationDlg(main, "127.0.0.1", 8082, "", allowOrig);
         Button.ClickListener okListener = new Button.ClickListener()
         {
             @Override

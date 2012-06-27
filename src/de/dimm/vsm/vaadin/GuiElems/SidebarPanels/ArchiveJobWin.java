@@ -55,7 +55,6 @@ import de.dimm.vsm.vaadin.VSMCMain;
 import de.dimm.vsm.vaadin.net.DownloadResource;
 import de.dimm.vsm.vaadin.search.TimeIntervalPanel;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -159,7 +158,7 @@ public class ArchiveJobWin extends SidebarPanel
         
         cb_type = new ComboBox(VSMCMain.Txt("Suche"), entries);
         cb_type.setNullSelectionAllowed(false);
-        cb_type.select(entries.get(0));
+        cb_type.select(entries.get(2));
 
         entries = new ArrayList<ComboEntry>();
         for (int i = 0; i < niceDf.length; i++)
@@ -389,6 +388,9 @@ public class ArchiveJobWin extends SidebarPanel
 
     void startSearch()
     {
+        final String searchStr = txt_search_name.getValue().toString().replace('_', ' ').trim();
+
+
         
         SelectObjectCallback cb = new SelectObjectCallback<StoragePool>()
         {
@@ -403,7 +405,7 @@ public class ArchiveJobWin extends SidebarPanel
                 ComboEntry cb = (ComboEntry) cb_type.getValue();
                 ComboEntry cb_fileDirJob = (ComboEntry)cb_file_dir.getValue();
 
-                if (!txt_search_name.getValue().toString().isEmpty())
+                if (!searchStr.isEmpty())
                 {
                     if (cb_fileDirJob.isDbEntry("job"))
                         slist.add( new SearchEntry(txt_search_name.getValue().toString(), SearchEntry.ARG_JOBNAME,  cb.getDbEntry().toString(),  false, false, ci, null) );
@@ -566,6 +568,15 @@ public class ArchiveJobWin extends SidebarPanel
             @Override
             public void itemClick( ItemClickEvent event )
             {
+                if (event.getButton() == ItemClickEvent.BUTTON_LEFT && event.isDoubleClick())
+                {
+                    ArchiveJob job = (ArchiveJob)((BeanItem)event.getItem()).getBean();
+                    ArchiveJobInfoWindow win = new ArchiveJobInfoWindow(main, job);
+
+                    // Do something with the reference
+                    getApplication().getMainWindow().addWindow(win);
+                }
+
                 if (event.getButton() == ItemClickEvent.BUTTON_LEFT && !event.isDoubleClick())
                 {
                     ArchiveJob job = (ArchiveJob)((BeanItem)event.getItem()).getBean();
@@ -812,7 +823,7 @@ public class ArchiveJobWin extends SidebarPanel
                 ContextMenuItem clickedItem = event.getClickedItem();
                 if (clickedItem == info)
                 {
-                    ArchiveJobInfoWindow win = new ArchiveJobInfoWindow(main, searchWrapper, job);
+                    ArchiveJobInfoWindow win = new ArchiveJobInfoWindow(main, job);
 
                     // Do something with the reference
                     getApplication().getMainWindow().addWindow(win);
@@ -883,7 +894,7 @@ public class ArchiveJobWin extends SidebarPanel
                 ip = hf.getIp();
         }
         
-        final RestoreLocationDlg dlg = new RestoreLocationDlg( ip, 8082, "/",  /*allowOriginal*/false );
+        final RestoreLocationDlg dlg = new RestoreLocationDlg( main, ip, 8082, "",  /*allowOriginal*/false );
         Button.ClickListener okListener = new Button.ClickListener()
         {
             @Override
@@ -935,7 +946,7 @@ public class ArchiveJobWin extends SidebarPanel
 
     private void handleRestoreTargetDialog(  final RemoteFSElemTreeElem rfstreeelem)
     {
-        final RestoreLocationDlg dlg = new RestoreLocationDlg(main.getIp(), 8082, "/",  /*allowOriginal*/false );
+        final RestoreLocationDlg dlg = new RestoreLocationDlg(main, main.getIp(), 8082, "",  /*allowOriginal*/false );
         Button.ClickListener okListener = new Button.ClickListener()
         {
             @Override

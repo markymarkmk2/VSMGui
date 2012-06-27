@@ -31,7 +31,6 @@ public class VSMSearchMain extends VSMCMain
 
         root.setCaption("VSM SearchClient");
 
-
         createGuiServerProxy();
 
         errMsgHandler = new ErrMsgHandler(this);

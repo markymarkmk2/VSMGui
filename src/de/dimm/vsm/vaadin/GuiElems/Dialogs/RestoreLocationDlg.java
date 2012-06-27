@@ -5,8 +5,10 @@
 
 package de.dimm.vsm.vaadin.GuiElems.Dialogs;
 
+import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.validator.IntegerValidator;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -18,6 +20,7 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import de.dimm.vsm.records.RoleOption;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteFSElemEditor;
 import de.dimm.vsm.vaadin.GuiElems.OkAbortPanel;
 import de.dimm.vsm.vaadin.VSMCMain;
@@ -32,6 +35,7 @@ import java.util.List;
 public class RestoreLocationDlg extends Window implements Property.ValueChangeListener
 {
      static ArrayList<String> ipList = new ArrayList<String>();
+     static String lastPath = "";
 
      VerticalLayout vl = new VerticalLayout();
      OptionGroup select;
@@ -39,16 +43,115 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
      TextField tfPort;
      ComboBox tfIP;
      RemoteFSElemEditor editor;
+     ComboBox cbPath;
      HorizontalLayout targetVl;
 
-    public RestoreLocationDlg( String ip, int port, String path, boolean allowOrig )
+     ArrayList<RoleOption> userPathList;
+
+    public RestoreLocationDlg( VSMCMain main, String ip, int port, String path, boolean allowOrig )
     {
+        userPathList = new ArrayList<RoleOption>();
+
+        List<RoleOption> roList = main.getGuiUser().getUser().getRole().getRoleOptions();
+        for (int i = 0; i < roList.size(); i++)
+        {
+            RoleOption roleOption = roList.get(i);
+            if (roleOption.getToken().equals(RoleOption.RL_USERPATH))
+            {
+                if (roleOption.isValidUserPath())
+                {
+                    userPathList.add(roleOption);
+                }
+            }
+        }        
+        if (path == null || path.isEmpty())
+            path = lastPath;
+        
         build_gui(ip, port, path, allowOrig);
     }
+
+    ArrayList<String> getUserPathServers(  )
+    {
+        ArrayList<String> servers = new ArrayList<String>();
+
+        for (int i = 0; i < userPathList.size(); i++)
+        {
+            RoleOption roleOption = userPathList.get(i);
+            String ups = roleOption.getUserPathServer();
+
+            if (!ups.isEmpty() && !servers.contains(ups))
+            {
+                servers.add(ups);
+            }
+        }
+        return servers;
+    }
+
+    ArrayList<String> getPortFromUserPath( String ip )
+    {
+        ArrayList<String> ports = new ArrayList<String>();
+
+        for (int i = 0; i < userPathList.size(); i++)
+        {
+            RoleOption roleOption = userPathList.get(i);
+
+            if (roleOption.getUserPathServer().equals(ip))
+            {
+                if (!ports.contains(Integer.toString(roleOption.getUserPathPort())))
+                {
+                    ports.add(Integer.toString(roleOption.getUserPathPort()));
+                }
+            }
+        }
+        return ports;
+    }
+    ArrayList<String> getPathFromUserPath( String ip )
+    {
+        ArrayList<String> paths = new ArrayList<String>();
+
+        for (int i = 0; i < userPathList.size(); i++)
+        {
+            RoleOption roleOption = userPathList.get(i);
+            if (roleOption.getUserPathServer().equals(ip))
+            {
+                String upp = roleOption.getUserPathPath();
+                if (!upp.isEmpty() && !paths.contains(upp))
+                {
+                    paths.add(upp);
+                }
+            }
+        }
+        return paths;
+    }
+
+
 
     public void setOkListener( ClickListener okListener )
     {
         this.okListener = okListener;
+    }
+
+    boolean restrictedPath;
+
+    void updateRestrictedView()
+    {
+        if (restrictedPath)
+        {
+            tfPort.setValue(getPortFromUserPath(tfIP.getValue().toString()).get(0));
+            Container c = new IndexedContainer();
+            List<String> list = getPathFromUserPath(tfIP.getValue().toString());
+            if (!list.isEmpty())
+            {
+
+                for (int i = 0; i < list.size(); i++)
+                {
+                    String string = list.get(i);
+                    c.addItem(string);
+                }
+
+                cbPath.setContainerDataSource(c);
+            }
+        }
     }
 
     final void build_gui( String ip, int port, String path, boolean allowOrig)
@@ -87,26 +190,99 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
         select.setImmediate(true);
         
         targetVl.setSpacing(true);
-        if (!ipList.contains(ip))
-            ipList.add(ip);
+        restrictedPath = false;
+
+        if (!getUserPathServers().isEmpty())
+        {
+            ipList.clear();
+            ipList.addAll(getUserPathServers());
+            restrictedPath = true;
+        }
+        else
+        {
+            restrictedPath = false;
+            if (!ipList.contains(ip))
+                ipList.add(ip);
+        }
 
 
         tfIP = new ComboBox(VSMCMain.Txt("IP"), ipList );
         tfIP.setNullSelectionAllowed(false);
-        tfIP.setInvalidAllowed(true);
-        tfIP.setNewItemsAllowed(true);
-        tfIP.setValue(ip);
+        if (restrictedPath)
+        {
+            tfIP.setInvalidAllowed(false);
+            tfIP.setNewItemsAllowed(false);
+            tfIP.setValue(getUserPathServers().get(0));
+
+            tfIP.addListener(new Property.ValueChangeListener()
+            {
+                @Override
+                public void valueChange( ValueChangeEvent event )
+                {
+                    updateRestrictedView();
+                }
+            });
+        }
+        else
+        {
+            tfIP.setInvalidAllowed(true);
+            tfIP.setNewItemsAllowed(true);
+            tfIP.setValue(ip);
+        }
+
         targetVl.addComponent(tfIP);
         targetVl.setComponentAlignment(tfIP, Alignment.BOTTOM_LEFT);
         tfPort = new TextField(VSMCMain.Txt("Port"), Integer.toString(port) );
-        tfPort.addValidator( new IntegerValidator(""));
+
+        if (restrictedPath)
+        {
+            tfPort.setValue(getPortFromUserPath(tfIP.getValue().toString()).get(0));
+            tfPort.setReadOnly(true);
+        }
+        else
+        {
+            tfPort.addValidator( new IntegerValidator(""));
+            tfPort.setReadOnly(false);
+        }
         
         targetVl.addComponent(tfPort);
         targetVl.setComponentAlignment(tfPort, Alignment.BOTTOM_LEFT);
 
 
-        editor = new RemoteFSElemEditor(  VSMCMain.Txt("Zielpfad"), path, tfIP, tfPort, RemoteFSElemEditor.ONLY_DIRS);
-        targetVl.addComponent(editor);
+        if (restrictedPath && !getPathFromUserPath(tfIP.getValue().toString()).isEmpty())
+        {
+            List<String> l = getPathFromUserPath(tfIP.getValue().toString());
+            boolean useFilter = false;
+            for (int i = 0; i < l.size(); i++)
+            {
+                String string = l.get(i);
+                if (string.endsWith("*"))
+                    useFilter = true;
+            }
+            
+            if (useFilter)
+            {   
+                path = lastPath;
+                editor = new RemoteFSElemEditor(  VSMCMain.Txt("Zielpfad"), path, tfIP, tfPort, RemoteFSElemEditor.ONLY_DIRS);
+                editor.setFilter( l );
+                targetVl.addComponent(editor);
+            }
+            else
+            {
+                cbPath =  new ComboBox(VSMCMain.Txt("Zielpfad"), l );
+                cbPath.setNullSelectionAllowed(false);
+                cbPath.setInvalidAllowed(false);
+                cbPath.setNewItemsAllowed(false);
+                cbPath.setValue(l.get(0));
+
+                targetVl.addComponent(cbPath);
+            }
+        }
+        else
+        {
+            editor = new RemoteFSElemEditor(  VSMCMain.Txt("Zielpfad"), path, tfIP, tfPort, RemoteFSElemEditor.ONLY_DIRS);
+            targetVl.addComponent(editor);
+        }
         buttonVl.addComponent(select);
         buttonVl.addComponent(targetVl);
         buttonVl.setComponentAlignment(targetVl, Alignment.BOTTOM_RIGHT);
@@ -134,6 +310,11 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
             @Override
             public void buttonClick( ClickEvent event )
             {
+                if (getPath() == null  || getPath().isEmpty())
+                {
+                    VSMCMain.notify(vl, VSMCMain.Txt("Bitte geben Sie einen gültigen Pfad an"), "");
+                    return;
+                }
                 event.getButton().getApplication().getMainWindow().removeWindow(w);
                 String ip = getIP();
                 if (!ipList.contains(ip))
@@ -160,7 +341,15 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
     }
     public String getPath()
     {
-        return editor.getTf().getValue().toString();
+        if (restrictedPath && cbPath != null)
+        {
+            lastPath = cbPath.getValue().toString();
+        }
+        else
+        {
+            lastPath = editor.getTf().getValue().toString();
+        }
+        return lastPath;
     }
     
 

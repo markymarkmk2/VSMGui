@@ -121,6 +121,7 @@ public class RoleTable extends BaseDataEditTable<Role>
         roe.add( new ComboEntry(RoleOption.RL_ALLOW_VIEW_PARAM, VSMCMain.Txt("Parameter Client öffnen")));
         roe.add( new ComboEntry(RoleOption.RL_ALLOW_EDIT_PARAM, VSMCMain.Txt("Parameter bearbeiten")));
         roe.add( new ComboEntry(RoleOption.RL_ADMIN, VSMCMain.Txt("Administrator")));
+        roe.add( new ComboEntry(RoleOption.RL_USERPATH, VSMCMain.Txt("Restorepfad")));
 
         setTooltipText( fieldList, "accountmatch", VSMCMain.Txt("Wildcards mit .* (z.B.) user123.*" ) );
 

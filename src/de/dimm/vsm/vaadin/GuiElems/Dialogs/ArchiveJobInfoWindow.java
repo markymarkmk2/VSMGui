@@ -31,23 +31,15 @@ public class ArchiveJobInfoWindow extends Window
 
      ArchiveJob elem;
      VSMCMain main;
-     SearchWrapper sw = null;
-     StoragePoolWrapper sp = null;
+     //SearchWrapper sw = null;
+     //StoragePoolWrapper sp = null;
      VerticalLayout vl = new VerticalLayout();
 
-    public ArchiveJobInfoWindow( VSMCMain main, SearchWrapper sw, ArchiveJob elem )
+    public ArchiveJobInfoWindow( VSMCMain main,  ArchiveJob elem )
     {
         this.elem = elem;
         this.main = main;
-        this.sw = sw;
-
-        build_gui(elem);
-    }
-    public ArchiveJobInfoWindow( VSMCMain main, StoragePoolWrapper sp, ArchiveJob elem )
-    {
-        this.elem = elem;
-        this.main = main;
-        this.sp = sp;
+       // this.sw = sw;
 
         build_gui(elem);
     }

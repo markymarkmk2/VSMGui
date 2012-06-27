@@ -42,6 +42,8 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
     AbstractField tfIp;
     TextField tfPort;
 
+    List<String> filter;
+
     public RemoteFSElemEditor(String caption, String val, AbstractField ip, TextField port, int options)
     {
         super(caption, val, options);
@@ -135,81 +137,115 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
         return createClientPathTree(  null, null);
     }
 
-    public static FSTree createClientPathTree( final StoragePoolWrapper wrapper, final VSMCMain main, final AgentApi api, final AbstractField tf, RemoteFSElem startPath, final int options, boolean ssl, String keystore, String keypwd )
+    protected static FSTree createClientPathTree( final StoragePoolWrapper wrapper, final VSMCMain main, final AgentApi api, final AbstractField tf, RemoteFSElem startPath, List<String> filter, final int options, boolean ssl, String keystore, String keypwd )
     {
-            Properties p = api.get_properties();
-            System.out.println("Agent ver: " + p.getProperty(AgentApi.OP_AG_VER));
+        Properties p = api.get_properties();
+        System.out.println("Agent ver: " + p.getProperty(AgentApi.OP_AG_VER));
 
-            ArrayList<RemoteFSElem> root_list;
+        ArrayList<RemoteFSElem> root_list;
 
-            if (startPath == null)
-                root_list = api.list_roots();
-            else
-                root_list = api.list_dir(startPath,/*withAcl*/ true);
-
-            RemoteProvider provider = new RemoteProvider()
+        if (startPath == null)
+        {
+            if (filter == null)
             {
-                @Override
-                public RemoteFSElemTreeElem createNode( RemoteProvider provider, RemoteFSElem elem, RemoteFSElemTreeElem parent)
+                root_list = api.list_roots();
+            }
+            else
+            {                
+                root_list = new ArrayList<RemoteFSElem>();
+                for (int i = 0; i < filter.size(); i++)
                 {
-                    return new RemoteFSElemTreeElem(provider, elem, parent);
-                }
-
-                @Override
-                public List<RemoteFSElemTreeElem> getChildren(RemoteFSElemTreeElem elem)
-                {
-                    List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
-
-                    ArrayList<RemoteFSElem> elem_list = api.list_dir(elem.getElem(),/*withAcl*/ true);
-
-                    for (int i = 0; i < elem_list.size(); i++)
+                    String pathfilter = filter.get(i);
+                    int idx = pathfilter.lastIndexOf('*');
+                    if (idx > 0)
+                        pathfilter = pathfilter.substring(0, idx);
+                    
+                    List<RemoteFSElem> l = api.list_dir(new RemoteFSElem(pathfilter, FileSystemElemNode.FT_DIR, 0, 0, 0, 0, 0),/*withAcl*/ true);
+                    for (int j = 0; j < l.size(); j++)
                     {
-                        RemoteFSElem rfse = elem_list.get(i);
-
-                        if ((options & ONLY_DIRS) != 0)
-                        {
-                            if (!rfse.isDirectory())
-                                continue;
-                        }
-
-                        RemoteFSElemTreeElem e = new RemoteFSElemTreeElem(this, rfse, elem);
-                        childList.add(e );
+                        RemoteFSElem remoteFSElem = l.get(j);
+                        if (remoteFSElem.isDirectory())
+                            root_list.add(remoteFSElem);
                     }
-                    return childList;
+                    
                 }
-                @Override
-                public boolean createDir( RemoteFSElemTreeElem elem )
+            }
+        }
+        else
+        {
+            root_list = new ArrayList<RemoteFSElem>();
+            List<RemoteFSElem> l = api.list_dir(startPath,/*withAcl*/ true);
+            for (int j = 0; j < l.size(); j++)
+            {
+                RemoteFSElem remoteFSElem = l.get(j);
+                if (remoteFSElem.isDirectory())
+                    root_list.add(remoteFSElem);
+            }
+        }
+
+        RemoteProvider provider = new RemoteProvider()
+        {
+            @Override
+            public RemoteFSElemTreeElem createNode( RemoteProvider provider, RemoteFSElem elem, RemoteFSElemTreeElem parent)
+            {
+                return new RemoteFSElemTreeElem(provider, elem, parent);
+            }
+
+            @Override
+            public List<RemoteFSElemTreeElem> getChildren(RemoteFSElemTreeElem elem)
+            {
+                List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
+
+                ArrayList<RemoteFSElem> elem_list = api.list_dir(elem.getElem(),/*withAcl*/ true);
+
+                for (int i = 0; i < elem_list.size(); i++)
                 {
-                    try
-                    {
-                        boolean b = api.create_dir(elem.getElem());
-                        if (!b)
-                        {
-                            VSMCMain.notify(tf, VSMCMain.Txt("das Verzeichnis konnte nicht angelegt werden"), "");
-                        }
-                        return b;
-                    }
-                    catch (Exception iOException)
-                    {
-                        VSMCMain.notify(tf, VSMCMain.Txt("das Verzeichnis konnte nicht angelegt werden"), iOException.getMessage());
-                    }
-                    return false;
-                }
+                    RemoteFSElem rfse = elem_list.get(i);
 
-                @Override
-                public ItemDescriptionGenerator getItemDescriptionGenerator()
+                    if ((options & ONLY_DIRS) != 0)
+                    {
+                        if (!rfse.isDirectory())
+                            continue;
+                    }
+
+                    RemoteFSElemTreeElem e = new RemoteFSElemTreeElem(this, rfse, elem);
+                    childList.add(e );
+                }
+                return childList;
+            }
+            @Override
+            public boolean createDir( RemoteFSElemTreeElem elem )
+            {
+                try
                 {
-                    if (wrapper != null && main != null)
-                        return new RemoteItemDescriptionGenerator(wrapper, main );
-                    return null;
+                    boolean b = api.create_dir(elem.getElem());
+                    if (!b)
+                    {
+                        VSMCMain.notify(tf, VSMCMain.Txt("das Verzeichnis konnte nicht angelegt werden"), "");
+                    }
+                    return b;
                 }
+                catch (Exception iOException)
+                {
+                    VSMCMain.notify(tf, VSMCMain.Txt("das Verzeichnis konnte nicht angelegt werden"), iOException.getMessage());
+                }
+                return false;
+            }
+
+            @Override
+            public ItemDescriptionGenerator getItemDescriptionGenerator()
+            {
+                if (wrapper != null && main != null)
+                    return new RemoteItemDescriptionGenerator(wrapper, main );
+                return null;
+            }
 
 
 
-            };
+        };
 
-            FSTree tree = createClientPathTree(provider, root_list, tf, startPath, options, ssl, keystore, keypwd);
-            return tree;
+        FSTree tree = createClientPathTree(provider, root_list, tf, startPath,  options, ssl, keystore, keypwd);
+        return tree;
     }
     protected FSTree createClientPathTree(StoragePoolWrapper wrapper, VSMCMain main)
     {
@@ -236,7 +272,7 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
         final RemoteCallFactory factory = _factory;
 
 
-        final FSTree treePanel = createClientPathTree( wrapper, main, api, tf, /*startPath*/ null, options, false, null, null);
+        final FSTree treePanel = createClientPathTree( wrapper, main, api, tf, /*startPath*/ null, filter, options, false, null, null);
 
         return treePanel;
     }
@@ -263,5 +299,10 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
         {
             VSMCMain.notify(tf, VSMCMain.Txt("das Verzeichnis konnte nicht angelegt werden"), iOException.getMessage());
         }
+    }
+
+    public void setFilter( List<String> l )
+    {
+        filter = l;
     }
 }

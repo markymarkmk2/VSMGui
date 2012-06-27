@@ -624,7 +624,7 @@ public class SearchWin extends SidebarPanel
 
     private void handleRestoreTargetDialog( final RemoteFSElemTreeElem rfstreeelem)
     {
-        final RestoreLocationDlg dlg = new RestoreLocationDlg(main.getIp(), 8082, "/",  /*allowOriginal*/false );
+        final RestoreLocationDlg dlg = new RestoreLocationDlg(main, main.getIp(), 8082, "",  /*allowOriginal*/false );
         Button.ClickListener okListener = new Button.ClickListener()
         {
             @Override

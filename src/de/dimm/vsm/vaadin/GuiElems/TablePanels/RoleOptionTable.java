@@ -6,6 +6,7 @@
 package de.dimm.vsm.vaadin.GuiElems.TablePanels;
 
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.ui.AbstractOrderedLayout;
 import de.dimm.vsm.fsengine.GenericEntityManager;
 import de.dimm.vsm.records.Role;
 import de.dimm.vsm.records.RoleOption;
@@ -34,18 +35,30 @@ public class RoleOptionTable extends BaseDataEditTable<RoleOption>
 
     public static RoleOptionTable createTable( VSMCMain main, Role r, List<RoleOption> list, ItemClickListener listener, List<ComboEntry> entries)
     {
-
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
-
         
-
         fieldList.add(new JPAComboField(VSMCMain.Txt("Option"), "token", entries));
+        fieldList.add(new JPATextField(VSMCMain.Txt("Parameter"), "optionStr"));
         fieldList.add(new JPATextField(VSMCMain.Txt("Flags"), "flags"));
 
         setTableColumnVisible(fieldList, "flags", false);
-        setFieldVisible(fieldList, "flags", false);
+        setTableFieldWidth(fieldList, "optionStr", 300);
+        //setTableColumnVisible(fieldList, "option", false);
+        //setFieldVisible(fieldList, "flags", false);
         
         return new RoleOptionTable( main, r, list, fieldList, listener);
+    }
+
+
+    RoleOptionPreviewPanel editPanel;
+
+    @Override
+    public AbstractOrderedLayout createEditComponentPanel(  boolean readOnly )
+    {
+        editPanel = new RoleOptionPreviewPanel(this, readOnly);
+        editPanel.recreateContent(activeElem);
+
+        return editPanel;
     }
 
 
@@ -90,5 +103,23 @@ public class RoleOptionTable extends BaseDataEditTable<RoleOption>
     {
         return VSMCMain.Txt(this.getClass().getSimpleName());
     }
+
+    @Override
+    public boolean checkPlausibility( AbstractOrderedLayout editPanel, RoleOption t )
+    {
+        if (t.getToken().equals(RoleOption.RL_USERPATH))
+        {
+            if (!t.isValidUserPath())
+            {
+                main.Msg().errmOk("Bitte geben Sie bite den Pfad im Format <Rechner:Port/Pfad> an\n\nBeispiele:\n"
+                        + "10.1.1.1:8082/G:\\restore\n"
+                        + "dataserver:8082/opt/volumes/restore\nrestoreserver:8082/");
+            }
+        }
+        return super.checkPlausibility(editPanel, t);
+    }
+
+    
+
 
 }

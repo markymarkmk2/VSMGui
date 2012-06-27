@@ -28,13 +28,17 @@ public class ArchivJobTable  extends BaseDataEditTable<ArchiveJob>
 {
     ArchiveJobWin jobWin;
 
-    private ArchivJobTable( VSMCMain main, ArchiveJobWin jobWin, List<ArchiveJob> list, ArrayList<JPAField> _fieldList, ItemClickListener listener)
+    private ArchivJobTable( VSMCMain main, ArchiveJobWin jobWin, List<ArchiveJob> list, ArrayList<JPAField> _fieldList, ItemClickListener listener, boolean showEdit, boolean showDelete)
     {
-        super(main, list, ArchiveJob.class, _fieldList, listener, /*showedit*/ true, /*showDelete*/ main.getGuiUser().isSuperUser());
+        super(main, list, ArchiveJob.class, _fieldList, listener, showEdit, showDelete );
         this.jobWin = jobWin;
     }
 
     public static ArchivJobTable createTable( VSMCMain main, ArchiveJobWin jobWin,List<ArchiveJob> list, ItemClickListener listener)
+    {
+         return createTable(main, jobWin, list, listener, true, /*showDelete*/ main.getGuiUser().isSuperUser());
+    }
+    public static ArchivJobTable createTable( VSMCMain main, ArchiveJobWin jobWin,List<ArchiveJob> list, ItemClickListener listener, boolean showEdit, boolean showDelete)
     {
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
         fieldList.add(new JPATextField(VSMCMain.Txt("Job"), "name"));
@@ -45,13 +49,15 @@ public class ArchivJobTable  extends BaseDataEditTable<ArchiveJob>
 
         setTableColumnExpandRatio(fieldList, "name", 1.0f);
 
-        return new ArchivJobTable( main, jobWin, list, fieldList, listener);
+        return new ArchivJobTable( main, jobWin, list, fieldList, listener, showEdit, showDelete);
+
     }
 
     @Override
     protected void deleteObject( ArchiveJob node )
     {
-        jobWin.handleRemoveJob(node);
+        if (jobWin != null)
+            jobWin.handleRemoveJob(node);
     }
 
 
