@@ -14,12 +14,14 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import de.dimm.vsm.net.interfaces.AgentApi;
 import de.dimm.vsm.records.RoleOption;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteFSElemEditor;
 import de.dimm.vsm.vaadin.GuiElems.OkAbortPanel;
@@ -27,6 +29,7 @@ import de.dimm.vsm.vaadin.VSMCMain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 /**
  *
@@ -48,8 +51,14 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
 
      ArrayList<RoleOption> userPathList;
 
+     VSMCMain main;
+     CheckBox encrypted;
+     CheckBox compressed;
+     TextField agentInfo;
+
     public RestoreLocationDlg( VSMCMain main, String ip, int port, String path, boolean allowOrig )
     {
+        this.main = main;
         userPathList = new ArrayList<RoleOption>();
 
         List<RoleOption> roList = main.getGuiUser().getUser().getRole().getRoleOptions();
@@ -205,9 +214,22 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
                 ipList.add(ip);
         }
 
+        tfPort = new TextField(VSMCMain.Txt("Port"), Integer.toString(port) );
+
+        if (restrictedPath)
+        {
+            tfPort.setValue(getPortFromUserPath(tfIP.getValue().toString()).get(0));
+            tfPort.setReadOnly(true);
+        }
+        else
+        {
+            tfPort.addValidator( new IntegerValidator(""));
+            tfPort.setReadOnly(false);
+        }
 
         tfIP = new ComboBox(VSMCMain.Txt("IP"), ipList );
         tfIP.setNullSelectionAllowed(false);
+        
         if (restrictedPath)
         {
             tfIP.setInvalidAllowed(false);
@@ -232,18 +254,6 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
 
         targetVl.addComponent(tfIP);
         targetVl.setComponentAlignment(tfIP, Alignment.BOTTOM_LEFT);
-        tfPort = new TextField(VSMCMain.Txt("Port"), Integer.toString(port) );
-
-        if (restrictedPath)
-        {
-            tfPort.setValue(getPortFromUserPath(tfIP.getValue().toString()).get(0));
-            tfPort.setReadOnly(true);
-        }
-        else
-        {
-            tfPort.addValidator( new IntegerValidator(""));
-            tfPort.setReadOnly(false);
-        }
         
         targetVl.addComponent(tfPort);
         targetVl.setComponentAlignment(tfPort, Alignment.BOTTOM_LEFT);
@@ -291,10 +301,28 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
         OkAbortPanel okPanel = new OkAbortPanel();
         okPanel.setOkText(VSMCMain.Txt("Weiter"));
         vl.addComponent(buttonVl);
+
+        compressed = new CheckBox(VSMCMain.Txt("Komprimierung"));
+        encrypted = new CheckBox(VSMCMain.Txt("Verschlüsselung"));
+        agentInfo = new TextField("Agent");
+        agentInfo.setReadOnly(true);
+        
+        vl.addComponent(compressed);
+        vl.addComponent(encrypted);
         vl.addComponent(okPanel);
 
         addComponent(vl);
 
+        tfIP.addListener( new Property.ValueChangeListener() {
+
+            @Override
+            public void valueChange( ValueChangeEvent event )
+            {
+                updateIPGui();
+            }
+        });
+
+        updateIPGui();
 
         final Window w = this;
         okPanel.getBtAbort().addListener( new Button.ClickListener() {
@@ -325,6 +353,26 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
                 }
             }
         });
+    }
+
+    private void updateIPGui()
+    {
+        compressed.setVisible( false );
+        encrypted.setVisible( false );
+        
+        String ip = getIP();
+        Properties p = main.getGuiServerApi().getAgentProperties( ip, getPort(), false );
+        if (p != null)
+        {
+            compressed.setVisible(p.getProperty(AgentApi.OP_AG_COMP, "false").equals( Boolean.TRUE.toString() ));
+            encrypted.setVisible(p.getProperty(AgentApi.OP_AG_ENC, "false").equals( Boolean.TRUE.toString() ));
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("OS:");
+            sb.append(p.getProperty(AgentApi.OP_OS_VER));
+            sb.append(" Ver:");
+            sb.append(p.getProperty(AgentApi.OP_AG_VER));
+        }
     }
 
     public OptionGroup getSelect()
@@ -362,5 +410,13 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
     public boolean isOriginal()
     {
         return select.isSelected(VSMCMain.Txt("Original"));
+    }
+    public boolean isCompressed()
+    {
+        return compressed.booleanValue();
+    }
+    public boolean isEncrypted()
+    {
+        return encrypted.booleanValue();
     }
 }
