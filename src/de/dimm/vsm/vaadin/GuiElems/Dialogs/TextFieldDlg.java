@@ -37,9 +37,9 @@ public class TextFieldDlg extends Window
     
      HorizontalLayout targetVl;
 
-    public TextFieldDlg( String caption, String def, Validator val )
+    public TextFieldDlg( String title, String caption, String def, Validator val )
     {      
-        build_gui(caption, def, val);
+        build_gui(title, caption, def, val);
     }
 
     public void setOkActionListener( ClickListener okListener )
@@ -47,8 +47,10 @@ public class TextFieldDlg extends Window
         this.okListener = okListener;
     }
 
-    final void build_gui(  String caption, String def, Validator val )
+    final void build_gui( String title, String caption, String def, Validator val )
     {
+        setCaption(title);
+
         addComponent(vl);
         setModal(true);
         setStyleName("vsm");
@@ -67,6 +69,7 @@ public class TextFieldDlg extends Window
         targetVl = new HorizontalLayout();
         
         targetVl.setSpacing(true);
+        targetVl.setWidth("60%");
 
         tfText = new TextField(caption, def);
 
@@ -75,6 +78,7 @@ public class TextFieldDlg extends Window
         
         targetVl.addComponent(tfText);
         targetVl.setComponentAlignment(tfText, Alignment.BOTTOM_LEFT);
+        targetVl.setExpandRatio(tfText, 1.0f);
 
         buttonVl.addComponent(targetVl);
         buttonVl.setComponentAlignment(targetVl, Alignment.BOTTOM_RIGHT);
