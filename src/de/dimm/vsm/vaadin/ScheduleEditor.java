@@ -76,7 +76,7 @@ public class ScheduleEditor extends HorizontalSplitPanel
         List<Schedule> list = null;
         try
         {
-            list = main.get_util_em(pool).createQuery("select s from Schedule s", Schedule.class);
+            list = VSMCMain.get_util_em(pool).createQuery("select s from Schedule s", Schedule.class);
         }
         catch (SQLException sQLException)
         {
