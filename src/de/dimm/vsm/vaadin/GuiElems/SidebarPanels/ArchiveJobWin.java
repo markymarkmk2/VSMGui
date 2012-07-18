@@ -34,6 +34,7 @@ import de.dimm.vsm.net.SearchEntry;
 import de.dimm.vsm.net.SearchWrapper;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.AgentApi;
+import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.records.ArchiveJob;
 import de.dimm.vsm.records.FileSystemElemNode;
 import de.dimm.vsm.records.HotFolder;
@@ -72,10 +73,6 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
 public class ArchiveJobWin extends SidebarPanel
 {
 
-    // WARNING: THIS HAS TO FIT TO RestoreContext ON SERVER!!!!
-    public static final int RF_RECURSIVE = 0x0001;
-    public static final int RF_FULLPATH = 0x0002;
-    public static final int RF_SKIPHOTFOLDER_TIMSTAMPDIR = 0x0004;
 
 
     boolean mountedView = false;
@@ -889,7 +886,7 @@ public class ArchiveJobWin extends SidebarPanel
 
         if (job.getSourceType().equals(ArchiveJob.AJ_SOURCE_HF))
         {
-            HotFolder hf = main.get_base_util_em().em_find( HotFolder.class, job.getSourceIdx());
+            HotFolder hf = VSMCMain.get_base_util_em().em_find( HotFolder.class, job.getSourceIdx());
             if (hf != null)
                 ip = hf.getIp();
         }
@@ -982,15 +979,19 @@ public class ArchiveJobWin extends SidebarPanel
                         port = getPortFromPath( rfstreeelem );
 
 
-                        Properties p = main.getGuiServerApi().getAgentProperties( ip, port );
+                        Properties p = main.getGuiServerApi().getAgentProperties( ip, port, false );
                         boolean isWindows =  ( p != null && p.getProperty(AgentApi.OP_OS).startsWith("Win"));
 
                         path = getTargetpathFromPath( rfstreeelem, isWindows );
                     }
 
-                    int rflags = RF_RECURSIVE | RF_RECURSIVE;
+                    int rflags = GuiServerApi.RF_RECURSIVE;
                     if (isHotfolderPath(rfstreeelem))
-                        rflags |= RF_SKIPHOTFOLDER_TIMSTAMPDIR;
+                        rflags |= GuiServerApi.RF_SKIPHOTFOLDER_TIMSTAMPDIR;
+                    if (dlg.isCompressed())
+                        rflags |= GuiServerApi.RF_COMPRESSION;
+                    if (dlg.isEncrypted())
+                        rflags |= GuiServerApi.RF_ENCRYPTION;
 
 
                     boolean rret = main.getGuiServerApi().restoreFSElem(searchWrapper, rfstreeelem.getElem(), ip, port, path, rflags, main.getUser());
@@ -1039,7 +1040,11 @@ public class ArchiveJobWin extends SidebarPanel
                             return;
                     }
 
-                    int rflags = RF_RECURSIVE | RF_RECURSIVE | RF_SKIPHOTFOLDER_TIMSTAMPDIR;
+                    int rflags = GuiServerApi.RF_RECURSIVE | GuiServerApi.RF_RECURSIVE | GuiServerApi.RF_SKIPHOTFOLDER_TIMSTAMPDIR;
+                    if (dlg.isCompressed())
+                        rflags |= GuiServerApi.RF_COMPRESSION;
+                    if (dlg.isEncrypted())
+                        rflags |= GuiServerApi.RF_ENCRYPTION;
 
 
                     boolean rret = main.getGuiServerApi().restoreJob(searchWrapper, job, ip, port, path, rflags, main.getUser());
