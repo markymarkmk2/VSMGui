@@ -115,7 +115,7 @@ public class RoleTable extends BaseDataEditTable<Role>
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
         fieldList.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
         fieldList.add(new JPATextField(VSMCMain.Txt("Benutzerfilter (Regexp)"), "accountmatch"));
-        fieldList.add(new AccountConnectorJPADBComboField( main.get_base_util_em() ));
+        fieldList.add(new AccountConnectorJPADBComboField( VSMCMain.get_base_util_em() ));
 
         ArrayList<ComboEntry> roe = new ArrayList<ComboEntry>();
         roe.add( new ComboEntry(RoleOption.RL_ALLOW_VIEW_PARAM, VSMCMain.Txt("Parameter Client öffnen")));
@@ -125,7 +125,7 @@ public class RoleTable extends BaseDataEditTable<Role>
 
         setTooltipText( fieldList, "accountmatch", VSMCMain.Txt("Wildcards mit .* (z.B.) user123.*" ) );
 
-        fieldList.add(new RoleOptionDBLinkField(main.get_base_util_em(), roe));
+        fieldList.add(new RoleOptionDBLinkField(VSMCMain.get_base_util_em(), roe));
 
         return new RoleTable( main,  list, fieldList, listener, roe);
     }
@@ -133,7 +133,7 @@ public class RoleTable extends BaseDataEditTable<Role>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_base_util_em();
+        return VSMCMain.get_base_util_em();
     }
 
 
@@ -162,11 +162,7 @@ public class RoleTable extends BaseDataEditTable<Role>
         return null;
     }
 
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
    @Override
     public <S> BaseDataEditTable createChildTable( VSMCMain main, Role role, List<S> list, Class child, ItemClickListener listener )
     {

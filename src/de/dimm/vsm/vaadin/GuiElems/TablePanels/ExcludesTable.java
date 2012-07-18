@@ -61,7 +61,7 @@ public class ExcludesTable extends BaseDataEditTable<Excludes>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_util_em(clientInfo.getSched().getPool());
+        return VSMCMain.get_util_em(clientInfo.getSched().getPool());
     }
 
 
@@ -98,10 +98,6 @@ public class ExcludesTable extends BaseDataEditTable<Excludes>
         return null;
 
     }
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
 }

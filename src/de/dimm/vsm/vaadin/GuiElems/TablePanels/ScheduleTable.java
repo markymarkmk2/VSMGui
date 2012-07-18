@@ -326,7 +326,7 @@ public class ScheduleTable extends BaseDataEditTable<Schedule>
 
     public static ScheduleTable createTable( VSMCMain main, StoragePool pool, List<Schedule> list, ItemClickListener listener)
     {
-        GenericEntityManager em = main.get_util_em(pool);
+        GenericEntityManager em = VSMCMain.get_util_em(pool);
 
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
         fieldList.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
@@ -349,7 +349,7 @@ public class ScheduleTable extends BaseDataEditTable<Schedule>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_util_em(pool);
+        return VSMCMain.get_util_em(pool);
     }
 
 
@@ -394,12 +394,7 @@ public class ScheduleTable extends BaseDataEditTable<Schedule>
 
         return null;
     }
-    
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
     @Override
     public Component createHeader( String caption )
@@ -441,14 +436,15 @@ public class ScheduleTable extends BaseDataEditTable<Schedule>
     }
 
     @Override
-    public boolean checkPlausibility( AbstractOrderedLayout previewTable, Schedule t )
+    public void checkPlausibility( AbstractOrderedLayout previewTable, Schedule t, Runnable ok, Runnable nok  )
     {
         if (t.getScheduleStart() == null)
             {
                 VSMCMain.notify(this, VSMCMain.Txt("Ungültiger Gültigkeitszeitpunkt"), VSMCMain.Txt("Bitte geben Sie ein gültiges Datum ein") );
-                return false;
+                nok.run();
+                return;
             }
-        return true;
+        ok.run();
     }
 
     public static String getNiceText(Schedule sched)

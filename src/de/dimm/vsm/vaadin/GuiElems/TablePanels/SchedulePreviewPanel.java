@@ -144,7 +144,7 @@ public class SchedulePreviewPanel extends PreviewPanel<Schedule>
                 
             }
         });
-        GenericEntityManager em = table.getMain().get_util_em(node.getPool());
+        GenericEntityManager em = VSMCMain.get_util_em(node.getPool());
 
         jobs = new JPAJobDBLinkField(em);
         // TO ENABLE CALLBACKS AND CLICKLISTENERES WE HAVE TO ADD FIELD TO FIELDLIST AND CREATE CLICKLISTENER

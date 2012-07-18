@@ -57,7 +57,7 @@ public class BackupResultTable extends BaseDataEditTable<BackupJobResult>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_util_em(pool);
+        return VSMCMain.get_util_em(pool);
     }
 
 
@@ -73,11 +73,7 @@ public class BackupResultTable extends BaseDataEditTable<BackupJobResult>
     {        
         return BackupVolumeResultTable.createTable(main, sched, (List<BackupVolumeResult>) list, listener);
     }
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
     
     @Override
     protected void setDBWinLayout( Window win )

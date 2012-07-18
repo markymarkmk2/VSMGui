@@ -50,7 +50,7 @@ public class ClientVolumeTable extends BaseDataEditTable<ClientVolume>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_util_em(clientInfo.getSched().getPool());
+        return VSMCMain.get_util_em(clientInfo.getSched().getPool());
     }
 
     @Override
@@ -84,11 +84,7 @@ public class ClientVolumeTable extends BaseDataEditTable<ClientVolume>
         return null;
 
     }
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
     @Override
     protected void setDBWinLayout( Window win )

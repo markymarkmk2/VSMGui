@@ -136,7 +136,7 @@ public class BackupVolumeResultTable extends BaseDataEditTable<BackupVolumeResul
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_util_em(jobResult.getSchedule().getPool());
+        return VSMCMain.get_util_em(jobResult.getSchedule().getPool());
     }
 
     @Override
@@ -146,11 +146,7 @@ public class BackupVolumeResultTable extends BaseDataEditTable<BackupVolumeResul
         return null;
 
     }
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
     @Override
     protected void setDBWinLayout( Window win )

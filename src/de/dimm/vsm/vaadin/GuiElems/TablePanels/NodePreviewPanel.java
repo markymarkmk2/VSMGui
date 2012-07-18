@@ -47,10 +47,18 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
                 JPADBLinkField linkField = (JPADBLinkField)jPAField;
                 addDBLinkClickListener( gui, linkField );
             }
-            jPAField.setReadOnly(gui, rdOnly);
+            if (jPAField.getFieldName().equals("mountPoint"))
+            {
+                jPAField.setReadOnly(gui, rdOnly || !table.isNew() );
+            }
+            else
+            {
+                jPAField.setReadOnly(gui, rdOnly);
+            }
         }
 
         setData(node);
+
 
         HorizontalLayout hl = new HorizontalLayout();
         hl.setSpacing(true);
@@ -71,14 +79,28 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
                 ((AbstractStorageNodeTable)table).moveNode( node );
             }
         });
+        NativeButton syncNode = new NativeButton(VSMCMain.Txt("CloneNode synchronisieren"), new ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                ((AbstractStorageNodeTable)table).syncNode( node );
+            }
+        });
 
         hl.addComponent(deleteNode);
         hl.addComponent(moveNode);
+
+        if (node.getCloneNode() != null)
+        {
+             hl.addComponent(syncNode);
+        }
 
         addComponent(hl);
 
 
     }
+
 
 
 }

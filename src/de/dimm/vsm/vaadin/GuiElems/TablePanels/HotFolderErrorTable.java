@@ -47,7 +47,7 @@ public class HotFolderErrorTable extends BaseDataEditTable<HotFolderError>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_base_util_em();
+        return VSMCMain.get_base_util_em();
     }
     
     @Override
@@ -84,11 +84,7 @@ public class HotFolderErrorTable extends BaseDataEditTable<HotFolderError>
         return null;
 
     }
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
     @Override
     protected void setDBWinLayout( Window win )

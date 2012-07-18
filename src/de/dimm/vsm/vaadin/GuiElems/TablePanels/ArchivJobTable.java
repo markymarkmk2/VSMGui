@@ -66,7 +66,7 @@ public class ArchivJobTable  extends BaseDataEditTable<ArchiveJob>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_base_util_em();
+        return VSMCMain.get_base_util_em();
     }
 
 
@@ -78,9 +78,5 @@ public class ArchivJobTable  extends BaseDataEditTable<ArchiveJob>
 
     }
 
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 }

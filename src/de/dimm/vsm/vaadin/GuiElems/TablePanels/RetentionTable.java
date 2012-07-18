@@ -236,7 +236,7 @@ public class RetentionTable extends BaseDataEditTable<Retention>
     public static RetentionTable createTable( VSMCMain main, StoragePool pool, ItemClickListener listener) throws SQLException
     {
 
-        List<Retention> list = main.get_util_em(pool).createQuery("select T1 from Retention T1 where T1.pool_idx=" + pool.getIdx(), Retention.class);
+        List<Retention> list = VSMCMain.get_util_em(pool).createQuery("select T1 from Retention T1 where T1.pool_idx=" + pool.getIdx(), Retention.class);
         
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
 
@@ -262,29 +262,29 @@ public class RetentionTable extends BaseDataEditTable<Retention>
     }
 
     @Override
-    public boolean checkPlausibility( AbstractOrderedLayout previewTable, Retention t)
+    public void checkPlausibility( AbstractOrderedLayout previewTable, Retention t, Runnable ok, Runnable nok)
     {
         JPATextField name = (JPATextField)getField("name");
         if (name.getGuiValue(previewTable) == null || name.getGuiValue(previewTable).length() == 0)
         {
             main.Msg().errmOk(VSMCMain.Txt("Ungültiger Name"));
-            return false;
+            return;
         }
 
         JPAComboField ca = (JPAComboField)getField("followAction");
         if (!ca.getSelectedEntry(previewTable).getDbEntry().equals(Retention.AC_DELETE))
         {
             main.Msg().errmOk(VSMCMain.Txt("Aktion ist noch nicht implementiert"));
-            return false;
+            return;
         }
 
-        return true;
+        ok.run();
     }
 
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_util_em(pool);
+        return VSMCMain.get_util_em(pool);
     }
 
     @Override
@@ -325,11 +325,7 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         return null;
 
     }
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
     RetentionPreviewPanel editPanel;
     

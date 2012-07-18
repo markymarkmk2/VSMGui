@@ -39,7 +39,7 @@ public class SnapshotTable extends BaseDataEditTable<Snapshot>
     public static SnapshotTable createTable( VSMCMain main, StoragePool pool, ItemClickListener listener) throws SQLException
     {
 
-        List<Snapshot> list = main.get_util_em(pool).createQuery("select T1 from Snapshot T1 where T1.pool_idx=" + pool.getIdx(), Snapshot.class);
+        List<Snapshot> list = VSMCMain.get_util_em(pool).createQuery("select T1 from Snapshot T1 where T1.pool_idx=" + pool.getIdx(), Snapshot.class);
         
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
 
@@ -50,21 +50,22 @@ public class SnapshotTable extends BaseDataEditTable<Snapshot>
     }
 
     @Override
-    public boolean checkPlausibility(AbstractOrderedLayout previewTable, Snapshot t)
+    public void checkPlausibility(AbstractOrderedLayout previewTable, Snapshot t, Runnable ok, Runnable nok )
     {
         JPATextField name = (JPATextField)getField("name");
         if (name.getGuiValue(previewTable) == null || name.getGuiValue(previewTable).length() == 0)
         {
             main.Msg().errmOk(VSMCMain.Txt("Ungültiger Name"));
-            return false;
+            nok.run();
+            return;
         }
-        return true;
+        ok.run();
     }
 
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_util_em(pool);
+        return VSMCMain.get_util_em(pool);
     }
 
 
@@ -99,12 +100,7 @@ public class SnapshotTable extends BaseDataEditTable<Snapshot>
         return null;
 
     }
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
-    
+
     
 
   /* @Override
