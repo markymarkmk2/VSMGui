@@ -285,7 +285,8 @@ public class LogTable extends BaseDataEditTable<MessageLog>
             lastLog = null;
 
 
-        if (lastLog != null)
+        // LAST LOGS SINCE ONLY IF WE UPDATE ONLINE (OLDER THAN NULL)
+        if (lastLog != null && lq.getOlderThan() == null)
         {
             MessageLog[] arr = main.getDummyGuiServerApi().listLogsSince( lastLog.getIdx(), lq);
 
@@ -322,22 +323,33 @@ public class LogTable extends BaseDataEditTable<MessageLog>
 
 
     LogQuery last_lq;
+
     private void requestStatus()
     {
         LogQuery lq = provider.getLogQuery();
+        boolean reReadLogs = false;
 
         long cnt = main.getDummyGuiServerApi().getLogCounter();
 
-        // SKIP IF LOG IS ANCHANGED AND QUERY IS UNCHANGED
-        if (cnt == lastCounter)
+        // QRY CHANGED THEN RELOAD
+        if (last_lq == null || !last_lq.equals(lq))
+            reReadLogs = true;
+
+        // NEW DATA
+        if (!reReadLogs && cnt != lastCounter)
         {
-            if (last_lq != null && last_lq.equals(lq))
+            // QRY ON OLD DATA, IGNORE NEW ENTRIES
+            if (lq.getOlderThan() == null)
             {
-                return;
+                reReadLogs = true;
             }
         }
+        if (!reReadLogs)
+            return;
 
-        listLogs(provider.getCnt(), provider.getOffset(), lq);
+
+
+        listLogs(lq.getMaxLen(), provider.getOffset(), lq);
 
         lastCounter = cnt;
         last_lq = lq;
@@ -358,7 +370,7 @@ public class LogTable extends BaseDataEditTable<MessageLog>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_base_util_em();
+        return VSMCMain.get_base_util_em();
     }
 
     @Override
@@ -367,11 +379,7 @@ public class LogTable extends BaseDataEditTable<MessageLog>
         return null;
     }
 
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
     boolean inside_reset;
     public void resetLog()
