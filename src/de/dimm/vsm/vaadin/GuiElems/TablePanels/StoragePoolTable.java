@@ -8,11 +8,11 @@ package de.dimm.vsm.vaadin.GuiElems.TablePanels;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import de.dimm.vsm.fsengine.GenericEntityManager;
 import de.dimm.vsm.records.AbstractStorageNode;
 import de.dimm.vsm.records.StoragePool;
-import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBLinkField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAReadOnlyDateField;
@@ -59,19 +59,34 @@ public class StoragePoolTable extends BaseDataEditTable<StoragePool>
     @Override
     protected StoragePool createNewObject()
     {
-
+        final Component _this = this;
         StoragePool ret = null;
-        try
+        Runnable r = new Runnable()
         {
-            ret = main.createPool();
-        }
-        catch (Exception e)
-        {            
-            VSMCMain.notify(this, VSMCMain.Txt("Es konnte kein neuer Pool angelegt werden"), e.getMessage());
-        }
-        this.requestRepaint();
+            @Override
+            public void run()
+            {
+                try
+                {
+                    StoragePool pool =  (StoragePool) VSMCMain.callLogicControl("createPool", /*catch Exc*/ false);
+                    if (pool != null)
+                    {
+                        registerNewObject(pool);
+                    }                    
+                    _this.requestRepaint();
+                }
+                catch (Exception e)
+                {
+                    main.getBusy().hideBusy();
+                    VSMCMain.notify(_this, VSMCMain.Txt("Es konnte kein neuer Pool angelegt werden"), e.getMessage());
+                }
+            }
+        };
+        main.runInBusy("Lege neuen StoragePool an", r);
+        
 
-        return ret;
+        // IS HANDLED IN RUNNABLE
+        return null;
     }
 
     @Override
@@ -144,11 +159,7 @@ public class StoragePoolTable extends BaseDataEditTable<StoragePool>
     }
 
 
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
     @Override
     protected boolean checkDeletePlausible( StoragePool t ) throws SQLException
@@ -156,7 +167,7 @@ public class StoragePoolTable extends BaseDataEditTable<StoragePool>
         if (!super.checkDeletePlausible(t))
             return false;
 
-        GenericEntityManager gem = main.get_util_em(t);
+        GenericEntityManager gem = VSMCMain.get_util_em(t);
 
         String qry = "select T1 from AbstractStoragePool T1 where T1.pool_idx=" + t.getIdx();
         AbstractStorageNode n = gem.createSingleResultQuery(qry, AbstractStorageNode.class);
@@ -171,7 +182,7 @@ public class StoragePoolTable extends BaseDataEditTable<StoragePool>
     @Override
     protected GenericEntityManager get_em()
     {
-        GenericEntityManager gem = main.get_util_em(activeElem);
+        GenericEntityManager gem = VSMCMain.get_util_em(activeElem);
         return gem;
     }
 
