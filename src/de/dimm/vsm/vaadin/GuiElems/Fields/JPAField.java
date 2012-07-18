@@ -34,6 +34,8 @@ public abstract class JPAField
     private int defaultFieldWidth = -1;
     private float defaultExpandRatio = -1;
 
+    Validator validator;
+
     public JPAField(  String caption, String fieldName )
     {
         this.caption = caption;
@@ -224,6 +226,16 @@ public abstract class JPAField
     public void setTooltipText( String txt )
     {
         toolTip = txt;
+    }
+
+    public void setValidator( Validator v )
+    {
+        validator = v;
+    }
+
+    public boolean isValid(  AbstractOrderedLayout panel )
+    {
+        return true;
     }
 
     

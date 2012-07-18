@@ -54,6 +54,11 @@ public class JPACheckBox extends JPAField
         if (toolTip != null)
             checkBox.setDescription(toolTip);
 
+        if (validator != null)
+        {
+            checkBox.addValidator(validator);
+            checkBox.setValidationVisible(true);
+        }
 
         checkBox.setData(this);
         checkBox.setVisible(isFieldVisible());
@@ -92,5 +97,16 @@ public class JPACheckBox extends JPAField
 
         return checkBox;
     }
-
+    @Override
+    public boolean isValid( AbstractOrderedLayout panel )
+    {
+        Component gui = getGuiforField(panel, fieldName);
+        if (gui != null && gui.isVisible())
+        {
+            CheckBox tf = (CheckBox)gui;
+            return tf.isValid();
+        }
+        // MAYBE NOT VISIUAL, WE USSUME UNCHANGED OR IRRELEVANT
+        return true;
+    }
 }

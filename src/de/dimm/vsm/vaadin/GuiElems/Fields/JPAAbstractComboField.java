@@ -85,8 +85,17 @@ public abstract class JPAAbstractComboField extends JPAField {
         comboBox.setInvalidAllowed(false);
         comboBox.setNewItemsAllowed(false);
         comboBox.setImmediate(true);
+        
         if (toolTip != null)
             comboBox.setDescription(toolTip);
+        
+        if (validator != null)
+        {
+            comboBox.addValidator(validator);
+            comboBox.setValidationVisible(true);
+            comboBox.setRequired(true);
+        }
+
 
 
         for (int i = 0; i < entries.size(); i++)
@@ -138,4 +147,16 @@ public abstract class JPAAbstractComboField extends JPAField {
         return entry;
     }
 
+    @Override
+    public boolean isValid( AbstractOrderedLayout panel )
+    {
+        Component gui = getGuiforField(panel, fieldName);
+        if (gui != null && gui.isVisible())
+        {
+            ComboBox tf = (ComboBox)gui;
+            return tf.isValid();
+        }
+        // MAYBE NOT VISIUAL, WE USSUME UNCHANGED OR IRRELEVANT
+        return true;
+    }
 }

@@ -10,7 +10,9 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import de.dimm.vsm.fsengine.GenericEntityManager;
 import de.dimm.vsm.fsengine.LazyList;
+import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.Table.DBLinkColumnGenerator;
+import de.dimm.vsm.vaadin.VSMCMain;
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -85,13 +87,20 @@ public class JPADBLinkField<T> extends JPAField
             if (o instanceof LazyList)
             {
                 LazyList<T> list = (LazyList<T>) o;
-                if (em != null)
+                
+                GenericEntityManager local_em = em;
+                if (local_em == null && parent instanceof StoragePool)
+                {
+                    local_em = VSMCMain.get_util_em((StoragePool)parent);
+                }
+                if (local_em != null)
                 {
                     // FORCE DIREKT READ OF DB
                     list.unRealize();
 
-                    return list.getList(em);
+                    return list.getList(local_em);
                 }
+
                 if (!list.isRealized())
                     throw new RuntimeException("Lazy List is not realized");
                 

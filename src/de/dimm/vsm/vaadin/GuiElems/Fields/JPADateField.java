@@ -9,6 +9,7 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.MethodProperty;
+import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Label;
@@ -106,6 +107,13 @@ public class JPADateField extends JPAField implements ColumnGeneratorField
         if (toolTip != null)
             tf.setDescription(toolTip);
         
+        if (validator != null)
+        {
+            tf.addValidator(validator);
+            tf.setValidationVisible(true);
+            tf.setRequired(true);
+        }
+
         tf.setData(this);
         
         tf.addListener(vcl);
@@ -143,6 +151,17 @@ public class JPADateField extends JPAField implements ColumnGeneratorField
     {
         return new DateColumnGenerator(resolution);
     }
-
+    @Override
+    public boolean isValid( AbstractOrderedLayout panel )
+    {
+        Component gui = getGuiforField(panel, fieldName);
+        if (gui != null && gui.isVisible())
+        {
+            DateField tf = (DateField)gui;
+            return tf.isValid();
+        }
+        // MAYBE NOT VISIUAL, WE USSUME UNCHANGED OR IRRELEVANT
+        return true;
+    }
     
 }

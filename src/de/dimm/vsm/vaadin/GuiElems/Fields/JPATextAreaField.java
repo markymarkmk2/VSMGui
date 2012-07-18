@@ -54,6 +54,13 @@ public class JPATextAreaField extends JPAField
         if (toolTip != null)
             tf.setDescription(toolTip);
         
+        if (validator != null)
+        {
+            tf.addValidator(validator);
+            tf.setValidationVisible(true);
+            tf.setRequired(true);
+        }
+
         tf.addListener(vcl);
         tf.addListener( new TextChangeListener() {
 
@@ -100,4 +107,17 @@ public class JPATextAreaField extends JPAField
         }
         return null;
     }
+    @Override
+    public boolean isValid( AbstractOrderedLayout panel )
+    {
+        Component gui = getGuiforField(panel, fieldName);
+        if (gui != null && gui.isVisible())
+        {
+            TextArea tf = (TextArea)gui;
+            return tf.isValid();
+        }
+        // MAYBE NOT VISIUAL, WE USSUME UNCHANGED OR IRRELEVANT
+        return true;
+    }
+
 }
