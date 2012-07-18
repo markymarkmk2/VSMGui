@@ -165,7 +165,7 @@ public class AccountConnectorTable extends BaseDataEditTable<AccountConnector>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_base_util_em();
+        return VSMCMain.get_base_util_em();
     }
 
     @Override
@@ -198,11 +198,7 @@ public class AccountConnectorTable extends BaseDataEditTable<AccountConnector>
         return null;
     }
 
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
     AccountConnectorPreviewPanel editPanel;
 
