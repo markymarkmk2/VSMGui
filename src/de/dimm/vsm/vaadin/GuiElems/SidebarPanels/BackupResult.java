@@ -148,7 +148,7 @@ public class BackupResult extends SidebarPanel
         List<BackupJobResult> list = null;
         try
         {
-            list = main.get_util_em(pool).createQuery("select p from BackupJobResult p order by T1.idx desc", BackupJobResult.class);
+            list = VSMCMain.get_util_em(pool).createQuery("select p from BackupJobResult p order by T1.idx desc", BackupJobResult.class);
         }
         catch (SQLException sQLException)
         {
@@ -205,7 +205,7 @@ public class BackupResult extends SidebarPanel
                 setActiveBackupVolumeResult();
             }
         };
-        GenericEntityManager em = main.get_util_em(job.getSchedule().getPool());
+        GenericEntityManager em = VSMCMain.get_util_em(job.getSchedule().getPool());
 
         volumeTable = BackupVolumeResultTable.createTable(main, job, job.getBackupVolumeResults().getList(em), l);
 
