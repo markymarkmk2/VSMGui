@@ -203,7 +203,7 @@ public class PoolEditorWin extends SidebarPanel
         List<Schedule> list = null;
         try
         {
-            list = main.get_util_em(pool).createQuery("select s from Schedule s where T1.pool_idx=" + idx, Schedule.class);
+            list = VSMCMain.get_util_em(pool).createQuery("select s from Schedule s where T1.pool_idx=" + idx, Schedule.class);
         }
         catch (SQLException sQLException)
         {
