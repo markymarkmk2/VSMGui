@@ -15,6 +15,8 @@ import de.dimm.vsm.records.DedupHashBlock;
 import de.dimm.vsm.records.PoolNodeFileLink;
 import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
+import de.dimm.vsm.vaadin.GuiElems.Fields.JPAAbstractComboField;
+import de.dimm.vsm.vaadin.GuiElems.Fields.JPACloneNodeComboField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAComboField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPALocalFSField;
@@ -22,6 +24,7 @@ import de.dimm.vsm.vaadin.GuiElems.Fields.JPATextField;
 import de.dimm.vsm.vaadin.GuiElems.Table.BaseDataEditTable;
 import de.dimm.vsm.vaadin.SelectObjectCallback;
 import de.dimm.vsm.vaadin.VSMCMain;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +44,7 @@ public class AbstractStorageNodeTable extends BaseDataEditTable<AbstractStorageN
 
     public static AbstractStorageNodeTable createTable( VSMCMain main, StoragePool pool, ItemClickListener listener)
     {
-        GenericEntityManager em = main.get_util_em(pool);
+        GenericEntityManager em = VSMCMain.get_util_em(pool);
         List<AbstractStorageNode> list = pool.getStorageNodes(em);
         
 
@@ -67,48 +70,88 @@ public class AbstractStorageNodeTable extends BaseDataEditTable<AbstractStorageN
             entries.add( new ComboEntry(AbstractStorageNode.NT_S3, VSMCMain.Txt("S3")));
 
         fieldList.add(new JPAComboField(VSMCMain.Txt("Typ"), "nodeType", entries));
+        fieldList.add(new JPACloneNodeComboField( main, pool, "cloneNode" ) );
 
 
         return new AbstractStorageNodeTable( main, pool, list, fieldList, listener);
     }
 
     @Override
-    public boolean checkPlausibility(AbstractOrderedLayout editPanel, AbstractStorageNode t)
+    public void checkPlausibility(AbstractOrderedLayout editPanel, final AbstractStorageNode t, final Runnable ok, Runnable nok)
     {
-        JPAComboField nodeMode = (JPAComboField) getField("nodeMode");
-        ComboEntry entry = nodeMode.getSelectedEntry((AbstractOrderedLayout) editPanel);
-        if (entry == null)
-            return false;
-        
-        // DETECT USERCHANGE ON MODE COMBO
-        if (!entry.getDbEntry().equals(t.getNodeMode()) )
+        if (t.getMountPoint().isEmpty())
         {
-            // IS IN PROGRESS ?
-            if (t.getNodeMode().equals(AbstractStorageNode.NM_EMPTYING))
+            main.Msg().errmOk(VSMCMain.Txt("Bitte geben Sie einen Pfad an"));
+            nok.run();
+            return;
+        }
+
+        if (isNew())
+        {
+            // INIT STORAGENODE
+            boolean ret = doInitNode(t);
+            if (!ret)
             {
-                main.Msg().errmOk(VSMCMain.Txt("Der_Status_des_Node_ist_in_Bearbeitung"));
-                return false;
-            }
-            // IS INVALID_STATE ?
-            if (entry.getDbEntry().equals(AbstractStorageNode.NM_EMPTIED) || entry.getDbEntry().equals(AbstractStorageNode.NM_VIRGIN))
-            {
-                main.Msg().errmOk(VSMCMain.Txt("Der_Status_des_Node_kann_nicht_verändert_werden"));
-                return false;
-            }
-            // IS IN PROGRESS ?
-            if (entry.getDbEntry().equals(AbstractStorageNode.NM_EMPTYING))
-            {
-                main.Msg().errmOk(VSMCMain.Txt("Der_Node_wird_geleert"));
-                return true;
+                main.Msg().errmOk(VSMCMain.Txt("Der_Node_konnte nicht im Dateisystem angelegt werden"));
+                nok.run();
+                return;
             }
         }
-        return true;
+        if (!isNew())
+        {
+            // DETECT USERCHANGE ON MODE COMBO
+            if (!getElemBeforEdit().getNodeMode().equals(t.getNodeMode()))
+            {
+                // IS IN PROGRESS ?
+                if (isBusyNode(t))
+                {
+                    main.Msg().errmOk(VSMCMain.Txt("Der_Node_ist_in_Bearbeitung"));
+                    nok.run();
+                    return;
+                }
+                // IS INVALID_STATE ?
+                if (t.getNodeMode().equals(AbstractStorageNode.NM_EMPTIED) || t.getNodeMode().equals(AbstractStorageNode.NM_VIRGIN))
+                {
+                    main.Msg().errmOk(VSMCMain.Txt("Der_Status_des_Node_kann_nicht_verändert_werden"));
+                    nok.run();
+                    return;
+                }               
+            }
+        }
+
+        // DETECT START OF CLONING
+        JPAAbstractComboField nodeMode = (JPAAbstractComboField) getField("cloneNode");
+        ComboEntry entry = nodeMode.getSelectedEntry((AbstractOrderedLayout) editPanel);
+        if (entry != null)
+        {
+            if (getElemBeforEdit().getCloneNode() == null)
+            {
+                ClickListener okClick = new ClickListener()
+                {
+                    @Override
+                    public void buttonClick( ClickEvent event )
+                    {
+                        try
+                        {
+                            doSyncNode( t );
+                        }
+                        catch (Exception exception)
+                        {
+                            main.Msg().errmOk(VSMCMain.Txt("Das Kopieren schlug fehl") + " " + exception.toString());
+                        }
+                    }
+                };
+                main.Msg().errmOkCancel(VSMCMain.Txt("Der CloneNode wird jetzt mit diesem Node abgeglichen, dies kann ja nach Füllstand dieses Nodes lange dauern"), okClick, null);
+            }
+        }
+
+        ok.run();
     }
 
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_util_em(pool);
+        return VSMCMain.get_util_em(pool);
     }
 
 
@@ -146,11 +189,7 @@ public class AbstractStorageNodeTable extends BaseDataEditTable<AbstractStorageN
         return null;
 
     }
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
     
     NodePreviewPanel editPanel;
 
@@ -190,6 +229,23 @@ public class AbstractStorageNodeTable extends BaseDataEditTable<AbstractStorageN
         };
         main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_den_Inhalt_dieses_Nodes_auf_einen_anderen_freien_Node_bewegen?"),  okListener, null);
     }
+    void syncNode( final AbstractStorageNode node )
+    {
+        ClickListener okListener = new ClickListener()
+        {
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                doSyncNode( node );
+            }
+        };
+        main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_den_CloneNode_synchronisieren?"),  okListener, null);
+    }
+
+    boolean isBusyNode( AbstractStorageNode node )
+    {
+        return main.getGuiServerApi().isBusyNode(node);
+    }
 
     void doEmptyNode( AbstractStorageNode node )
     {
@@ -202,6 +258,23 @@ public class AbstractStorageNodeTable extends BaseDataEditTable<AbstractStorageN
         {
             main.Msg().errmOk(VSMCMain.Txt("Das_Entleeren_konnte_nicht_gestartet_werden") + " :" + exception.getMessage() );
         }
+    }
+    boolean doInitNode( AbstractStorageNode node )
+    {
+        try
+        {
+            boolean ret = main.getGuiServerApi().initNode(node, main.getUser());
+            if (ret)
+                main.Msg().info(VSMCMain.Txt("Der StorageNode wurde initialisiert"), null);
+            else
+                main.Msg().errmOk(VSMCMain.Txt("Der StorageNode konnte nicht initialisiert werden"), null);
+            return ret;
+        }
+        catch (Exception exception)
+        {
+            main.Msg().errmOk(VSMCMain.Txt("Fehler beim Initalisieren des Nodes") + " :" + exception.getMessage() );
+        }
+        return false;
 
     }
     void doMoveNode( final AbstractStorageNode node )
@@ -223,6 +296,33 @@ public class AbstractStorageNodeTable extends BaseDataEditTable<AbstractStorageN
                 catch (Exception exception)
                 {
                     main.Msg().errmOk(VSMCMain.Txt("Das_Umbewegen_konnte_nicht_gestartet_werden") + " :" + exception.getMessage() );
+                }
+            }
+        };
+
+        main.SelectObject( pool, AbstractStorageNode.class, VSMCMain.Txt("SpeicherNode"), VSMCMain.Txt("Weiter"), "Select s from AbstractStorageNode s where "
+                + "T1.pool_idx=" + node.getPool().getIdx() + " and T1.idx!=" + node.getIdx(), cb );
+
+    }
+    void doSyncNode( final AbstractStorageNode node )
+    {
+        SelectObjectCallback cb = new SelectObjectCallback<AbstractStorageNode>()
+        {
+
+            @Override
+            public void SelectedAction( AbstractStorageNode toNode )
+            {
+                if (toNode == null)
+                    return;
+
+                try
+                {
+                    main.getGuiServerApi().syncNode(node, toNode, main.getUser());
+                    main.Msg().info(VSMCMain.Txt("Der_Vorgang_wurde_als_Job_angemeldet_und_gestartet"), null);
+                }
+                catch (Exception exception)
+                {
+                    main.Msg().errmOk(VSMCMain.Txt("Das_Synchronisieren_konnte_nicht_gestartet_werden") + " :" + exception.getMessage() );
                 }
             }
         };
@@ -259,6 +359,7 @@ public class AbstractStorageNodeTable extends BaseDataEditTable<AbstractStorageN
         
         return true;
     }
+
 
 
 }
