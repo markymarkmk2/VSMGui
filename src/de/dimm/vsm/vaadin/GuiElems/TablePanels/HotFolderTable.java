@@ -51,6 +51,9 @@ public class HotFolderTable extends BaseDataEditTable<HotFolder>
         entries.add( new ComboEntry(HotFolder.HF_DIRS, VSMCMain.Txt("Nur_Verzeichnisse")));
         entries.add( new ComboEntry(HotFolder.HF_FILES, VSMCMain.Txt("Nur_dateien")));
         fieldList.add(new JPAComboField(VSMCMain.Txt("Typ"), "acceptString", entries));
+       
+        fieldList.add(new JPACheckBox(VSMCMain.Txt("Komprimierung"), "hfcompression"));
+        fieldList.add(new JPACheckBox(VSMCMain.Txt("Verschlüsselung"), "hfencryption"));
 
         JPAPoolComboField poolCombo = new JPAPoolComboField( main, "poolIdx");
         fieldList.add(poolCombo);
@@ -72,6 +75,8 @@ public class HotFolderTable extends BaseDataEditTable<HotFolder>
         setTableColumnVisible(fieldList, "typ", false);
         setTableColumnVisible(fieldList, "filter", false);
         setTableColumnVisible(fieldList, "port", false);
+        setTableColumnVisible(fieldList, "hfcompression", false);
+        setTableColumnVisible(fieldList, "hfencryption", false);
         setTableColumnVisible(fieldList, "settleTime", false);
         setTableColumnVisible(fieldList, "basePath", false);
         setTableColumnVisible(fieldList, "mmVerify", false);
@@ -113,7 +118,7 @@ public class HotFolderTable extends BaseDataEditTable<HotFolder>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_base_util_em();
+        return VSMCMain.get_base_util_em();
     }
 
 
@@ -130,6 +135,7 @@ public class HotFolderTable extends BaseDataEditTable<HotFolder>
         p.setCreateDateSubdir(true);
         p.setMmMountPath("");
         p.setBasePath("");
+        p.setDisabled(true);
 
         // CREATE ROOT DIR
         FileSystemElemNode root_node = FileSystemElemNode.createDirNode();
@@ -156,11 +162,7 @@ public class HotFolderTable extends BaseDataEditTable<HotFolder>
 
     }
 
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
     void importMMArchiv( HotFolder node, long fromIdx, long tillIdx, boolean withOldJobs) throws Exception
     {
