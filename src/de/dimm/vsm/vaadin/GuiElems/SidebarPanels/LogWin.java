@@ -173,7 +173,7 @@ public class LogWin extends SidebarPanel implements LoqQueryProvider
         if (flags == LogQuery.LV_MASK)
             flags = 0;
 
-        LogQuery lq = new LogQuery(flags, qry, d);
+        LogQuery lq = new LogQuery(flags, qry, d, getCnt());
         
         return lq;
     }
