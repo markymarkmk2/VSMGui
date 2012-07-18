@@ -244,7 +244,7 @@ public class ScheduleJobTable extends BaseDataEditTable<Job>
     @Override
     protected GenericEntityManager get_em()
     {
-        return main.get_util_em(sched.getPool());
+        return VSMCMain.get_util_em(sched.getPool());
     }
 
     @Override
@@ -275,11 +275,7 @@ public class ScheduleJobTable extends BaseDataEditTable<Job>
         return null;
     }
 
-    @Override
-    protected String getTablenameText()
-    {
-        return VSMCMain.Txt(this.getClass().getSimpleName());
-    }
+
 
     ScheduleJobPreviewPanel editPanel;
 
@@ -302,25 +298,21 @@ public class ScheduleJobTable extends BaseDataEditTable<Job>
     }
 
     @Override
-    public boolean checkPlausibility( AbstractOrderedLayout editPanel, Job job )
+    public void checkPlausibility( AbstractOrderedLayout editPanel, Job job, Runnable ok, Runnable nok)
     {
         ScheduleJobPreviewPanel panel = (ScheduleJobPreviewPanel)editPanel;
-
-        
 
         long cycleLenS = job.getSched().getCycleLengthMs() / 1000;
         int dayNumber = panel.getDayNumber();
 
-       
-
         if (cycleLenS >86400 && dayNumber < 0 || dayNumber >= cycleLenS / 86400)
         {
             VSMCMain.notify(this, VSMCMain.Txt("Ungültige Tagnummer"), VSMCMain.Txt("Bitte geben Sie eine gültige Tagnummer ein") );
-            return false;
+            nok.run();
+            return;
         }
 
-        return true;
-
+        ok.run();
     }
 
 
