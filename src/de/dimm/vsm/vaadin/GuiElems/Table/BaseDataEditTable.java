@@ -5,9 +5,11 @@
 
 package de.dimm.vsm.vaadin.GuiElems.Table;
 
+import com.thoughtworks.xstream.XStream;
 import com.vaadin.Application;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+import com.vaadin.data.Validator;
 import com.vaadin.data.util.BeanContainer;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.MethodProperty;
@@ -26,6 +28,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import de.dimm.vsm.fsengine.GenericEntityManager;
+import de.dimm.vsm.records.FileSystemElemNode;
 import de.dimm.vsm.vaadin.GuiElems.Fields.ColumnGeneratorField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAAbstractComboField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
@@ -374,6 +377,18 @@ public abstract class BaseDataEditTable<T> extends Table
             }
         }
     }
+    static public void setFieldValidator(  ArrayList<JPAField> fieldList, String filedName, Validator v )
+    {
+        for (int i = 0; i < fieldList.size(); i++)
+        {
+            JPAField jPAField = fieldList.get(i);
+            if (jPAField.getFieldName().equals(filedName))
+            {
+                jPAField.setValidator(v);
+            }
+        }
+    }
+
     public void setTableColumnVisible( String filedName, boolean visible )
     {
         setTableColumnVisible(fieldList, filedName, visible);
@@ -419,6 +434,7 @@ public abstract class BaseDataEditTable<T> extends Table
         bc.valueChange( null );
         //setContainerDataSource(bc);
         requestRepaint();
+        refreshRowCache();
         if (activeElem != null)
         {
             updateItem(activeElem);
@@ -451,7 +467,7 @@ public abstract class BaseDataEditTable<T> extends Table
 
         if (col_id.equals("edit"))
         {
-            callTableEdit();
+            callTableEdit(/*isNew*/false);
         }
         else if(col_id.equals("delete"))
         {
@@ -500,7 +516,7 @@ public abstract class BaseDataEditTable<T> extends Table
         }
         else
         {
-            callTableEdit();
+            callTableEdit(/*isNew*/false);
         }
     }
 
@@ -508,14 +524,35 @@ public abstract class BaseDataEditTable<T> extends Table
     {
         return activeElem;
     }
+    public T getElemBeforEdit()
+    {
+        return elemBeforEdit;
+    }
 
-    public void callTableEdit()
+    public boolean isNew()
+    {
+        return isNew;
+    }
+    T elemBeforEdit;
+    public void callTableEdit(boolean _isNew)
     {
         if (!main.checkLogin())
             return;
 
         if (!main.allowEditGui())
             return;
+
+        // SET EDIT MARKERS
+        isNew = _isNew;
+
+        XStream xs = new XStream();
+        // DO NOT RECURSE INTO FSEN-CHILDREN, IS NOT RELEVANT FOR EDITOR
+        xs.omitField( FileSystemElemNode.class, "children" );
+
+        // CLEAR ALL LAZY LISTS, THEN THE SERIALIZATION DOESNT BLOCK ON LARGE CHILDLISTS
+        get_em().em_refresh(activeElem);
+
+        elemBeforEdit = (T) xs.fromXML( xs.toXML(activeElem));
 
         final OkAbortPanel buttonPanel = new OkAbortPanel();
 
@@ -562,16 +599,30 @@ public abstract class BaseDataEditTable<T> extends Table
         {
 
             @Override
-            public void buttonClick( ClickEvent event )
+            public void buttonClick( final ClickEvent event )
             {
-                if (!checkPlausibility(editPanel, activeElem))
+
+                Runnable okRunner = new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        saveActiveObject();
+                        event.getButton().getApplication().getMainWindow().removeWindow(myw);
+
+                        updateItem( activeElem );
+                        setValueChanged();
+                    }
+                };
+                if (!checkValidators(editPanel))
+                {
+                    editFallbackRunner.run();
+                    VSMCMain.notify(myw, VSMCMain.Txt("Bitte prüfen Sie Ihre Eingaben" ), VSMCMain.Txt("Feld:") + " " + invalidCaption);
                     return;
+                }
 
-                saveActiveObject();
-                event.getButton().getApplication().getMainWindow().removeWindow(myw);
+                checkPlausibility(editPanel, activeElem, okRunner, editFallbackRunner);
 
-                updateItem( activeElem );
-                setValueChanged();
                 
             }
         });        
@@ -585,6 +636,22 @@ public abstract class BaseDataEditTable<T> extends Table
         app.getMainWindow().addWindow(myw);
 
         main.getAnimatorProxy().animate(myw, AnimType.FADE_IN).setDuration(300);
+    }
+
+    String invalidCaption;
+    protected boolean checkValidators(AbstractOrderedLayout panel)
+    {
+        for (int i = 0; i < fieldList.size(); i++)
+        {
+            JPAField jPAField = fieldList.get(i);            
+            if (!jPAField.isValid(panel))
+            {
+                invalidCaption = jPAField.getCaption();
+                return false;
+            }
+
+        }
+        return true;
     }
 
     @Override
@@ -666,6 +733,7 @@ public abstract class BaseDataEditTable<T> extends Table
             gem.commit_transaction();
             
             this.requestRepaint();
+            this.refreshRowCache();
         }
         catch (Exception e)
         {
@@ -719,10 +787,11 @@ public abstract class BaseDataEditTable<T> extends Table
 
     protected abstract T createNewObject();
 
+    boolean isNew = false;
     protected void registerNewObject( T obj )
     {
         activeElem = obj;
-        callTableEdit();
+        callTableEdit(/*isNew*/true);
         bc.addBean(activeElem);
 
         setValueChanged();
@@ -771,6 +840,7 @@ public abstract class BaseDataEditTable<T> extends Table
 
             updateItem( activeElem );
             this.requestRepaint();
+            this.refreshRowCache();
 //            updateValues();
         }
         catch (Exception e)
@@ -780,9 +850,33 @@ public abstract class BaseDataEditTable<T> extends Table
         }
     }
 
-    public boolean checkPlausibility(AbstractOrderedLayout editPanel, T t)
+    void fallbackEdit()
     {
-        return true;
+        if (activeElem != null)
+        {
+            long idx = -1;
+            Object o = getItemId( activeElem );
+            if (o != null)
+            {
+                idx = ((Long)o).longValue();
+                Class<T> cl = (Class<T>)activeElem.getClass();
+                activeElem = get_em().em_find(cl, idx);
+            }
+        }
+    }
+    Runnable editFallbackRunner = new Runnable() {
+
+        @Override
+        public void run()
+        {
+            fallbackEdit();
+        }
+    };
+
+    public void checkPlausibility(AbstractOrderedLayout editPanel, T t, Runnable okListener, Runnable nokListener)
+    {
+        if (okListener != null)
+            okListener.run();               
     }
 
     Object getItemId( Object o )
@@ -960,7 +1054,10 @@ public abstract class BaseDataEditTable<T> extends Table
         String s = VSMCMain.Txt("Liste der" + " " + dbl.getCaption());
         return s;
     }
-    protected abstract String getTablenameText();
+    public String getTablenameText()
+    {
+        return VSMCMain.Txt(this.getClass().getSimpleName());
+    }
 
     protected void setDBWinLayout(Window win)
     {
