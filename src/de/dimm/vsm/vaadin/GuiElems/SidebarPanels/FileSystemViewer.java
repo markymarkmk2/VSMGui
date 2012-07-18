@@ -21,6 +21,7 @@ import com.vaadin.ui.TreeTable;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.AgentApi;
+import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.records.FileSystemElemNode;
 import de.dimm.vsm.records.HotFolder;
 import de.dimm.vsm.records.StoragePool;
@@ -52,12 +53,7 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
 public class FileSystemViewer extends SidebarPanel
 {
 
-    // WARNING: THIS HAS TO FIT TO RestoreContext ON SERVER!!!!
-    public static final int RF_RECURSIVE = 0x0001;
-    public static final int RF_FULLPATH = 0x0002;
-    public static final int RF_SKIPHOTFOLDER_TIMSTAMPDIR = 0x0004;
-
-
+  
     boolean mounted = false;
     boolean volMounted = false;
     StoragePoolWrapper viewWrapper = null;
@@ -122,7 +118,7 @@ public class FileSystemViewer extends SidebarPanel
 
                             try
                             {
-                                p = main.getGuiServerApi().getAgentProperties(ip, port);
+                                p = main.getGuiServerApi().getAgentProperties(ip, port, false);
                             }
                             catch (Exception e)
                             {
@@ -611,15 +607,19 @@ public class FileSystemViewer extends SidebarPanel
                         port = getPortFromPath( rfstreeelem );
 
 
-                        Properties p = main.getGuiServerApi().getAgentProperties( ip, port );
+                        Properties p = main.getGuiServerApi().getAgentProperties( ip, port, false );
                         boolean isWindows =  ( p != null && p.getProperty(AgentApi.OP_OS).startsWith("Win"));
 
                         path = getTargetpathFromPath( rfstreeelem, isWindows );
                     }
 
-                    int rflags = RF_RECURSIVE | RF_RECURSIVE;
+                    int rflags = GuiServerApi.RF_RECURSIVE;
                     if (isHotfolderPath(rfstreeelem))
-                        rflags |= RF_SKIPHOTFOLDER_TIMSTAMPDIR;
+                        rflags |= GuiServerApi.RF_SKIPHOTFOLDER_TIMSTAMPDIR;
+                    if (dlg.isCompressed())
+                        rflags |= GuiServerApi.RF_COMPRESSION;
+                    if (dlg.isEncrypted())
+                        rflags |= GuiServerApi.RF_ENCRYPTION;
 
 
                     boolean rret = main.getGuiServerApi().restoreFSElem(viewWrapper, rfstreeelem.getElem(), ip, port, path, rflags, main.getUser());
