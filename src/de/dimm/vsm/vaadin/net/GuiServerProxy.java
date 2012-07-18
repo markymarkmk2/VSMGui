@@ -313,12 +313,12 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
 
     @Override
-    public Properties getAgentProperties( String ip, int port )
+    public Properties getAgentProperties( String ip, int port, boolean wm )
     {
         GuiServerApi api = loginApi.getDummyGuiServerApi();
         if (api != null)
         {
-            return api.getAgentProperties(ip, port);
+            return api.getAgentProperties(ip, port, wm);
         }
         return null;
     }
@@ -634,5 +634,37 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
 
         return false;
     }
+
+    @Override
+    public void syncNode( AbstractStorageNode t, AbstractStorageNode cloneNode, User user  ) throws SQLException, IOException
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            guiServerApi.syncNode(t, cloneNode, user);
+
+    }
+
+    @Override
+    public boolean isBusyNode( AbstractStorageNode node )
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.isBusyNode(node);
+
+        return false;
+    }
+
+    @Override
+    public boolean initNode( AbstractStorageNode node, User user )
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.initNode(node, user);
+
+        return false;
+    }
+
+
+
 
 }
