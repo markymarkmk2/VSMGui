@@ -50,6 +50,7 @@ public class DiagnoseWin extends SidebarPanel
 
     Charts charts;
 
+    boolean abortBusy;
 
     public DiagnoseWin( VSMCMain _main )
     {        
@@ -95,6 +96,73 @@ public class DiagnoseWin extends SidebarPanel
 
         });
         
+        final Button bt_busy = new NativeButton("Busytest");
+        //al.addComponent( bt_busy, "top:50px;left:10px" );
+
+        bt_busy.addListener(new Button.ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                Runnable r = new Runnable() {
+
+                    @Override
+                    public void run()
+                    {
+                        abortBusy = false;
+                        try
+                        {
+                            int i = 30;
+                            while (i-- > 0 && !abortBusy)
+                            {
+                                Thread.sleep(100);
+                            }
+                        }
+                        catch (InterruptedException interruptedException)
+                        {
+                        }
+                    }
+                };
+                main.runInBusy("Geht?", r);
+            }
+        });
+        final Button bt_busy_abort = new NativeButton("Busyaborttest");
+        // al.addComponent( bt_busy_abort, "top:50px;left:110px" );
+        final Button.ClickListener aboret = new Button.ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                abortBusy = true;
+            }
+        };
+        bt_busy_abort.addListener(new Button.ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                Runnable r = new Runnable() {
+
+                    @Override
+                    public void run()
+                    {
+                        abortBusy = false;
+                        try
+                        {
+                            int i = 30;
+                            while (i-- > 0 && !abortBusy)
+                            {
+                                Thread.sleep(100);
+                            }
+                        }
+                        catch (InterruptedException interruptedException)
+                        {
+                        }
+                    }
+                };
+                main.runInBusyCancel("Geht?", r, aboret);
+            }
+        });
 
 
         ArrayList<RemoteFSElem> root_list = new ArrayList<RemoteFSElem>();
