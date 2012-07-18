@@ -320,6 +320,12 @@
         width: 80px;
 	background: transparent url(images/errmok_info.png) no-repeat center center;
 }
+.vsm .busyIcon {
+	border: none;
+        height: 80px;
+        width: 80px;
+	background: transparent url(images/busy.gif) no-repeat center center;
+}
 
 .vsm  textarea.v-textarea-ErrMsgText, .v-app textarea.v-textarea-ErrMsgText {
 
