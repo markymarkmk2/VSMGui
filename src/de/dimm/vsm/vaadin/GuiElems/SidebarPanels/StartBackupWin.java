@@ -154,7 +154,7 @@ public class StartBackupWin extends SidebarPanel
             try
             {
                 StoragePool storagePool = list.get(i);
-                List<Schedule> sch = main.get_util_em(storagePool).createQuery("Select s from Schedule s", Schedule.class);
+                List<Schedule> sch = VSMCMain.get_util_em(storagePool).createQuery("Select s from Schedule s", Schedule.class);
                 allSchedList.addAll(sch);
             }
             catch (SQLException ex)
