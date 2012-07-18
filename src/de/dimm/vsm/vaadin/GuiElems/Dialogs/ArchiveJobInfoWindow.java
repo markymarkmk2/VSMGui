@@ -91,7 +91,7 @@ public class ArchiveJobInfoWindow extends Window
 
         if (job.getSourceType().equals(ArchiveJob.AJ_SOURCE_HF))
         {
-            HotFolder hf = main.get_base_util_em().em_find( HotFolder.class, job.getSourceIdx());
+            HotFolder hf = VSMCMain.get_base_util_em().em_find( HotFolder.class, job.getSourceIdx());
             src = "Hotfolder " + hf.getName();
         }
 
@@ -115,7 +115,7 @@ public class ArchiveJobInfoWindow extends Window
             @Override
             public void buttonClick( ClickEvent event )
             {
-                event.getButton().getApplication().getMainWindow().removeWindow(w);
+                event.getButton().getApplication()./*getMainWindow().*/removeWindow(w);
             }
         });
     }
