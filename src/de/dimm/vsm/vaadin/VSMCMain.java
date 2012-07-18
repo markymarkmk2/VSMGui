@@ -18,11 +18,13 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.Notification;
 import de.dimm.vsm.fsengine.GenericEntityManager;
+import de.dimm.vsm.mail.NotificationServer;
 import de.dimm.vsm.net.GuiWrapper;
 import de.dimm.vsm.net.interfaces.GuiLoginApi;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.records.RoleOption;
 import de.dimm.vsm.records.StoragePool;
+import de.dimm.vsm.vaadin.GuiElems.BusyHandler;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.MountLocationDlg;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.RichTextAreaDlg;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.DiagnoseWin;
@@ -41,6 +43,7 @@ import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.HotFolderWin;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.JobWin;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.LogWin;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.LogoutPanel;
+import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.NotificationWin;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.StartBackupWin;
 import de.dimm.vsm.vaadin.auth.GuiUser;
 import de.dimm.vsm.vaadin.net.GuiServerProxy;
@@ -64,7 +67,7 @@ public class VSMCMain extends GenericMain
     protected String host;
     protected String args;
 
-    private final static String version = "0.7.4 trunk";
+    private final static String version = "0.7.6 trunk";
 
     public static String getVersion()
     {
@@ -111,7 +114,7 @@ public class VSMCMain extends GenericMain
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    public GenericEntityManager get_base_util_em()
+    public static GenericEntityManager get_base_util_em()
     {
         Object o = callLogicControl("get_base_util_em");
         if (o != null && o instanceof GenericEntityManager)
@@ -121,7 +124,7 @@ public class VSMCMain extends GenericMain
 
         throw new UnsupportedOperationException("Not yet implemented");
     }
-    public GenericEntityManager get_util_em(StoragePool pool)
+    public static GenericEntityManager get_util_em(StoragePool pool)
     {
         Object o = callLogicControl("get_util_em", pool);
         if (o != null && o instanceof GenericEntityManager)
@@ -142,6 +145,17 @@ public class VSMCMain extends GenericMain
 
         }
         return null;
+    }
+
+    public static NotificationServer getNotificationServer()
+    {
+        Object o = callLogicControl("getNotificationServer");
+        if (o != null && o instanceof NotificationServer)
+        {
+            return (NotificationServer) o;
+        }
+
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
 
@@ -262,19 +276,61 @@ public class VSMCMain extends GenericMain
         return null;
     }
 
-    public StoragePool createPool() throws Exception
+    public void runInBusy( String txt, final Runnable r )
     {
-        return (StoragePool) callLogicControl( "createPool", /*catch Exc*/false );
+        getBusy().showBusy(txt);
+        Runnable tht_r = new Runnable()
+        {
+
+            @Override
+            public void run()
+            {
+                r.run();
+                getBusy().hideBusy();
+
+            }
+        };
+
+        Thread thr = new Thread(tht_r, "BusyRunner");
+        thr.start();
     }
-    
+    public void runInBusyCancel( String txt, final Runnable r, ClickListener abortListener )
+    {
+        getBusy().showBusyCancel(txt, abortListener );
+        
+        Runnable tht_r = new Runnable()
+        {
+
+            @Override
+            public void run()
+            {
+                r.run();
+                getBusy().hideBusy();
+            }
+        };
+
+        Thread thr = new Thread(tht_r, "BusyRunner");
+        thr.start();
+    }
+
+
 
     public void deletePool( StoragePool node )
     {
         callLogicControl( "deletePool" );
     }
-    public void deletePoolPhysically( StoragePool node )
+    public void deletePoolPhysically( final StoragePool node )
     {
-        callLogicControl( "deletePoolPhysically", node );
+        Runnable r = new Runnable() {
+
+            @Override
+            public void run()
+            {
+                callLogicControl( "deletePoolPhysically", node );
+            }
+        };
+        
+        runInBusy(Txt("Lösche StoragePool"), r );
     }
 
 
@@ -289,6 +345,7 @@ public class VSMCMain extends GenericMain
 
     SidebarButton btstatus;
     ErrMsgHandler errMsgHandler;
+    BusyHandler busyHandler;
     GuiServerProxy guiServerProxy;
     LogoutPanel logoutPanel;
     LogWin logWin;
@@ -327,10 +384,17 @@ public class VSMCMain extends GenericMain
         createGuiServerProxy();
 
         errMsgHandler = new ErrMsgHandler(this);
+        busyHandler = new BusyHandler(this);
+
 
 
         app.setUser(this);
 
+    }
+
+    public BusyHandler getBusy()
+    {
+        return busyHandler;
     }
 
     public void setupGui()
@@ -439,6 +503,7 @@ public class VSMCMain extends GenericMain
         SidebarButton bt_diag = new SidebarButton( this, Txt("Diagnose"), new DiagnoseWin(this) );
         SidebarButton bt_baResult = new SidebarButton( this, Txt("Backuphistorie"), new BackupResult(this) );
         SidebarButton btarchive = new SidebarButton( this, Txt("Archiv"), new ArchiveJobWin(this) );
+        SidebarButton btnotification = new SidebarButton( this, Txt("Benachrichtigungen"), new NotificationWin(this) );
         SidebarButton btjobs = new SidebarButton( this, Txt("Jobs"), new JobWin(this) );
 
 
@@ -462,6 +527,7 @@ public class VSMCMain extends GenericMain
         sidebar.add(bt_baResult);
         sidebar.add(bt_diag);
         sidebar.add(btarchive);
+        sidebar.add(btnotification);
         sidebar.add(btjobs);
 
 //        btstatus.setSelected();
