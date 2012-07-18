@@ -110,7 +110,7 @@ public class HotFolderWin extends SidebarPanel  implements Refresher.RefreshList
         hotFolderSplitter.setSecondComponent(panel);
 
         // RELOAD
-        main.get_base_util_em().em_refresh(hotFolderTable.getActiveElem());// find(HotFolder.class, hotFolderTable.getActiveElem().getIdx());
+        VSMCMain.get_base_util_em().em_refresh(hotFolderTable.getActiveElem());// find(HotFolder.class, hotFolderTable.getActiveElem().getIdx());
 
         Component tableWin  = createHotFolderErrorPanel( hotFolderTable.getActiveElem() );
         hfErrorSplitter.setFirstComponent(tableWin);
@@ -130,7 +130,7 @@ public class HotFolderWin extends SidebarPanel  implements Refresher.RefreshList
         List<HotFolder> list = null;
         try
         {
-            list = main.get_base_util_em().createQuery("select p from HotFolder p", HotFolder.class);
+            list = VSMCMain.get_base_util_em().createQuery("select p from HotFolder p", HotFolder.class);
         }
         catch (SQLException sQLException)
         {
@@ -154,7 +154,7 @@ public class HotFolderWin extends SidebarPanel  implements Refresher.RefreshList
 
     final Component createHotFolderErrorPanel( HotFolder hotFolder)
     {
-        GenericEntityManager em =  main.get_base_util_em();
+        GenericEntityManager em =  VSMCMain.get_base_util_em();
         ItemClickListener l = new ItemClickListener()
         {
             @Override
@@ -218,7 +218,7 @@ public class HotFolderWin extends SidebarPanel  implements Refresher.RefreshList
         if (hotFolderTable == null || hotFolderTable.getActiveElem() == null)
             return;
 
-        GenericEntityManager em = main.get_base_util_em();
+        GenericEntityManager em = VSMCMain.get_base_util_em();
 
         int l1 = hotFolderTable.getActiveElem().getErrlist(em).size();
         em.em_refresh(hotFolderTable.getActiveElem());
