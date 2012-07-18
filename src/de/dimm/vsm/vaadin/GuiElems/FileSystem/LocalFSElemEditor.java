@@ -369,7 +369,7 @@ public class LocalFSElemEditor extends HorizontalLayout
                     final RemoteFSElemTreeElem rfs = (RemoteFSElemTreeElem)o;
                     
 
-                    final TextFieldDlg dlg = new TextFieldDlg(VSMCMain.Txt("Verzeichnisname"), "Neuer Ordner",
+                    final TextFieldDlg dlg = new TextFieldDlg(VSMCMain.Txt("Neuer Ordner"), VSMCMain.Txt("Verzeichnisname"), VSMCMain.Txt("Neuer Ordner"),
                             new StringLengthValidator(VSMCMain.Txt("Bitte gebgen Sie einen gültigen Pfad an"), 1, 256, false));
 
                     dlg.setOkActionListener( new Button.ClickListener()
