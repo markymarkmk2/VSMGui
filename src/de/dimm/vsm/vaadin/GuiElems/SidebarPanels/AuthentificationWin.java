@@ -91,7 +91,7 @@ public class AuthentificationWin extends SidebarPanel
         List<Role> list = null;
         try
         {
-            list = main.get_base_util_em().createQuery("select p from Role p", Role.class);
+            list = VSMCMain.get_base_util_em().createQuery("select p from Role p", Role.class);
         }
         catch (SQLException sQLException)
         {
@@ -148,7 +148,7 @@ public class AuthentificationWin extends SidebarPanel
         List<AccountConnector> list = null;
         try
         {
-            list = main.get_base_util_em().createQuery("select T1 from AccountConnector T1", AccountConnector.class);
+            list = VSMCMain.get_base_util_em().createQuery("select T1 from AccountConnector T1", AccountConnector.class);
         }
         catch (SQLException sQLException)
         {
