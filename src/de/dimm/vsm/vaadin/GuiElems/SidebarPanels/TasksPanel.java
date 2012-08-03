@@ -29,22 +29,15 @@ import de.dimm.vsm.vaadin.GuiElems.Dialogs.TaskInfoWindow;
 import de.dimm.vsm.vaadin.GuiElems.Fields.ColumnGeneratorField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAComboField;
-import de.dimm.vsm.vaadin.GuiElems.Fields.JPADateField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPATextField;
 import de.dimm.vsm.vaadin.GuiElems.OkAbortPanel;
-import de.dimm.vsm.vaadin.GuiElems.Table.BaseDataEditTable;
 import de.dimm.vsm.vaadin.GuiElems.Table.ComboColumnGenerator;
 import de.dimm.vsm.vaadin.VSMCMain;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import javax.swing.Timer;
 import org.vaadin.addons.lazyquerycontainer.CompositeItem;
 
 
@@ -371,6 +364,15 @@ public class TasksPanel extends Table
     void listTasks()
     {
         TaskEntry[] arr = main.getDummyGuiServerApi().listTasks();
+        if (arr.length == 0)
+        {
+            activeElem = null;
+            synchronized(bc)
+            {
+                bc.removeAllItems();
+            }
+            return;
+        }
         
 
         HashMap<Long, TaskEntry> newMap = new  HashMap<Long, TaskEntry>();

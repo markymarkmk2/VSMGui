@@ -74,10 +74,15 @@ public class ErrMsgHandler extends Window
             public void buttonClick( ClickEvent event )
             {
                 main.getRootWin().removeWindow(w);
+
                 if (event.getButton() == ok && ok_listener != null)
                     ok_listener.buttonClick(event);
                 if (event.getButton() == abort && abort_listener != null)
                     abort_listener.buttonClick(event);
+
+                // RELEASE EXTERNAL DEPENDENCIES
+                ok_listener = null;
+                abort_listener = null;
             }
         };
         ok.addListener(closeListener);

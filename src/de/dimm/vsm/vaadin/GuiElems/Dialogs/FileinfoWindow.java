@@ -218,7 +218,7 @@ public class FileinfoWindow extends Window
         if (aclInfoData != null)
         {
             String a = null;
-            if (attr.getAclinfo() == RemoteFSElem.ACLINFO_OSX)
+            if (attr.getAclinfo() == RemoteFSElem.ACLINFO_OSX || attr.getAclinfo() == RemoteFSElem.ACLINFO_ES )
             {
                 XStream xs = new XStream();
                 String s = ZipUtilities.uncompress(elem.getAclinfoData());

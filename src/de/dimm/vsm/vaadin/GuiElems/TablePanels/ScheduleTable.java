@@ -358,6 +358,7 @@ public class ScheduleTable extends BaseDataEditTable<Schedule>
     {
         Schedule p =  new Schedule();
         p.setCreation( new Date() );
+        p.setScheduleStart( new Date() );
         p.setName(VSMCMain.Txt("Neuer Sicherungsplan"));
         p.setPool( pool );
         p.setCycleLengthMs(24*3600*1000l);
