@@ -674,7 +674,7 @@ public class ArchiveJobWin extends SidebarPanel
 
         };
 
-        container = new FSTreeContainer(provider, fields);
+        container = new FSTreeContainer(provider, fields, /*NO USER FS MAPPING IN ARCHIV-FSmain.getUser()*/ null);
 
         if (poolWrapper != null)
             main.getGuiServerApi().closePoolView(poolWrapper);
