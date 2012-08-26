@@ -579,7 +579,7 @@ public class SearchClientWin extends SidebarPanel
 
         };
 
-        container = new FSTreeContainer(provider, fields);
+        container = new FSTreeContainer(provider, fields, main.getUser());
         if (root_list != null)
             container.initRootlist(root_list);
 
