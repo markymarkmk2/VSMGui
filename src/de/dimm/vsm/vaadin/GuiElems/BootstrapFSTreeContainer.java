@@ -5,6 +5,7 @@
 
 package de.dimm.vsm.vaadin.GuiElems;
 
+import de.dimm.vsm.auth.User;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeColumn;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeContainer;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteProvider;
@@ -17,9 +18,9 @@ import java.util.ArrayList;
 public class BootstrapFSTreeContainer extends FSTreeContainer
 {
 
-    public BootstrapFSTreeContainer( RemoteProvider provider, ArrayList<FSTreeColumn> fields)
+    public BootstrapFSTreeContainer( RemoteProvider provider, ArrayList<FSTreeColumn> fields, User usr)
     {
-        super( provider, fields );
+        super( provider, fields, usr );
     }
 
 
