@@ -122,6 +122,7 @@ public class RoleTable extends BaseDataEditTable<Role>
         roe.add( new ComboEntry(RoleOption.RL_ALLOW_EDIT_PARAM, VSMCMain.Txt("Parameter bearbeiten")));
         roe.add( new ComboEntry(RoleOption.RL_ADMIN, VSMCMain.Txt("Administrator")));
         roe.add( new ComboEntry(RoleOption.RL_USERPATH, VSMCMain.Txt("Restorepfad")));
+        roe.add( new ComboEntry(RoleOption.RL_FSMAPPINGFILE, VSMCMain.Txt("VSM-Filesystem Mapping")));
 
         setTooltipText( fieldList, "accountmatch", VSMCMain.Txt("Wildcards mit .* (z.B.) user123.*" ) );
 

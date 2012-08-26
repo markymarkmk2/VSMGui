@@ -6,6 +6,7 @@
 package de.dimm.vsm.vaadin.GuiElems.TablePanels;
 
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
@@ -54,6 +55,16 @@ public class StoragePoolTable extends BaseDataEditTable<StoragePool>
         return AbstractStorageNodeTable.createTable(main, parent, listener);
     }
 
+    StoragePoolPreviewPanel editPanel;
+
+    @Override
+    public AbstractOrderedLayout createEditComponentPanel(  boolean readOnly )
+    {
+        editPanel = new StoragePoolPreviewPanel(this, readOnly);
+        editPanel.recreateContent(activeElem);
+
+        return editPanel;
+    }
 
 
     @Override
