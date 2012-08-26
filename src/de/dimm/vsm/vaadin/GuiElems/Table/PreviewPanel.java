@@ -5,15 +5,12 @@
 
 package de.dimm.vsm.vaadin.GuiElems.Table;
 
-import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBLinkField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
-import java.util.List;
 
 /**
  *
