@@ -231,7 +231,7 @@ public class DiagnoseWin extends SidebarPanel
 
         };
 
-        FSTreeContainer cs = new BootstrapFSTreeContainer( provider, fields);
+        FSTreeContainer cs = new BootstrapFSTreeContainer( provider, fields, main.getUser());
         cs.initRootlist(root_list);
 
         TreeTable tr = new FSTree(fields, /*sort*/ false);
