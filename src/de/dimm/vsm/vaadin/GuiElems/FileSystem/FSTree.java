@@ -27,10 +27,10 @@ import java.util.HashMap;
 public class FSTree extends TreeTable
 {
     ArrayList<FSTreeColumn> fields;
-
+    
     public FSTree(ArrayList<FSTreeColumn> fields, boolean enableSort)
     {
-        this.fields = fields;
+        this.fields = fields;        
         setStyleName("TreeTable");
         setNewItemsAllowed(false);
         setSelectable(true);

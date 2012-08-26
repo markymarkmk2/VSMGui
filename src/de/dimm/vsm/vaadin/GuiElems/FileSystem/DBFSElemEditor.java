@@ -21,9 +21,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-import com.vaadin.ui.Window.Notification;
-import de.dimm.vsm.Exceptions.PathResolveException;
-import de.dimm.vsm.Exceptions.PoolReadOnlyException;
+import de.dimm.vsm.auth.User;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
@@ -36,7 +34,6 @@ import de.dimm.vsm.vaadin.GuiElems.OkAbortPanel;
 import de.dimm.vsm.vaadin.GuiElems.Table.PreviewPanel;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -248,7 +245,7 @@ public class DBFSElemEditor extends HorizontalLayout
 
         return tf.getValue().toString();
     }
-    public static FSTree createClientPathTree( GuiServerApi api, StoragePoolWrapper wrapper, final AbstractField tf, String  path, final int options, boolean ssl, String keystore, String keypwd )
+    public static FSTree createClientPathTree( GuiServerApi api, StoragePoolWrapper wrapper, final AbstractField tf, String  path, User user, final int options, boolean ssl, String keystore, String keypwd )
     {
 
         RemoteFSElem startPath = null;
@@ -267,11 +264,11 @@ public class DBFSElemEditor extends HorizontalLayout
 
            
 
-            FSTree tree = createClientPathTree(provider, root_list, tf, startPath, options, ssl, keystore, keypwd);
+            FSTree tree = createClientPathTree(provider, root_list, tf, startPath, user, options, ssl, keystore, keypwd);
             return tree;
     }
 
-    public static FSTree createClientPathTree( RemoteProvider provider,  List<RemoteFSElem> root_list, final AbstractField tf, RemoteFSElem startPath, final int options, boolean ssl, String keystore, String keypwd )
+    public static FSTree createClientPathTree( RemoteProvider provider,  List<RemoteFSElem> root_list, final AbstractField tf, RemoteFSElem startPath, User user, final int options, boolean ssl, String keystore, String keypwd )
     {
         if (keystore != null)
             System.setProperty("javax.net.ssl.trustStore", keystore);
@@ -288,7 +285,7 @@ public class DBFSElemEditor extends HorizontalLayout
 
             FSTree tr = new FSTree(fields, /*sort*/ false);
 
-            FSTreeContainer cs = new FSTreeContainer(provider, fields);
+            FSTreeContainer cs = new FSTreeContainer(provider, fields, user);
 
             cs.initRootlist(root_list);
 
@@ -346,9 +343,9 @@ public class DBFSElemEditor extends HorizontalLayout
         }
         return null;
     }
-    protected FSTree createClientPathTree( GuiServerApi api, StoragePoolWrapper wrapper )
+    public FSTree createClientPathTree( GuiServerApi api, StoragePoolWrapper wrapper, User user )
     {
-        return createClientPathTree(  api, wrapper,  tf, /*startPath*/ null, options, false, null, null);
+        return createClientPathTree(  api, wrapper,  tf, /*startPath*/ null, user, options, false, null, null);
     }
     private void editPath( Object value )
     {
@@ -364,7 +361,7 @@ public class DBFSElemEditor extends HorizontalLayout
         VSMCMain main = VSMCMain.Me(tf);
         StoragePool pool = main.resolveStoragePool( idx );
         final StoragePoolWrapper wrapper = api.openPoolView(pool, false, "/", main.getGuiWrapper().getUser());
-        final FSTree treePanel = createClientPathTree(api, wrapper);
+        final FSTree treePanel = createClientPathTree(api, wrapper, main.getUser());
 
         if (treePanel == null)
             return;
@@ -465,7 +462,7 @@ public class DBFSElemEditor extends HorizontalLayout
 
     }
 
-    static String buildPath( RemoteFSElemTreeElem rfs )
+    public static String buildPath( RemoteFSElemTreeElem rfs )
     {
         StringBuilder sb = new StringBuilder();
 

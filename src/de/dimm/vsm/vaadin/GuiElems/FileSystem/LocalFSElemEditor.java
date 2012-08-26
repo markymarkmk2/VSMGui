@@ -225,7 +225,7 @@ public class LocalFSElemEditor extends HorizontalLayout
 
             FSTree tr = new FSTree(fields, /*sort*/ false);
 
-            FSTreeContainer cs = new FSTreeContainer(provider, fields);
+            FSTreeContainer cs = new FSTreeContainer(provider, fields, null);
 
             cs.initRootlist(root_list);
 

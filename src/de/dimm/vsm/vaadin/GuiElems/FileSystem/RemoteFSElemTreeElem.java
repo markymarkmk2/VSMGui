@@ -75,7 +75,9 @@ public class RemoteFSElemTreeElem
           
        }
        if (m.equals("name"))
-          return new ObjectProperty( " " + getName(), String.class );
+       {
+          return new ObjectProperty( " " + getVsmName(), String.class );
+       }
        if (m.equals("size"))
        {
            if (elem.isDirectory())
@@ -118,15 +120,24 @@ public class RemoteFSElemTreeElem
             RemoteFSElemTreeElem remoteFSElemTreeElem = childList.get(i);
             remoteFSElemTreeElem.setContainer(container);
         }
-
         
 
         return childList;
     }
 
+    public String getVsmName()
+    {
+        String path = container.mapVsmToUserPath(elem.getPath());
+        String s = path;
+        int idx = s.lastIndexOf(elem.getSeparatorChar());
+        if (idx > 0 && idx < s.length() - 1)
+            s = s.substring(idx + 1);
+        return s;
+    }
     public String getName()
     {
-        String s = elem.getPath();
+        String path = elem.getPath();
+        String s = path;
         int idx = s.lastIndexOf(elem.getSeparatorChar());
         if (idx > 0 && idx < s.length() - 1)
             s = s.substring(idx + 1);

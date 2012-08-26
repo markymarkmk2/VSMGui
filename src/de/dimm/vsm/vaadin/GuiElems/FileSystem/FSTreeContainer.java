@@ -12,6 +12,7 @@ import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.terminal.ThemeResource;
 import com.vaadin.ui.treetable.Collapsible;
+import de.dimm.vsm.auth.User;
 import de.dimm.vsm.net.RemoteFSElem;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,27 +31,51 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
     private ArrayList<FSTreeColumn> fields;
     ArrayList<RemoteFSElemTreeElem> visibleList;
     RemoteProvider provider;
+    User mappingUser;
+//    ArrayList<RemoteFSElem> rootNodes;
 
-    public FSTreeContainer( RemoteProvider provider, ArrayList<FSTreeColumn> fields )
+    public FSTreeContainer( RemoteProvider provider, ArrayList<FSTreeColumn> fields, User user/*, ArrayList<RemoteFSElem> rootNodes*/ )
     {
         this.provider = provider;
+        this.mappingUser = user;
         this.root_list = new ArrayList<RemoteFSElemTreeElem>();
         visibleList = new ArrayList<RemoteFSElemTreeElem>();
 
+//        this.rootNodes = rootNodes;
         this.fields = fields;
     }
 
     public void initRootlist(List<RemoteFSElem> root_fselem_list)
     {
+        // WARP THE ROOT ELEMS INTO MAPPED VSMSPACE IF NEEDED: Mapping /10.0.0.1/8082/Docs -> /Docs means  / is WARPED INTO /10.0.0.1/8082/Docs
+        if (mappingUser != null)
+        {
+            root_fselem_list = mappingUser.getFsMapper().fixVsmMappingRootPath( root_fselem_list );
+        }
+
         for (int i = 0; i < root_fselem_list.size(); i++)
         {
             RemoteFSElem elem = root_fselem_list.get(i);
+
             RemoteFSElemTreeElem root = provider.createNode(provider, elem, null);
             root.setContainer( this );
-            root_list.add( root);
-            visibleList.add(root);
+
+
+            List<RemoteFSElemTreeElem> ch = provider.getChildren(root);
+            if (ch != null && !ch.isEmpty())
+            {
+                root_list.add( root);
+                visibleList.add(root);
+            }
         }        
     }
+
+    public User getMappingUser()
+    {
+        return mappingUser;
+    }
+
+    
 
 
     @Override
@@ -398,7 +423,7 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
                     String col = cols[i].toString();
                     if (col.equals("name"))
                     {
-                        int c = o1.getName().compareTo(o2.getName());
+                        int c = o1.getVsmName().compareTo(o2.getVsmName());
                         if (c != 0)
                             return (b) ? c : -c;
                     }
@@ -431,5 +456,16 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
         l.add("size");
         l.add("date");
         return l;
+    }
+
+    String mapVsmToUserPath( String path )
+    {
+        if (path.charAt(0) != '/')
+            return path;
+
+        if (mappingUser != null)
+            return mappingUser.mapVsmToUserPath(path);
+
+        return path;
     }
 }
