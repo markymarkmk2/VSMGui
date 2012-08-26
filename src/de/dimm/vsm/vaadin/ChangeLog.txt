@@ -1,3 +1,9 @@
+Veränderungen in V0.7.8
+UPD: Löschen der freien Blöcke im Editfenstor der StoragePools
+
+Veränderungen in V0.7.6
+UPD: Status- / Statistikanzeige in Editfenstor der StoragePools
+
 Veränderungen in V0.7.4
 UPD: Compression und Encryption bei Kommunikation mit Agent
 
