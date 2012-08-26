@@ -23,26 +23,27 @@ import java.util.ArrayList;
  */
 public class TextAreaDlg extends Window
 {
-     static ArrayList<String> ipList = new ArrayList<String>();
-     static ArrayList<String> pathList = new ArrayList<String>();
+     protected static ArrayList<String> ipList = new ArrayList<String>();
+     protected static ArrayList<String> pathList = new ArrayList<String>();
 
      
      
-     Button.ClickListener okListener;
-     TextArea tfText;
+     protected Button.ClickListener okListener;
+     protected TextArea tfText;
+
+     protected Validator validator;
     
     
-    
-     boolean hasAbort;
-     boolean rdOnly;
+     protected boolean hasAbort;
+     protected boolean rdOnly;
 
     public TextAreaDlg( String caption, String def, Validator val, boolean hasAbort, boolean rdOnly )
     {
-        build_gui(caption, def, val, hasAbort, rdOnly);
+        this.build_gui(caption, def, val, hasAbort, rdOnly);
     }
     public TextAreaDlg( String caption, String def  )
     {
-        build_gui(caption, def, null, /*hasAbort*/false, /*rdOnly*/ true);
+        this.build_gui(caption, def, null, /*hasAbort*/false, /*rdOnly*/ true);
     }
 
     public void setOkActionListener( ClickListener okListener )
@@ -50,7 +51,7 @@ public class TextAreaDlg extends Window
         this.okListener = okListener;
     }
 
-    final void build_gui(  String caption, String def, Validator val, boolean hasAbort, boolean rdOnly  )
+    void build_gui(  String caption, String def, Validator val, boolean hasAbort, boolean rdOnly  )
     {
         VerticalLayout main = new VerticalLayout();
         setContent(main);
@@ -59,6 +60,7 @@ public class TextAreaDlg extends Window
         main.setStyleName("editWin");
         main.setImmediate(true);
 
+        validator = val;
 
         setModal(true);
         setStyleName("vsm");
@@ -114,6 +116,9 @@ public class TextAreaDlg extends Window
             @Override
             public void buttonClick( ClickEvent event )
             {
+                if (validator != null && !validator.isValid(getText()))
+                        return;
+
                 event.getButton().getApplication().getMainWindow().removeWindow(w);
 
                 if (okListener != null)
