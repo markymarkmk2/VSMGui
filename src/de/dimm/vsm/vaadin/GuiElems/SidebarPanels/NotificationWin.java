@@ -5,14 +5,13 @@
 
 package de.dimm.vsm.vaadin.GuiElems.SidebarPanels;
 
-import com.vaadin.Application;
 import com.vaadin.ui.Button.ClickEvent;
 import de.dimm.vsm.vaadin.GuiElems.Table.BaseDataEditTable;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.terminal.Sizeable;
 import com.vaadin.ui.AbstractLayout;
-import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -21,11 +20,9 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.VerticalSplitPanel;
-import com.vaadin.ui.Window;
 import de.dimm.vsm.records.MailGroup;
 import de.dimm.vsm.records.MailNotifications;
 import de.dimm.vsm.records.SmtpLoginData;
-import de.dimm.vsm.vaadin.GuiElems.OkAbortPanel;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.MailGroupTable;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.MailNotificationTable;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.SmtpDataTable;
@@ -33,7 +30,6 @@ import de.dimm.vsm.vaadin.VSMCMain;
 import java.sql.SQLException;
 
 import java.util.List;
-import org.vaadin.jouni.animator.client.ui.VAnimatorProxy.AnimType;
 
 
 
@@ -89,14 +85,29 @@ public class NotificationWin extends SidebarPanel
         mainPanel.setSizeFull();
         mainPanel.setSplitPosition(50, Sizeable.UNITS_PERCENTAGE);
         //mainPanel.setFirstComponent(notificationSplitter);
-        mainPanel.setFirstComponent(notificationSplitter);
-        mainPanel.setSecondComponent(groupSplitter);
+        mainPanel.setFirstComponent(smtpSplitter);
+        mainPanel.setSecondComponent(notificationSplitter);
 
         lowerPanel = new HorizontalSplitPanel();
         lowerPanel.setSizeFull();
         lowerPanel.setSplitPosition(50, Sizeable.UNITS_PERCENTAGE);
-        lowerPanel.setSecondComponent(smtpSplitter);
+        lowerPanel.setSecondComponent(groupSplitter);
 
+        this.setSpacing(true);
+        HorizontalLayout bthl = new HorizontalLayout();        
+        bthl.setMargin(true, true, true, true);
+
+        Button btrebuild = new NativeButton("Benachrichtigungsdienst aktualisieren", new ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                VSMCMain.callLogicControl("reloadNotificationSettings");
+                VSMCMain.notify(mainPanel, "", "Der Benachrichtigungsdienste wurde aktualisiert");
+            }
+        });
+        bthl.addComponent(btrebuild);
+        this.addComponent(bthl);
         this.addComponent(mainPanel);
         this.setExpandRatio(mainPanel, 1.0f);
         this.setSizeFull();
@@ -241,7 +252,7 @@ public class NotificationWin extends SidebarPanel
             return;
         }
         // CREATE PANEL
-        smtpTable = SmtpDataTable.createTable(main, list, null);
+        smtpTable = SmtpDataTable.createTable(main, list, l);
 
 
         final VerticalLayout tableWin  = new VerticalLayout();
