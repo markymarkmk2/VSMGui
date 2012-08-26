@@ -37,6 +37,7 @@ import de.dimm.vsm.vaadin.SelectObjectCallback;
 import de.dimm.vsm.vaadin.VSMCMain;
 import de.dimm.vsm.vaadin.net.DownloadResource;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -303,13 +304,7 @@ public class FileSystemViewer extends SidebarPanel
 
 
     Component initFsTree( final StoragePoolWrapper wrapper )
-    {
-        RemoteFSElem root = new RemoteFSElem("/", FileSystemElemNode.FT_DIR, 0, 0, 0, 0, 0);
-
-        ArrayList<RemoteFSElem> root_list = new ArrayList<RemoteFSElem>();
-        root_list.add(root);
-
-
+    {        
         ArrayList<FSTreeColumn> fields = new ArrayList<FSTreeColumn>();
         fields.add(new FSTreeColumn("name", VSMCMain.Txt("Name"), -1, 1.0f, Table.ALIGN_LEFT, String.class));
         fields.add(new FSTreeColumn("date", VSMCMain.Txt("Datum"), 100, -1, Table.ALIGN_LEFT, String.class));
@@ -360,12 +355,31 @@ public class FileSystemViewer extends SidebarPanel
             {
                 return new RemoteItemDescriptionGenerator(wrapper, main );
             }
-
-
         };
 
-        container = new FSTreeContainer(provider, fields);
-        container.initRootlist(root_list);
+
+        List<RemoteFSElem> poolRootList = null;
+        RemoteFSElem slash =  new RemoteFSElem("/", FileSystemElemNode.FT_DIR, 0, 0, 0, 0, 0);
+        try
+        {
+            poolRootList = main.getGuiServerApi().listDir(wrapper, slash);
+
+            // LIST DIR GIVES RELPATH, WE NEED ABSOLUTE PATHS HERE
+            for (int i = 0; i < poolRootList.size(); i++)
+            {
+                RemoteFSElem remoteFSElem = poolRootList.get(i);
+                remoteFSElem.makeAbsolut( slash );
+            }
+        }
+        catch (SQLException sQLException)
+        {
+            VSMCMain.notify(this, "Rootverzeichnis kann nicht gelesen werden", "");
+            poolRootList = new ArrayList<RemoteFSElem>();
+            poolRootList.add(slash);
+        }
+        
+        container = new FSTreeContainer(provider, fields, VSMCMain.Me(this).getGuiUser().getUser());
+        container.initRootlist(poolRootList);
 
         tree = new FSTree(fields, /*sort*/ false);
         tree.setContainerDataSource(container);
