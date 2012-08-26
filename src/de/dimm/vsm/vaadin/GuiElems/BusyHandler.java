@@ -19,6 +19,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import de.dimm.vsm.vaadin.GenericMain;
 import de.dimm.vsm.vaadin.VSMCMain;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  *
@@ -37,6 +39,8 @@ public class BusyHandler extends Window  implements Refresher.RefreshListener
 
     final Refresher refresher = new Refresher();
     public static final int RF_INTERVALL = 500;
+
+    int openCnt = 0;
 
     public BusyHandler(GenericMain _main)
     {
@@ -129,8 +133,9 @@ public class BusyHandler extends Window  implements Refresher.RefreshListener
 
         setModal(true);
         doHide = false;
+        openCnt++;
 
-        //if (!isVisible())
+        if (!isVisible())
         {
             main.getRootWin().addWindow(this);
         }
@@ -155,13 +160,31 @@ public class BusyHandler extends Window  implements Refresher.RefreshListener
 
         setModal(true);
         doHide = false;
+        openCnt++;
 
-        //if (!isVisible())
+       
+        if (!isVisible())
         {
             main.getRootWin().addWindow(this);
         }
     }
     boolean doHide = false;
+
+    @Override
+    public boolean isVisible()
+    {
+        Set<Window> set = main.getRootWin().getChildWindows();
+        for (Iterator<Window> it = set.iterator(); it.hasNext();)
+        {
+            Window w = it.next();
+            if (w == this)
+                return true;
+
+        }
+        return false;
+    }
+
+
 
     public void hideBusy()
     {
@@ -173,7 +196,12 @@ public class BusyHandler extends Window  implements Refresher.RefreshListener
     {
         if (doHide)
         {
-             main.getRootWin().removeWindow(this);
+            openCnt--;
+            if (openCnt <= 0)
+            {
+                main.getRootWin().removeWindow(this);
+            }
+            doHide = false;
         }
     }
    
