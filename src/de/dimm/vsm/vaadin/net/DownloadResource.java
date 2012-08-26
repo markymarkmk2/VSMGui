@@ -13,10 +13,17 @@ import java.io.Serializable;
 import com.vaadin.Application;
 import com.vaadin.terminal.DownloadStream;
 import com.vaadin.terminal.StreamResource;
+import eu.medsea.mimeutil.MimeType;
+import eu.medsea.mimeutil.MimeUtil;
+import java.util.Collection;
 
 @SuppressWarnings("serial")
 public class DownloadResource extends StreamResource
 {
+    static
+    {
+        MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.ExtensionMimeDetector");
+    }
 
     private final String filename;
 
@@ -40,7 +47,13 @@ public class DownloadResource extends StreamResource
     @Override
     public DownloadStream getStream()
     {
-        DownloadStream stream = new DownloadStream(getStreamSource().getStream(), "application/zip", filename);
+        MimeType mt = new MimeType("application/octet-stream");
+        Collection<MimeType> col = MimeUtil.getMimeTypes(filename);
+        if (!col.isEmpty())
+            mt = col.iterator().next();
+
+
+        DownloadStream stream = new DownloadStream(getStreamSource().getStream(), mt.getMediaType(), filename);
         stream.setParameter("Content-Disposition", "attachment;filename="
                 + filename);
         return stream;
