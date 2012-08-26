@@ -413,7 +413,14 @@ public class JobTable extends Table
         {
             JobEntry jobEntry = it.next();
             bc.addBean( jobEntry );
-        }                
+        }  
+        if (activeElem != null)
+        {
+            if (!bc.containsId(activeElem.getIdx()))
+            {
+                activeElem = null;
+            }
+        }
     }
 
     @Override
@@ -538,6 +545,7 @@ public class JobTable extends Table
 
     public void deactivate()
     {
+        activeElem = null;
 //        timer.stop();
     }
 
