@@ -44,15 +44,16 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
 
     List<String> filter;
 
+
     public RemoteFSElemEditor(String caption, String val, AbstractField ip, TextField port, int options)
     {
         super(caption, val, options);
         this.tfIp = ip;
         this.tfPort = port;
         this.port = -1;
-
-      
     }
+
+
     public RemoteFSElemEditor( String caption, ArrayList<String>pathList, AbstractField ip, TextField port, int options)
     {
         super( caption, "", options);
@@ -88,7 +89,6 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
         this.portField = portField;
         this.port = -1;      
     }
-   
 
     String getActIP()
     {

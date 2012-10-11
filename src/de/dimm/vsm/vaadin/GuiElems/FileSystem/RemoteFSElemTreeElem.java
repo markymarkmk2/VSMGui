@@ -25,6 +25,7 @@ public class RemoteFSElemTreeElem
     protected List<RemoteFSElemTreeElem> childList;
     protected RemoteProvider provider;
     FSTreeContainer container;
+    int level;
 
     public static final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy  HH.mm");
 
@@ -33,7 +34,17 @@ public class RemoteFSElemTreeElem
         this.provider = provider;
         this.elem = elem;
         this.parent = parent;
+        if (parent != null)
+            level = parent.level + 1;
+        else
+            level = 0;
     }
+
+    public int getLevel()
+    {
+        return level;
+    }
+    
 
     public RemoteFSElem getElem()
     {
@@ -43,6 +54,13 @@ public class RemoteFSElemTreeElem
     {
         return parent;
     }
+
+    @Override
+    public String toString()
+    {
+        return elem.toString();
+    }
+
 
     
 
@@ -76,7 +94,7 @@ public class RemoteFSElemTreeElem
        }
        if (m.equals("name"))
        {
-          return new ObjectProperty( " " + getVsmName(), String.class );
+          return new ObjectProperty( " " + elem.getName(), String.class );
        }
        if (m.equals("size"))
        {
@@ -125,15 +143,15 @@ public class RemoteFSElemTreeElem
         return childList;
     }
 
-    public String getVsmName()
-    {
-        String path = container.mapVsmToUserPath(elem.getPath());
-        String s = path;
-        int idx = s.lastIndexOf(elem.getSeparatorChar());
-        if (idx > 0 && idx < s.length() - 1)
-            s = s.substring(idx + 1);
-        return s;
-    }
+//    public String getVsmName()
+//    {
+//        String path = container.mapVsmToUserPath(elem.getPath());
+//        String s = path;
+//        int idx = s.lastIndexOf(elem.getSeparatorChar());
+//        if (idx > 0 && idx < s.length() - 1)
+//            s = s.substring(idx + 1);
+//        return s;
+//    }
     public String getName()
     {
         String path = elem.getPath();
@@ -152,6 +170,11 @@ public class RemoteFSElemTreeElem
     public FSTreeContainer getContainer()
     {
         return container;
+    }
+    public void addChild(RemoteFSElemTreeElem remoteFSElemTreeElem)
+    {
+        if (childList != null)
+            childList.add(remoteFSElemTreeElem);
     }
     
 }

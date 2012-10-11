@@ -1,3 +1,6 @@
+Veränderungen in V0.8.0
+UPD: Sichten des Dateisystems über BenutzerMapping
+
 Veränderungen in V0.7.8
 UPD: Löschen der freien Blöcke im Editfenstor der StoragePools
 

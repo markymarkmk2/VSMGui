@@ -19,6 +19,7 @@ import de.dimm.vsm.net.SearchWrapper;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.GuiLoginApi;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
+import de.dimm.vsm.net.interfaces.IWrapper;
 import de.dimm.vsm.records.AbstractStorageNode;
 import de.dimm.vsm.records.ArchiveJob;
 import de.dimm.vsm.records.FileSystemElemNode;
@@ -253,7 +254,7 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
 
     @Override
-    public boolean removeFSElem( StoragePoolWrapper wrapper, RemoteFSElem path ) throws PoolReadOnlyException, SQLException
+    public boolean removeFSElem( IWrapper wrapper, RemoteFSElem path ) throws PoolReadOnlyException, SQLException
     {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
@@ -303,7 +304,7 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
 
     @Override
-    public boolean restoreFSElem( StoragePoolWrapper wrapper, RemoteFSElem path, String targetIP, int targetPort, String targetPath, int flags, User user ) throws PoolReadOnlyException, SQLException, IOException
+    public boolean restoreFSElem( IWrapper wrapper, RemoteFSElem path, String targetIP, int targetPort, String targetPath, int flags, User user ) throws PoolReadOnlyException, SQLException, IOException
     {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
@@ -311,6 +312,17 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
 
         return false;
     }
+
+    @Override
+    public boolean restoreFSElems( IWrapper wrapper, List<RemoteFSElem> paths, String targetIP, int targetPort, String targetPath, int flags, User user ) throws SQLException, PoolReadOnlyException, IOException
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.restoreFSElems(wrapper, paths, targetIP, targetPort, targetPath, flags, user);
+
+        return false;
+   }
+
 
     @Override
     public Properties getAgentProperties( String ip, int port, boolean wm )
@@ -402,15 +414,25 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
         return null;
     }
 
-    @Override
-    public boolean restoreFSElem( SearchWrapper wrapper, RemoteFSElem path, String targetIP, int targetPort, String targetPath, int flags, User user ) throws SQLException, PoolReadOnlyException, IOException
-    {
-        GuiServerApi guiServerApi = checkLogin();
-        if (guiServerApi != null)
-            return guiServerApi.restoreFSElem(wrapper, path, targetIP, targetPort, targetPath, flags, user);
-
-        return false;
-    }
+//    @Override
+//    public boolean restoreFSElem( SearchWrapper wrapper, RemoteFSElem path, String targetIP, int targetPort, String targetPath, int flags, User user ) throws SQLException, PoolReadOnlyException, IOException
+//    {
+//        GuiServerApi guiServerApi = checkLogin();
+//        if (guiServerApi != null)
+//            return guiServerApi.restoreFSElem(wrapper, path, targetIP, targetPort, targetPath, flags, user);
+//
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean restoreFSElems( SearchWrapper wrapper, List<RemoteFSElem> path, String targetIP, int targetPort, String targetPath, int flags, User user ) throws SQLException, PoolReadOnlyException, IOException
+//    {
+//        GuiServerApi guiServerApi = checkLogin();
+//        if (guiServerApi != null)
+//            return guiServerApi.restoreFSElems(wrapper, path, targetIP, targetPort, targetPath, flags, user);
+//
+//        return false;
+//    }
 
     
 
@@ -521,7 +543,7 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
 
     @Override
-    public InputStream openStream( SearchWrapper wrapper, RemoteFSElem path )
+    public InputStream openStream( IWrapper wrapper, RemoteFSElem path )
     {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
@@ -529,17 +551,17 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
         return null;
     }
 
-    @Override
-    public InputStream openStream( StoragePoolWrapper wrapper, RemoteFSElem path )
-    {
-        GuiServerApi guiServerApi = checkLogin();
-        if (guiServerApi != null)
-            return guiServerApi.openStream(wrapper, path);
-        return null;
-    }
+//    @Override
+//    public InputStream openStream( StoragePoolWrapper wrapper, RemoteFSElem path )
+//    {
+//        GuiServerApi guiServerApi = checkLogin();
+//        if (guiServerApi != null)
+//            return guiServerApi.openStream(wrapper, path);
+//        return null;
+//    }
 
     @Override
-    public String resolvePath( SearchWrapper wrapper, RemoteFSElem path ) throws SQLException, PathResolveException
+    public String resolvePath( IWrapper wrapper, RemoteFSElem path ) throws SQLException, PathResolveException
     {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
@@ -548,14 +570,14 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
         return null;
     }
 
-    @Override
-    public String resolvePath( StoragePoolWrapper wrapper, RemoteFSElem path ) throws SQLException, PathResolveException
-    {
-        GuiServerApi guiServerApi = checkLogin();
-        if (guiServerApi != null)
-            return guiServerApi.resolvePath(wrapper, path);
-        return null;
-    }
+//    @Override
+//    public String resolvePath( StoragePoolWrapper wrapper, RemoteFSElem path ) throws SQLException, PathResolveException
+//    {
+//        GuiServerApi guiServerApi = checkLogin();
+//        if (guiServerApi != null)
+//            return guiServerApi.resolvePath(wrapper, path);
+//        return null;
+//    }
 
     @Override
     public boolean importMMArchiv( HotFolder node, long fromIdx, long tillIdx, boolean withOldJobs, User user ) throws Exception
@@ -616,7 +638,7 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
 
     @Override
-    public boolean undeleteFSElem( StoragePoolWrapper wrapper, RemoteFSElem path ) throws SQLException, PoolReadOnlyException
+    public boolean undeleteFSElem( IWrapper wrapper, RemoteFSElem path ) throws SQLException, PoolReadOnlyException
     {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
@@ -626,7 +648,7 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
 
     @Override
-    public boolean deleteFSElem( StoragePoolWrapper wrapper, RemoteFSElem path ) throws SQLException, PoolReadOnlyException
+    public boolean deleteFSElem( IWrapper wrapper, RemoteFSElem path ) throws SQLException, PoolReadOnlyException
     {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)

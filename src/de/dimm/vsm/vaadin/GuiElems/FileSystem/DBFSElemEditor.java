@@ -285,10 +285,17 @@ public class DBFSElemEditor extends HorizontalLayout
 
             FSTree tr = new FSTree(fields, /*sort*/ false);
 
-            FSTreeContainer cs = new FSTreeContainer(provider, fields, user);
+            FSTreeContainer cs = new FSTreeContainer(provider, fields);
 
-            cs.initRootlist(root_list);
-
+            if (!user.getFsMapper().isEmpty())
+            {
+                cs.initRootWithUserMapping(user.getFsMapper() );
+            }
+            else
+            {
+                cs.initRootlist(root_list);
+            }
+            
             tr.setContainerDataSource(cs);
 
 

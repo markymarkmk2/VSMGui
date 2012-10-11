@@ -67,7 +67,7 @@ public class VSMCMain extends GenericMain
     protected String host;
     protected String args;
 
-    private final static String version = "0.7.8 trunk";
+    private final static String version = "0.8.0 trunk";
 
     public static String getVersion()
     {

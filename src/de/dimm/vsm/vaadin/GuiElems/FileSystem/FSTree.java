@@ -34,7 +34,7 @@ public class FSTree extends TreeTable
         setStyleName("TreeTable");
         setNewItemsAllowed(false);
         setSelectable(true);
-        setMultiSelect(false);
+        setMultiSelect(true);
         setImmediate(true); // react at once when something is selected
         setColumnReorderingAllowed(true);
         setColumnCollapsingAllowed(true);

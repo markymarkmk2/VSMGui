@@ -48,12 +48,13 @@ public class VSMSearchApplication extends TPTApplication implements ClickListene
         }       
     }
 
-    @Override
-    public void close()
-    {
-        super.close();
-        main.exitApp();
-    }
+    // RECURSION
+//    @Override
+//    public void close()
+//    {
+//        super.close();
+//        main.exitApp();
+//    }
 
 
 

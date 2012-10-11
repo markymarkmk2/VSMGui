@@ -30,6 +30,7 @@ import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.SearchWrapper;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
+import de.dimm.vsm.net.interfaces.IWrapper;
 import de.dimm.vsm.records.ArchiveJob;
 import de.dimm.vsm.records.ArchiveJobFileLink;
 import de.dimm.vsm.records.FileSystemElemAttributes;
@@ -62,15 +63,15 @@ public class FileinfoWindow extends Window
 
      RemoteFSElem elem;
      VSMCMain main;
-     SearchWrapper sw = null;
-     StoragePoolWrapper sp = null;
+     IWrapper sw = null;
+     //StoragePoolWrapper sp = null;
      VerticalLayout vl = new VerticalLayout();
      long poolIdx;
 
     HorizontalLayout jobPanel;
     List<ArchiveJob> jobList = null;
 
-    public FileinfoWindow( VSMCMain main, SearchWrapper sw, RemoteFSElem elem )
+    public FileinfoWindow( VSMCMain main, IWrapper sw, RemoteFSElem elem )
     {
         this.elem = elem;
         this.main = main;
@@ -79,15 +80,15 @@ public class FileinfoWindow extends Window
 
         build_gui(elem);
     }
-    public FileinfoWindow( VSMCMain main, StoragePoolWrapper sp, RemoteFSElem elem )
-    {
-        this.elem = elem;
-        this.main = main;
-        this.sp = sp;
-        poolIdx = sp.getPoolIdx();
-
-        build_gui(elem);
-    }
+//    public FileinfoWindow( VSMCMain main, StoragePoolWrapper sp, RemoteFSElem elem )
+//    {
+//        this.elem = elem;
+//        this.main = main;
+//        this.sp = sp;
+//        poolIdx = sp.getPoolIdx();
+//
+//        build_gui(elem);
+//    }
 
     final void build_gui( RemoteFSElem elem )
     {
@@ -147,12 +148,12 @@ public class FileinfoWindow extends Window
             }
 
             // RESOLVE PATH
-            if (sp != null)
+         /*   if (sp != null)
             {
                 path = main.getGuiServerApi().resolvePath(sp, elem);
 
             }
-            else if (sw != null)
+            else*/ if (sw != null)
             {
                 path = main.getGuiServerApi().resolvePath(sw, elem);
             }
@@ -424,14 +425,21 @@ public class FileinfoWindow extends Window
                     if (dlg.isEncrypted())
                         rflags |= GuiServerApi.RF_ENCRYPTION;
 
-                    boolean rret = main.getGuiServerApi().restoreJob(sw, job, ip, port, path, rflags, main.getUser());
-                    if (!rret)
+                    if (sw instanceof SearchWrapper)
                     {
-                        main.Msg().errmOk(VSMCMain.Txt("Der_Restore_schlug_fehl"));
+                        boolean rret = main.getGuiServerApi().restoreJob((SearchWrapper)sw, job, ip, port, path, rflags, main.getUser());
+                        if (!rret)
+                        {
+                            main.Msg().errmOk(VSMCMain.Txt("Der_Restore_schlug_fehl"));
+                        }
+                        else
+                        {
+                            main.Msg().info(VSMCMain.Txt("Der_Restore_wurde_gestartet"), null);
+                        }
                     }
                     else
                     {
-                        main.Msg().info(VSMCMain.Txt("Der_Restore_wurde_gestartet"), null);
+                        main.Msg().info(VSMCMain.Txt("Restore von Jobs im dateisystem nicht implementiert -> Suche"), null);
                     }
                 }
                 catch (Exception ex)

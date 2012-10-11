@@ -4,6 +4,8 @@
  */
 package de.dimm.vsm.vaadin.GuiElems.SidebarPanels;
 
+import com.vaadin.Application;
+import de.dimm.vsm.vaadin.GuiElems.FileSystem.IContextMenuCallback;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.AbsoluteLayout;
@@ -22,16 +24,17 @@ import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.AgentApi;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
+import de.dimm.vsm.net.interfaces.IWrapper;
 import de.dimm.vsm.records.FileSystemElemNode;
 import de.dimm.vsm.records.HotFolder;
 import de.dimm.vsm.records.StoragePool;
+import de.dimm.vsm.vaadin.GuiElems.Dialogs.FileinfoWindow;
+import de.dimm.vsm.vaadin.GuiElems.Dialogs.RestoreLocationDlg;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTree;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeColumn;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeContainer;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteFSElemTreeElem;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteProvider;
-import de.dimm.vsm.vaadin.GuiElems.Dialogs.FileinfoWindow;
-import de.dimm.vsm.vaadin.GuiElems.Dialogs.RestoreLocationDlg;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteItemDescriptionGenerator;
 import de.dimm.vsm.vaadin.SelectObjectCallback;
 import de.dimm.vsm.vaadin.VSMCMain;
@@ -42,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.vaadin.peter.contextmenu.ContextMenu;
@@ -357,29 +361,39 @@ public class FileSystemViewer extends SidebarPanel
             }
         };
 
+        container = new FSTreeContainer(provider, fields);
+        container.setSkipEmptyDirs(true);
 
-        List<RemoteFSElem> poolRootList = null;
-        RemoteFSElem slash =  new RemoteFSElem("/", FileSystemElemNode.FT_DIR, 0, 0, 0, 0, 0);
-        try
+
+        if (!VSMCMain.Me(this).getGuiUser().getUser().getFsMapper().isEmpty())
         {
-            poolRootList = main.getGuiServerApi().listDir(wrapper, slash);
-
-            // LIST DIR GIVES RELPATH, WE NEED ABSOLUTE PATHS HERE
-            for (int i = 0; i < poolRootList.size(); i++)
-            {
-                RemoteFSElem remoteFSElem = poolRootList.get(i);
-                remoteFSElem.makeAbsolut( slash );
-            }
+            container.initRootWithUserMapping( VSMCMain.Me(this).getGuiUser().getUser().getFsMapper() );
         }
-        catch (SQLException sQLException)
+        else
         {
-            VSMCMain.notify(this, "Rootverzeichnis kann nicht gelesen werden", "");
-            poolRootList = new ArrayList<RemoteFSElem>();
-            poolRootList.add(slash);
+            List<RemoteFSElem> poolRootList;
+            RemoteFSElem slash =  new RemoteFSElem("/", FileSystemElemNode.FT_DIR, 0, 0, 0, 0, 0);
+            try
+            {
+                poolRootList = main.getGuiServerApi().listDir(wrapper, slash);
+
+                // LIST DIR GIVES RELPATH, WE NEED ABSOLUTE PATHS HERE
+                for (int i = 0; i < poolRootList.size(); i++)
+                {
+                    RemoteFSElem remoteFSElem = poolRootList.get(i);
+                    remoteFSElem.makeAbsolut( slash );
+                }
+            }
+            catch (SQLException sQLException)
+            {
+                VSMCMain.notify(this, "Rootverzeichnis kann nicht gelesen werden", "");
+                poolRootList = new ArrayList<RemoteFSElem>();
+                poolRootList.add(slash);
+            }
+            container.initRootlist(poolRootList);
         }
         
-        container = new FSTreeContainer(provider, fields, VSMCMain.Me(this).getGuiUser().getUser());
-        container.initRootlist(poolRootList);
+        
 
         tree = new FSTree(fields, /*sort*/ false);
         tree.setContainerDataSource(container);
@@ -397,13 +411,27 @@ public class FileSystemViewer extends SidebarPanel
                 if (event.getItemId() instanceof RemoteFSElemTreeElem
                         && (event.getButton() & com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT) == com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT)
                 {
-                    RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
-                    create_fs_popup(event, rfstreeelem);
+                    RemoteFSElemTreeElem clickedItem = (RemoteFSElemTreeElem)event.getItemId();
+                    Object sel = tree.getValue();
+
+                    if (sel instanceof Set<?> && ((Set<?>)sel).size() > 1)
+                    {
+                        Set<RemoteFSElemTreeElem> set = (Set<RemoteFSElemTreeElem>)sel;
+                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>(set);
+                        create_fs_popup(event, list);
+                    }
+                    else
+                    {
+                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>();
+                        list.add(clickedItem);
+                        create_fs_popup(event, list);
+                    }
                 }
                 if (event.getItemId() instanceof RemoteFSElemTreeElem && event.isDoubleClick())
                 {
                     RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
-                    handleDownload(rfstreeelem);
+                    DownloadResource downloadResource = createDownloadResource( main, getApplication(), viewWrapper, rfstreeelem);
+                    getWindow().open(downloadResource);
                 }
             }
         });
@@ -411,41 +439,100 @@ public class FileSystemViewer extends SidebarPanel
 
         return tree;
     }
+
+//    RemoteFSElemTreeElem buildValidUserRoot(RemoteProvider provider, StoragePoolWrapper wrapper, User user) throws SQLException
+//    {
+//        List<User.VsmFsEntry> vsmList = user.getFsMapper().getVsmList();
+//
+//        // FILTER OUT ALL EMPTY -> INVISIBLE ENTRIES
+//        vsmList = getValidVsmEntryList( vsmList, wrapper );
+//
+//        MappingTreeElem rootTreeElem = new MappingTreeElem(vsmList, provider, new RemoteFSElem("/", FileSystemElemNode.FT_DIR, System.currentTimeMillis(), System.currentTimeMillis(), System.currentTimeMillis(), 0, 0 ), null);
+//
+//        return rootTreeElem;
+//    }
+//
+//    // DETECT ALL VSMFS ENTRIES WHICH GIVE VALID RESULTS FOR THIS USER
+//    List<VsmFsEntry> getValidVsmEntryList( List<VsmFsEntry> vsmList, StoragePoolWrapper wrapper ) throws SQLException
+//    {
+//        RemoteFSElem root =  new RemoteFSElem("/", FileSystemElemNode.FT_DIR, System.currentTimeMillis(), System.currentTimeMillis(), System.currentTimeMillis(), 0, 0 );
+//        List<RemoteFSElem> rootChilds = main.getGuiServerApi().listDir(wrapper, root);
+//
+//        List<VsmFsEntry> validVsmList = new ArrayList<VsmFsEntry>();
+//
+//        for (int i = 0; i < rootChilds.size(); i++)
+//        {
+//            RemoteFSElem remoteFSElem = rootChilds.get(i);
+//
+//            for (int j = 0; j < vsmList.size(); j++)
+//            {
+//                VsmFsEntry vfse = vsmList.get(j);
+//
+//                String[] rootPath = vfse.getvPath().split("/");
+//                if (rootPath == null || rootPath.length < 2)
+//                    continue;
+//                if (rootPath[1].equals(remoteFSElem.getName()))
+//                {
+//                    validVsmList.add(vfse);
+//                }
+//            }
+//        }
+//        return validVsmList;
+//    }
+
     ContextMenu lastMenu = null;
 
-    void create_fs_popup( ItemClickEvent event, final RemoteFSElemTreeElem rfstreeelem )
+
+
+    public static ContextMenu create_fs_popup( final VSMCMain main, final IWrapper wrapper, final TreeTable tree,
+            final FSTreeContainer container, ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems,
+            final IContextMenuCallback callback )
     {
         ContextMenu menu = new ContextMenu();
         ContextMenuItem dl = null;
         ContextMenuItem _remove = null;
         ContextMenuItem _del = null;
+        ContextMenuItem _info = null;
 
+
+        
+        boolean hasFile = false;
+        boolean _hasDir = false;
+        boolean oneSelected = false;
+        for (int i = 0; i < rfstreeelems.size(); i++)
+        {
+            RemoteFSElemTreeElem remoteFSElemTreeElem = rfstreeelems.get(i);
+            if ( remoteFSElemTreeElem.getElem().isFile())
+                hasFile = true;
+            if ( remoteFSElemTreeElem.getElem().isDirectory())
+                _hasDir = true;
+        }
+        if (rfstreeelems.size() == 1)
+        {
+            oneSelected = true;
+        }
+        final boolean hasDir = _hasDir;
 
 
         // Generate main level items
-        final ContextMenuItem info = menu.addItem(VSMCMain.Txt("Information"));
+        if (oneSelected)
+        _info = menu.addItem(VSMCMain.Txt("Information"));
         final ContextMenuItem ver = menu.addItem(VSMCMain.Txt("Versions"));
-        if (main.getGuiUser().isSuperUser() && !viewWrapper.isReadOnly())
+        if (oneSelected && main.getGuiUser().isSuperUser() && !wrapper.isReadOnly())
         {
             _remove = menu.addItem( VSMCMain.Txt("Endgültig aus dem Dateisystem entfernen"));
-            _del = menu.addItem(rfstreeelem.getElem().isDeleted() ? VSMCMain.Txt("Undelete") : VSMCMain.Txt("Delete"));
+            _del = menu.addItem(rfstreeelems.get(0).getElem().isDeleted() ? VSMCMain.Txt("Undelete") : VSMCMain.Txt("Delete"));
         }
 
         final ContextMenuItem restore = menu.addItem(VSMCMain.Txt("Restore"));
-        if (!rfstreeelem.getElem().isDirectory())
+        if (oneSelected && hasFile)
             dl = menu.addItem(VSMCMain.Txt("Download"));
 
-
-        //final ContextMenuItem rename = menu.addItem(VSMCMain.Txt("Rename"));
 
         final ContextMenuItem download = dl;
         final ContextMenuItem del = _del;
         final ContextMenuItem remove = _remove;
-
-        // Generate sub item to photos menu
-        ContextMenuItem topRated = ver.addItem("Letzte Woche (Todo...)");
-
-        //photos.setIcon(new FileResource(new File("images/dir.png"), event.getComponent().getApplication()));
+        final ContextMenuItem info = _info;
 
         // Enable separator line under this item
         ver.setSeparatorVisible(true);
@@ -458,13 +545,16 @@ public class FileSystemViewer extends SidebarPanel
             public void contextItemClick( ContextMenu.ClickEvent event )
             {
                 // Get reference to clicked item
+
+                // INFO, DEL AND REMOVE WORK ONLY WITH SINGLE SELECTION
+                final RemoteFSElemTreeElem singleRfstreeelem = rfstreeelems.get(0);
                 ContextMenuItem clickedItem = event.getClickedItem();
                 if (clickedItem == info)
                 {
-                    FileinfoWindow win = new FileinfoWindow(main, viewWrapper, rfstreeelem.getElem());
+                    FileinfoWindow win = new FileinfoWindow(main, wrapper, singleRfstreeelem.getElem());
 
                     // Do something with the reference
-                    getApplication().getMainWindow().addWindow(win);
+                    event.getComponent().getApplication().getMainWindow().addWindow(win);
                 }
                 if (clickedItem == del && main.getGuiUser().isSuperUser())
                 {
@@ -475,17 +565,17 @@ public class FileSystemViewer extends SidebarPanel
                         {
                             try
                             {
-                                if (rfstreeelem.getElem().isDeleted())
+                                if (rfstreeelems.get(0).getElem().isDeleted())
                                 {
-                                    main.getGuiServerApi().undeleteFSElem(viewWrapper, rfstreeelem.getElem());
+                                    main.getGuiServerApi().undeleteFSElem(wrapper, singleRfstreeelem.getElem());
                                 }
                                 else
                                 {
-                                    main.getGuiServerApi().deleteFSElem(viewWrapper, rfstreeelem.getElem());
+                                    main.getGuiServerApi().deleteFSElem(wrapper, singleRfstreeelem.getElem());
                                 }
 
-                                tree.setCollapsed(rfstreeelem.getParent(), true);
-                                tree.setCollapsed(rfstreeelem.getParent(), false);
+                                tree.setCollapsed(singleRfstreeelem.getParent(), true);
+                                tree.setCollapsed(singleRfstreeelem.getParent(), false);
                                 tree.requestRepaint();
 
                             }
@@ -495,19 +585,19 @@ public class FileSystemViewer extends SidebarPanel
                             }
                         }
                     };
-                    if (rfstreeelem.getElem().isDirectory())
+                    if (rfstreeelems.get(0).getElem().isDirectory())
                     {
-                        if (rfstreeelem.getElem().isDeleted())
-                            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_wiederherstellen?"), ok, null);
+                        if (rfstreeelems.get(0).getElem().isDeleted())
+                            main.Msg().infoOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_wiederherstellen?"), ok, null);
                         else
-                            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_als_gelöscht_markieren?"), ok, null);
+                            main.Msg().infoOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_als_gelöscht_markieren?"), ok, null);
                     }
                     else
                     {
-                        if (rfstreeelem.getElem().isDeleted())
-                            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_wiederherstellen?"), ok, null);
+                        if (rfstreeelems.get(0).getElem().isDeleted())
+                            main.Msg().infoOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_wiederherstellen?"), ok, null);
                         else
-                            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_als_gelöscht_markieren?"), ok, null);
+                            main.Msg().infoOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_als_gelöscht_markieren?"), ok, null);
                     }
                 }
                 if (clickedItem == remove && main.getGuiUser().isSuperUser())
@@ -520,11 +610,11 @@ public class FileSystemViewer extends SidebarPanel
 
                             try
                             {
-                                main.getGuiServerApi().removeFSElem(viewWrapper, rfstreeelem.getElem());
-                                container.removeItem(rfstreeelem);
+                                main.getGuiServerApi().removeFSElem(wrapper, singleRfstreeelem.getElem());
+                                container.removeItem(singleRfstreeelem);
                                 
-                                tree.setCollapsed(rfstreeelem.getParent(), true);
-                                tree.setCollapsed(rfstreeelem.getParent(), false);
+                                tree.setCollapsed(singleRfstreeelem.getParent(), true);
+                                tree.setCollapsed(singleRfstreeelem.getParent(), false);
                                 tree.requestRepaint();
 
                             }
@@ -534,71 +624,109 @@ public class FileSystemViewer extends SidebarPanel
                             }
                         }
                     };
-                    if (rfstreeelem.getElem().isDirectory())
+                    String caption = VSMCMain.Txt("Achtung");
+                    if (singleRfstreeelem.getElem().isDirectory())
                     {
-                        main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_und_alle_darin_enthaltenen_Dateien_endgültig_entfernen?"), ok, null);
+                        main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_und_alle_darin_enthaltenen_Dateien_endgültig_entfernen?"), caption, ok, null);
                     }
                     else
                     {
-                        main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_endgültig_entfernen?"), ok, null);
+                        main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_endgültig_entfernen?"), caption, ok, null);
                     }
                 }
                 if (clickedItem == restore)
                 {
-                    handleRestoreTargetDialog(rfstreeelem);
+                    callback.handleRestoreTargetDialog(rfstreeelems);
                 }
                 if (clickedItem == download)
                 {
-                    handleDownload(rfstreeelem);
+                    callback.handleDownload(singleRfstreeelem);
                 }
-
             }
         }); // Open Context Menu to mouse coordinates when user right clicks layout
 
 
+        // HAS TO BE IN VAADIN VIEW
+        tree.getApplication().getMainWindow().addComponent(menu);
+        
+
+        menu.show(event.getClientX(), event.getClientY());
+
+        return menu;
+
+    }
+
+    void create_fs_popup( ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems )
+    {
         if (lastMenu != null)
         {
             treePanel.removeComponent(lastMenu);
         }
 
-        // HAS TO BE IN VAADIN VIEW
-        treePanel.getApplication().getMainWindow().addComponent(menu);
-        lastMenu = menu;
+        IContextMenuCallback callback = new IContextMenuCallback() {
 
-        menu.show(event.getClientX(), event.getClientY());
+            @Override
+            public void handleRestoreTargetDialog( List<RemoteFSElemTreeElem> rfstreeelems )
+            {
+                 RestoreLocationDlg dlg = createRestoreTargetDialog(main, viewWrapper, rfstreeelems );
+                 treePanel.getApplication().getMainWindow().addWindow( dlg );
+            }
 
+            @Override
+            public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
+            {
+                DownloadResource downloadResource = createDownloadResource( main, getApplication(), viewWrapper, singleRfstreeelem);
+                getWindow().open(downloadResource);
+            }
+        };
+        
+        lastMenu = create_fs_popup(main, viewWrapper, tree, container, event, rfstreeelems, callback);
     }
 
-    private void handleDownload( final RemoteFSElemTreeElem rfstreeelem)
+    public static DownloadResource createDownloadResource( final VSMCMain main, Application app, final IWrapper wrapper, final RemoteFSElemTreeElem rfstreeelem)
     {
         RemoteFSElem fs = rfstreeelem.getElem();
 
-        InputStream is = main.getGuiServerApi().openStream(viewWrapper, fs);
+        InputStream is = main.getGuiServerApi().openStream(wrapper, fs);
 
-        DownloadResource downloadResource = new DownloadResource(is, fs.getName(), treePanel.getApplication());
+        DownloadResource downloadResource = new DownloadResource(is, fs.getName(),app);
 
-        getWindow().open(downloadResource);
+        return downloadResource;
+        
     }
 
 
-    private void handleRestoreTargetDialog( final RemoteFSElemTreeElem rfstreeelem)
+    public static RestoreLocationDlg createRestoreTargetDialog( final VSMCMain main, final IWrapper wrapper, final List<RemoteFSElemTreeElem> rfstreeelems)
     {
-        boolean allowOrig = !isHotfolderPath( rfstreeelem );
+        boolean allowOrig = true;
 
-        final RestoreLocationDlg dlg = new RestoreLocationDlg(main, "127.0.0.1", 8082, "", allowOrig);
+        for (int i = 0; i < rfstreeelems.size(); i++)
+        {
+            RemoteFSElemTreeElem remoteFSElemTreeElem = rfstreeelems.get(i);
+            if (!isHotfolderPath( remoteFSElemTreeElem ))
+            {
+                allowOrig = false;
+                break;
+            }
+        }
+
+
+        final RestoreLocationDlg dlg = new RestoreLocationDlg(main, "", 8082, null, allowOrig);
         Button.ClickListener okListener = new Button.ClickListener()
         {
             @Override
             public void buttonClick( ClickEvent event )
             {
-                handleRestoreOkayDialog( dlg, rfstreeelem );
+                handleRestoreOkayDialog( main, wrapper, dlg, rfstreeelems );
             }
         };
         dlg.setOkListener( okListener );
-        treePanel.getApplication().getMainWindow().addWindow( dlg );
+
+        return dlg;
+       
     }
 
-    private void handleRestoreOkayDialog( final RestoreLocationDlg dlg, final RemoteFSElemTreeElem rfstreeelem)
+    public static void handleRestoreOkayDialog( final VSMCMain main, final IWrapper wrapper, final RestoreLocationDlg dlg, final List<RemoteFSElemTreeElem> rfstreeelems)
     {
         Button.ClickListener ok = new Button.ClickListener()
         {
@@ -607,36 +735,73 @@ public class FileSystemViewer extends SidebarPanel
             {
                 try
                 {
-                    String ip = dlg.getIP();
-                    int port = dlg.getPort();
-                    String path = dlg.getPath();
-                    if (dlg.isOriginal())
+                    boolean rret = true;
+                    List<RemoteFSElem>restoreList = new ArrayList<RemoteFSElem>();
+                    String lastIp = "";
+                    int lastPort = 0;
+                    String lastPath = "";
+                    int lastRflags = -1;
+
+                    for (int i = 0; i < rfstreeelems.size(); i++)
                     {
-                        if (isHotfolderPath( rfstreeelem ))
+                        RemoteFSElemTreeElem rfstreeelem = rfstreeelems.get(i);                        
+
+
+                        String ip = dlg.getIP();
+                        int port = dlg.getPort();
+                        String path = dlg.getPath();
+                        if (dlg.isOriginal())
                         {
-                            main.Msg().errmOk(VSMCMain.Txt("Hotfolderobjekte_können_nicht_an_Original_restauriert_werden"));
-                            return;
+                            if (isHotfolderPath( rfstreeelem ))
+                            {
+                                main.Msg().errmOk(VSMCMain.Txt("Hotfolderobjekte_können_nicht_an_Original_restauriert_werden"));
+                                return;
+                            }
+                            ip = getIpFromPath( rfstreeelem );
+                            port = getPortFromPath( rfstreeelem );
+
+
+                            Properties p = main.getGuiServerApi().getAgentProperties( ip, port, false );
+                            boolean isWindows =  ( p != null && p.getProperty(AgentApi.OP_OS).startsWith("Win"));
+
+                            path = getTargetpathFromPath( rfstreeelem, isWindows );
                         }
-                        ip = getIpFromPath( rfstreeelem );
-                        port = getPortFromPath( rfstreeelem );
 
+                        int rflags = GuiServerApi.RF_RECURSIVE;
+                        if (isHotfolderPath(rfstreeelem))
+                            rflags |= GuiServerApi.RF_SKIPHOTFOLDER_TIMSTAMPDIR;
+                        if (dlg.isCompressed())
+                            rflags |= GuiServerApi.RF_COMPRESSION;
+                        if (dlg.isEncrypted())
+                            rflags |= GuiServerApi.RF_ENCRYPTION;
 
-                        Properties p = main.getGuiServerApi().getAgentProperties( ip, port, false );
-                        boolean isWindows =  ( p != null && p.getProperty(AgentApi.OP_OS).startsWith("Win"));
+                        // CHENGED TARGET ? RESTORE EVERYTHING GATHERED UNTIL NOW
+                        if (!lastIp.equals(ip) || lastPort != port || !lastPath.equals(path))
+                        {
+                            if (!restoreList.isEmpty())
+                            {
+                                if (!main.getGuiServerApi().restoreFSElems(wrapper, restoreList, lastIp, lastPort, lastPath, lastRflags, main.getUser()))
+                                    rret = false;
 
-                        path = getTargetpathFromPath( rfstreeelem, isWindows );
+                                restoreList.clear();
+                            }
+                        }
+                        restoreList.add(rfstreeelem.getElem());
+                        lastIp = ip;
+                        lastPort = port;
+                        lastPath = path;
+                        lastRflags = rflags;
                     }
 
-                    int rflags = GuiServerApi.RF_RECURSIVE;
-                    if (isHotfolderPath(rfstreeelem))
-                        rflags |= GuiServerApi.RF_SKIPHOTFOLDER_TIMSTAMPDIR;
-                    if (dlg.isCompressed())
-                        rflags |= GuiServerApi.RF_COMPRESSION;
-                    if (dlg.isEncrypted())
-                        rflags |= GuiServerApi.RF_ENCRYPTION;
+                    // RESTORE EVERYTHING GATHERED UNTIL NOW
+                    if (!restoreList.isEmpty())
+                    {
+                        if (!main.getGuiServerApi().restoreFSElems(wrapper, restoreList, lastIp, lastPort, lastPath, lastRflags, main.getUser()))
+                            rret = false;
 
+                        restoreList.clear();
+                    }
 
-                    boolean rret = main.getGuiServerApi().restoreFSElem(viewWrapper, rfstreeelem.getElem(), ip, port, path, rflags, main.getUser());
                     if (!rret)
                     {
                         main.Msg().errmOk(VSMCMain.Txt("Der_Restore_schlug_fehl"));
@@ -650,20 +815,29 @@ public class FileSystemViewer extends SidebarPanel
                 {
                     main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_abgebrochen"));
                 }
-            }
-
+            }            
         };
-        if (rfstreeelem.getElem().isDirectory())
+
+        if (rfstreeelems.size() == 1)
         {
-            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_und_alle_darin_enthaltenen_Dateien_restaurieren?"), ok, null);
+            RemoteFSElemTreeElem rfstreeelem = rfstreeelems.get(0);
+            if (rfstreeelem.getElem().isDirectory())
+            {
+                main.Msg().infoOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_und_alle_darin_enthaltenen_Dateien_restaurieren?"), ok, null);
+            }
+            else
+            {
+                main.Msg().infoOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_restaurieren?"), ok, null);
+            }
         }
         else
         {
-            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_restaurieren?"), ok, null);
+            String caption = rfstreeelems.size() + " " + VSMCMain.Txt("Objekte");
+            main.Msg().infoOkCancel(VSMCMain.Txt("Wollen_Sie_die_ausgewählten_Objekte_restaurieren?"), caption, ok, null);
         }
-
     }
-    String getClientAddressPath(  RemoteFSElemTreeElem elem )
+    
+    static String getClientAddressPath(  RemoteFSElemTreeElem elem )
     {
         StringBuilder sb = new StringBuilder();
 
@@ -680,17 +854,17 @@ public class FileSystemViewer extends SidebarPanel
         }
         return sb.toString();
     }
-    boolean isHotfolderPath(String fp)
+    static boolean isHotfolderPath(String fp)
     {
         return fp.startsWith("/"  + HotFolder.HOTFOLDERBASE);
     }
-    boolean isHotfolderPath(RemoteFSElemTreeElem elem)
+    static boolean isHotfolderPath(RemoteFSElemTreeElem elem)
     {
         String fp = getClientAddressPath(elem);
         return fp.startsWith("/"  + HotFolder.HOTFOLDERBASE);
     }
 
-    private String getIpFromPath( RemoteFSElemTreeElem elem )
+    private static String getIpFromPath( RemoteFSElemTreeElem elem )
     {
         String fp = getClientAddressPath(elem);
         String[] pathArr = fp.split("/");
@@ -707,7 +881,7 @@ public class FileSystemViewer extends SidebarPanel
         return pathArr[1];
     }
 
-    private int getPortFromPath( RemoteFSElemTreeElem elem )
+    private static int getPortFromPath( RemoteFSElemTreeElem elem )
     {
         String fp = getClientAddressPath(elem);
         String[] pathArr = fp.split("/");
@@ -722,7 +896,7 @@ public class FileSystemViewer extends SidebarPanel
         return Integer.parseInt(pathArr[2]);
     }
 
-    private String getTargetpathFromPath( RemoteFSElemTreeElem elem, boolean isWindows )
+    private static String getTargetpathFromPath( RemoteFSElemTreeElem elem, boolean isWindows )
     {
         String fp = getClientAddressPath(elem);
 

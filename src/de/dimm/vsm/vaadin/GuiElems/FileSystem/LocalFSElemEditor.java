@@ -81,8 +81,10 @@ public class LocalFSElemEditor extends HorizontalLayout
  
 
         tf = new TextField(caption);
-        tf.setValue(val);
-
+        if (val != null)
+        {
+            tf.setValue(val);
+        }
         initButton();
     }
    
@@ -225,7 +227,7 @@ public class LocalFSElemEditor extends HorizontalLayout
 
             FSTree tr = new FSTree(fields, /*sort*/ false);
 
-            FSTreeContainer cs = new FSTreeContainer(provider, fields, null);
+            FSTreeContainer cs = new FSTreeContainer(provider, fields);
 
             cs.initRootlist(root_list);
 

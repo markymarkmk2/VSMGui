@@ -4,6 +4,7 @@
  */
 package de.dimm.vsm.vaadin.search;
 
+import de.dimm.vsm.vaadin.GuiElems.FileSystem.IContextMenuCallback;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.*;
@@ -40,7 +41,6 @@ import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeColumn;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeContainer;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteFSElemTreeElem;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteProvider;
-import de.dimm.vsm.vaadin.GuiElems.Dialogs.FileinfoWindow;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.MountLocationDlg;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.RestoreLocationDlg;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteItemDescriptionGenerator;
@@ -51,10 +51,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
 
 
 
@@ -579,7 +579,7 @@ public class SearchClientWin extends SidebarPanel
 
         };
 
-        container = new FSTreeContainer(provider, fields, main.getUser());
+        container = new FSTreeContainer(provider, fields);
         if (root_list != null)
             container.initRootlist(root_list);
 
@@ -599,13 +599,27 @@ public class SearchClientWin extends SidebarPanel
                 if (event.getItemId() instanceof RemoteFSElemTreeElem
                         && (event.getButton() & com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT) == com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT)
                 {
-                    RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
-                    create_fs_popup(event, rfstreeelem);
+                    RemoteFSElemTreeElem clickedItem = (RemoteFSElemTreeElem)event.getItemId();
+                    Object sel = tree.getValue();
+
+                    if (sel instanceof Set<?> && ((Set<?>)sel).size() > 1)
+                    {
+                        Set<RemoteFSElemTreeElem> set = (Set<RemoteFSElemTreeElem>)sel;
+                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>(set);
+                        create_fs_popup(event, list);
+                    }
+                    else
+                    {
+                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>();
+                        list.add(clickedItem);
+                        create_fs_popup(event, list);
+                    }
                 }
                 if (event.getItemId() instanceof RemoteFSElemTreeElem && event.isDoubleClick())
                 {
                     RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
-                    handleDownload(rfstreeelem);
+                    DownloadResource downloadResource = FileSystemViewer.createDownloadResource( main, getApplication(), searchWrapper, rfstreeelem);
+                    getWindow().open(downloadResource);
                 }
             }
         });
@@ -615,256 +629,331 @@ public class SearchClientWin extends SidebarPanel
     }
     ContextMenu lastMenu = null;
 
-    void create_fs_popup( ItemClickEvent event, final RemoteFSElemTreeElem rfstreeelem )
+    void create_fs_popup( ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems )
     {
-        ContextMenu menu = new ContextMenu();
-
-        // Generate main level items
-        final ContextMenuItem info = menu.addItem(VSMCMain.Txt("Information"));
-        
-        // SEPARATOR BENEATH THIS ONE
-        info.setSeparatorVisible(true);
-        
-        //final ContextMenuItem ver = menu.addItem(VSMCMain.Txt("Versions"));
-        final ContextMenuItem restore = menu.addItem(VSMCMain.Txt("Restore"));
-        final ContextMenuItem download = menu.addItem(VSMCMain.Txt("Download"));
-
-        // Generate sub item to photos menu
-        //ContextMenuItem topRated = ver.addItem("Letzte Woche (Todo...)");
-
-        //photos.setIcon(new FileResource(new File("images/dir.png"), event.getComponent().getApplication()));
-
-        // Enable separator line under this item
-        //ver.setSeparatorVisible(true);
-
-        // Show notification when menu items are clicked
-        menu.addListener(new ContextMenu.ClickListener()
-        {
-
-            @Override
-            public void contextItemClick( ContextMenu.ClickEvent event )
-            {
-                // Get reference to clicked item
-                ContextMenuItem clickedItem = event.getClickedItem();
-                if (clickedItem == info)
-                {
-                    FileinfoWindow win = new FileinfoWindow(main, searchWrapper, rfstreeelem.getElem());
-
-                    // Do something with the reference
-                    getApplication().getMainWindow().addWindow(win);
-                }
-                
-                if (clickedItem == restore)
-                {
-                    handleRestoreTargetDialog(rfstreeelem);
-                }
-                if (clickedItem == download)
-                {
-                    handleDownload(rfstreeelem);
-                }
-            }
-        }); // Open Context Menu to mouse coordinates when user right clicks layout
-
-
         if (lastMenu != null)
         {
             treePanel.removeComponent(lastMenu);
         }
 
-        // HAS TO BE IN VAADIN VIEW
-        treePanel.getApplication().getMainWindow().addComponent(menu);
-        lastMenu = menu;
+        IContextMenuCallback callback = new IContextMenuCallback() {
 
-        menu.show(event.getClientX(), event.getClientY());
-
-    }
-
-    private void handleDownload( final RemoteFSElemTreeElem rfstreeelem)
-    {
-        RemoteFSElem fs = rfstreeelem.getElem();
-
-        InputStream is = main.getGuiServerApi().openStream(searchWrapper, fs);
-
-        DownloadResource downloadResource = new DownloadResource(is, "\"" + fs.getName() + "\"", btMountVol.getApplication());
-
-        getWindow().open(downloadResource);
-    }
-
-
-    private void handleRestoreTargetDialog( final RemoteFSElemTreeElem rfstreeelem)
-    {
-        final RestoreLocationDlg dlg = new RestoreLocationDlg(main, main.getIp(), 8082, "",  /*allowOriginal*/false );
-        Button.ClickListener okListener = new Button.ClickListener()
-        {
             @Override
-            public void buttonClick( ClickEvent event )
+            public void handleRestoreTargetDialog( List<RemoteFSElemTreeElem> rfstreeelems )
             {
-                handleRestoreOkayDialog( dlg, rfstreeelem);
+                 RestoreLocationDlg dlg = FileSystemViewer.createRestoreTargetDialog(main, searchWrapper, rfstreeelems );
+                 treePanel.getApplication().getMainWindow().addWindow( dlg );
+            }
+
+            @Override
+            public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
+            {
+                DownloadResource downloadResource = FileSystemViewer.createDownloadResource( main, getApplication(), searchWrapper, singleRfstreeelem);
+                getWindow().open(downloadResource);
             }
         };
-        dlg.setOkListener( okListener );
-        treePanel.getApplication().getMainWindow().addWindow( dlg );
+
+        lastMenu = FileSystemViewer.create_fs_popup(main, searchWrapper, tree, container, event, rfstreeelems, callback);
     }
 
-    private void handleRestoreOkayDialog( final RestoreLocationDlg dlg, final RemoteFSElemTreeElem rfstreeelem)
-    {
-        Button.ClickListener ok = new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( ClickEvent event )
-            {
-                try
-                {
-                    String ip = dlg.getIP();
-                    int port = dlg.getPort();
-                    String path = dlg.getPath();
-                    if (dlg.isOriginal())
-                    {
-                        if (isHotfolderPath( rfstreeelem ))
-                        {
-                            main.Msg().errmOk(VSMCMain.Txt("Hotfolderobjekte_können_nicht_an_Original_restauriert_werden"));
-                            return;
-                        }
-                        ip = getIpFromPath( rfstreeelem );
-                        port = getPortFromPath( rfstreeelem );
+//    void create_fs_popup( ItemClickEvent event, final RemoteFSElemTreeElem rfstreeelem )
+//    {
+//        ContextMenu menu = new ContextMenu();
+//
+//        // Generate main level items
+//        final ContextMenuItem info = menu.addItem(VSMCMain.Txt("Information"));
+//
+//        // SEPARATOR BENEATH THIS ONE
+//        info.setSeparatorVisible(true);
+//
+//        //final ContextMenuItem ver = menu.addItem(VSMCMain.Txt("Versions"));
+//        final ContextMenuItem restore = menu.addItem(VSMCMain.Txt("Restore"));
+//        final ContextMenuItem download = menu.addItem(VSMCMain.Txt("Download"));
+//
+//        // Generate sub item to photos menu
+//        //ContextMenuItem topRated = ver.addItem("Letzte Woche (Todo...)");
+//
+//        //photos.setIcon(new FileResource(new File("images/dir.png"), event.getComponent().getApplication()));
+//
+//        // Enable separator line under this item
+//        //ver.setSeparatorVisible(true);
+//
+//        // Show notification when menu items are clicked
+//        menu.addListener(new ContextMenu.ClickListener()
+//        {
+//
+//            @Override
+//            public void contextItemClick( ContextMenu.ClickEvent event )
+//            {
+//                // Get reference to clicked item
+//                ContextMenuItem clickedItem = event.getClickedItem();
+//                if (clickedItem == info)
+//                {
+//                    FileinfoWindow win = new FileinfoWindow(main, searchWrapper, rfstreeelem.getElem());
+//
+//                    // Do something with the reference
+//                    getApplication().getMainWindow().addWindow(win);
+//                }
+//
+//                if (clickedItem == restore)
+//                {
+//                    handleRestoreTargetDialog(rfstreeelem);
+//                }
+//                if (clickedItem == download)
+//                {
+//                    handleDownload(rfstreeelem);
+//                }
+//            }
+//        }); // Open Context Menu to mouse coordinates when user right clicks layout
+//
+//
+//        if (lastMenu != null)
+//        {
+//            treePanel.removeComponent(lastMenu);
+//        }
+//
+//        // HAS TO BE IN VAADIN VIEW
+//        treePanel.getApplication().getMainWindow().addComponent(menu);
+//        lastMenu = menu;
+//
+//        menu.show(event.getClientX(), event.getClientY());
+//
+//    }
+
+//    private void handleDownload( final RemoteFSElemTreeElem rfstreeelem)
+//    {
+//        RemoteFSElem fs = rfstreeelem.getElem();
+//
+//        InputStream is = main.getGuiServerApi().openStream(searchWrapper, fs);
+//
+//        DownloadResource downloadResource = new DownloadResource(is, "\"" + fs.getName() + "\"", btMountVol.getApplication());
+//
+//        getWindow().open(downloadResource);
+//    }
 
 
-                        Properties p = main.getGuiServerApi().getAgentProperties( ip, port, false );
-                        boolean isWindows =  ( p != null && p.getProperty(AgentApi.OP_OS).startsWith("Win"));
+//    private void handleRestoreTargetDialog( final List<RemoteFSElemTreeElem> rfstreeelems)
+//    {
+//        final RestoreLocationDlg dlg = new RestoreLocationDlg(main, main.getIp(), 8082, "",  /*allowOriginal*/false );
+//        Button.ClickListener okListener = new Button.ClickListener()
+//        {
+//            @Override
+//            public void buttonClick( ClickEvent event )
+//            {
+//                handleRestoreOkayDialog( dlg, rfstreeelems);
+//            }
+//        };
+//        dlg.setOkListener( okListener );
+//        treePanel.getApplication().getMainWindow().addWindow( dlg );
+//    }
 
-                        path = getTargetpathFromPath( rfstreeelem, isWindows );
-                    }
+//    private void handleRestoreOkayDialog( final RestoreLocationDlg dlg, final List<RemoteFSElemTreeElem> rfstreeelems)
+//    {
+//        Button.ClickListener ok = new Button.ClickListener()
+//        {
+//            @Override
+//            public void buttonClick( ClickEvent event )
+//            {
+//                try
+//                {
+//                    boolean rret = true;
+//                    List<RemoteFSElem>restoreList = new ArrayList<RemoteFSElem>();
+//                    String lastIp = "";
+//                    int lastPort = 0;
+//                    String lastPath = "";
+//                    int lastRflags = -1;
+//
+//                    for (int i = 0; i < rfstreeelems.size(); i++)
+//                    {
+//                        RemoteFSElemTreeElem rfstreeelem = rfstreeelems.get(i);
+//
+//
+//
+//                        String ip = dlg.getIP();
+//                        int port = dlg.getPort();
+//                        String path = dlg.getPath();
+//                        if (dlg.isOriginal())
+//                        {
+//                            if (isHotfolderPath( rfstreeelem ))
+//                            {
+//                                main.Msg().errmOk(VSMCMain.Txt("Hotfolderobjekte_können_nicht_an_Original_restauriert_werden"));
+//                                return;
+//                            }
+//                            ip = getIpFromPath( rfstreeelem );
+//                            port = getPortFromPath( rfstreeelem );
+//
+//
+//                            Properties p = main.getGuiServerApi().getAgentProperties( ip, port, false );
+//                            boolean isWindows =  ( p != null && p.getProperty(AgentApi.OP_OS).startsWith("Win"));
+//
+//                            path = getTargetpathFromPath( rfstreeelem, isWindows );
+//                        }
+//
+//                        int rflags = GuiServerApi.RF_RECURSIVE | GuiServerApi.RF_RECURSIVE;
+//                        if (isHotfolderPath(rfstreeelem))
+//                            rflags |= GuiServerApi.RF_SKIPHOTFOLDER_TIMSTAMPDIR;
+//                        if (dlg.isCompressed())
+//                            rflags |= GuiServerApi.RF_COMPRESSION;
+//                        if (dlg.isEncrypted())
+//                            rflags |= GuiServerApi.RF_ENCRYPTION;
+//
+//                        if (!lastIp.equals(ip) || lastPort != port || !lastPath.equals(path))
+//                        {
+//                            if (!restoreList.isEmpty())
+//                            {
+//                                if (!main.getGuiServerApi().restoreFSElems(searchWrapper, restoreList, lastIp, lastPort, lastPath, lastRflags, main.getUser()))
+//                                    rret = false;
+//
+//                                restoreList.clear();
+//                            }
+//                        }
+//                        else
+//                        {
+//                            restoreList.add(rfstreeelem.getElem());
+//                        }
+//                        lastIp = ip;
+//                        lastPort = port;
+//                        lastPath = path;
+//                        lastRflags = rflags;
+//                    }
+//                    if (!restoreList.isEmpty())
+//                    {
+//                        if (!main.getGuiServerApi().restoreFSElems(searchWrapper, restoreList, lastIp, lastPort, lastPath, lastRflags, main.getUser()))
+//                            rret = false;
+//
+//                        restoreList.clear();
+//                    }
+//
+//                    if (!rret)
+//                    {
+//                        main.Msg().errmOk(VSMCMain.Txt("Der_Restore_schlug_fehl"));
+//                    }
+//                    else
+//                    {
+//                        main.Msg().info(VSMCMain.Txt("Der_Restore_wurde_gestartet"), null);
+//                    }
+//                }
+//                catch (Exception ex)
+//                {
+//                    main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_abgebrochen"));
+//                }
+//            }
+//
+//        };
+//        if (rfstreeelems.size() == 1)
+//        {
+//            RemoteFSElemTreeElem rfstreeelem = rfstreeelems.get(0);
+//            if (rfstreeelem.getElem().isDirectory())
+//            {
+//                main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_und_alle_darin_enthaltenen_Dateien_restaurieren?"), ok, null);
+//            }
+//            else
+//            {
+//                main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_restaurieren?"), ok, null);
+//            }
+//        }
+//
+//        else
+//        {
+//            String caption = rfstreeelems.size() + " " + VSMCMain.Txt("Objekte");
+//            main.Msg().infoOkCancel(VSMCMain.Txt("Wollen_Sie_die_ausgewählten_Objekte_restaurieren?"), caption, ok, null);
+//        }
+//    }
+//
+//    String getClientAddressPath(  RemoteFSElemTreeElem elem )
+//    {
+//        StringBuilder sb = new StringBuilder();
+//
+//        sb.insert(0, elem.getName());
+//        while (elem.getParent() != null)
+//        {
+//
+//            sb.insert(0, '/');
+//            if (elem.getParent().getName().equals("/") && elem.getParent().getParent() == null)
+//                break;
+//
+//            sb.insert( 0, elem.getParent().getName() );
+//            elem = elem.getParent();
+//        }
+//        return sb.toString();
+//    }
+//    boolean isHotfolderPath(String fp)
+//    {
+//        return fp.startsWith("/"  + HotFolder.HOTFOLDERBASE);
+//    }
+//    boolean isHotfolderPath(RemoteFSElemTreeElem elem)
+//    {
+//        String fp = getClientAddressPath(elem);
+//        return fp.startsWith("/"  + HotFolder.HOTFOLDERBASE);
+//    }
 
-                    int rflags = GuiServerApi.RF_RECURSIVE | GuiServerApi.RF_RECURSIVE;
-                    if (isHotfolderPath(rfstreeelem))
-                        rflags |= GuiServerApi.RF_SKIPHOTFOLDER_TIMSTAMPDIR;
-                    if (dlg.isCompressed())
-                        rflags |= GuiServerApi.RF_COMPRESSION;
-                    if (dlg.isEncrypted())
-                        rflags |= GuiServerApi.RF_ENCRYPTION;
+//    private String getIpFromPath( RemoteFSElemTreeElem elem )
+//    {
+//        String fp = getClientAddressPath(elem);
+//        String[] pathArr = fp.split("/");
+//
+//
+//        if (pathArr.length < 2)
+//            return null;
+//
+//
+//        if (isHotfolderPath(fp))
+//            return pathArr[2];
+//
+//        // 0 IS ROOT
+//        return pathArr[1];
+//    }
 
-
-                    boolean rret = main.getGuiServerApi().restoreFSElem(searchWrapper, rfstreeelem.getElem(), ip, port, path, rflags, main.getUser());
-                    if (!rret)
-                    {
-                        main.Msg().errmOk(VSMCMain.Txt("Der_Restore_schlug_fehl"));
-                    }
-                    else
-                    {
-                        main.Msg().info(VSMCMain.Txt("Der_Restore_wurde_gestartet"), null);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_abgebrochen"));
-                }
-            }
-
-        };
-        if (rfstreeelem.getElem().isDirectory())
-        {
-            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_und_alle_darin_enthaltenen_Dateien_restaurieren?"), ok, null);
-        }
-        else
-        {
-            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_restaurieren?"), ok, null);
-        }
-
-    }
-    String getClientAddressPath(  RemoteFSElemTreeElem elem )
-    {
-        StringBuilder sb = new StringBuilder();
-
-        sb.insert(0, elem.getName());
-        while (elem.getParent() != null)
-        {
-
-            sb.insert(0, '/');
-            if (elem.getParent().getName().equals("/") && elem.getParent().getParent() == null)
-                break;
-
-            sb.insert( 0, elem.getParent().getName() );
-            elem = elem.getParent();
-        }
-        return sb.toString();
-    }
-    boolean isHotfolderPath(String fp)
-    {
-        return fp.startsWith("/"  + HotFolder.HOTFOLDERBASE);
-    }
-    boolean isHotfolderPath(RemoteFSElemTreeElem elem)
-    {
-        String fp = getClientAddressPath(elem);
-        return fp.startsWith("/"  + HotFolder.HOTFOLDERBASE);
-    }
-
-    private String getIpFromPath( RemoteFSElemTreeElem elem )
-    {
-        String fp = getClientAddressPath(elem);
-        String[] pathArr = fp.split("/");
-
-
-        if (pathArr.length < 2)
-            return null;
-
-
-        if (isHotfolderPath(fp))
-            return pathArr[2];
-
-        // 0 IS ROOT
-        return pathArr[1];
-    }
-
-    private int getPortFromPath( RemoteFSElemTreeElem elem )
-    {
-        String fp = getClientAddressPath(elem);
-        String[] pathArr = fp.split("/");
-
-
-        if (pathArr.length < 3)
-            return 0;
-
-        if (isHotfolderPath(fp))
-            return Integer.parseInt(pathArr[3]);
-
-        return Integer.parseInt(pathArr[2]);
-    }
-
-    private String getTargetpathFromPath( RemoteFSElemTreeElem elem, boolean isWindows )
-    {
-        String fp = getClientAddressPath(elem);
-
-        if (isHotfolderPath(fp))
-            return null;
-
-        String[] pathArr = fp.split("/");
-
-
-        if (pathArr.length < 4)
-            return null;
-
-        StringBuilder sb = new StringBuilder();
-
-        // THE FIRST ENTRTIES ARE ROOT/IP/PORT, THE LAST ENTRY IS OURSELVES
-        for (int i = 3; i < pathArr.length - 1; i++)
-        {
-            // RECREATE WINDOWS DRIVE
-            if (i == 3 && isWindows)
-            {
-                if (pathArr[i].length() == 1
-                        && pathArr[i].toLowerCase().charAt(0) >= 'a'
-                        && pathArr[i].toLowerCase().charAt(0) <= 'z')
-                {
-                    sb.append( pathArr[i] );
-                    sb.append( ":" );
-                    continue;
-                }
-            }
-            sb.append("/");
-            sb.append( pathArr[i] );
-        }
-        return sb.toString();
-    }
+//    private int getPortFromPath( RemoteFSElemTreeElem elem )
+//    {
+//        String fp = getClientAddressPath(elem);
+//        String[] pathArr = fp.split("/");
+//
+//
+//        if (pathArr.length < 3)
+//            return 0;
+//
+//        if (isHotfolderPath(fp))
+//            return Integer.parseInt(pathArr[3]);
+//
+//        return Integer.parseInt(pathArr[2]);
+//    }
+//
+//    private String getTargetpathFromPath( RemoteFSElemTreeElem elem, boolean isWindows )
+//    {
+//        String fp = getClientAddressPath(elem);
+//
+//        if (isHotfolderPath(fp))
+//            return null;
+//
+//        String[] pathArr = fp.split("/");
+//
+//
+//        if (pathArr.length < 4)
+//            return null;
+//
+//        StringBuilder sb = new StringBuilder();
+//
+//        // THE FIRST ENTRTIES ARE ROOT/IP/PORT, THE LAST ENTRY IS OURSELVES
+//        for (int i = 3; i < pathArr.length - 1; i++)
+//        {
+//            // RECREATE WINDOWS DRIVE
+//            if (i == 3 && isWindows)
+//            {
+//                if (pathArr[i].length() == 1
+//                        && pathArr[i].toLowerCase().charAt(0) >= 'a'
+//                        && pathArr[i].toLowerCase().charAt(0) <= 'z')
+//                {
+//                    sb.append( pathArr[i] );
+//                    sb.append( ":" );
+//                    continue;
+//                }
+//            }
+//            sb.append("/");
+//            sb.append( pathArr[i] );
+//        }
+//        return sb.toString();
+//    }
 }
 
 

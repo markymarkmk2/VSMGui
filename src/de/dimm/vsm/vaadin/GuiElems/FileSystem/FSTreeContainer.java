@@ -13,7 +13,10 @@ import com.vaadin.data.util.BeanItem;
 import com.vaadin.terminal.ThemeResource;
 import com.vaadin.ui.treetable.Collapsible;
 import de.dimm.vsm.auth.User;
+import de.dimm.vsm.auth.User.VsmFsEntry;
+import de.dimm.vsm.auth.User.VsmFsMapper;
 import de.dimm.vsm.net.RemoteFSElem;
+import de.dimm.vsm.records.FileSystemElemNode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,13 +34,14 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
     private ArrayList<FSTreeColumn> fields;
     ArrayList<RemoteFSElemTreeElem> visibleList;
     RemoteProvider provider;
-    User mappingUser;
+   
+    boolean skipEmptyDirs;
 //    ArrayList<RemoteFSElem> rootNodes;
 
-    public FSTreeContainer( RemoteProvider provider, ArrayList<FSTreeColumn> fields, User user/*, ArrayList<RemoteFSElem> rootNodes*/ )
+    public FSTreeContainer( RemoteProvider provider, ArrayList<FSTreeColumn> fields/*, ArrayList<RemoteFSElem> rootNodes*/ )
     {
         this.provider = provider;
-        this.mappingUser = user;
+        
         this.root_list = new ArrayList<RemoteFSElemTreeElem>();
         visibleList = new ArrayList<RemoteFSElemTreeElem>();
 
@@ -45,13 +49,107 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
         this.fields = fields;
     }
 
+    public void setSkipEmptyDirs( boolean skipEmptyDirs )
+    {
+        this.skipEmptyDirs = skipEmptyDirs;
+    }
+
+    public boolean isSkipEmptyDirs()
+    {
+        return skipEmptyDirs;
+    }
+
+    public void initRootWithUserMapping(VsmFsMapper mapper)
+    {
+        
+        mapper.getVsmList();
+        for (int i = 0; i < mapper.getVsmList().size(); i++)
+        {
+            VsmFsEntry entry =  mapper.getVsmList().get(i);
+
+            long now = System.currentTimeMillis();
+            
+            if (skipEmptyDirs)
+            {
+                RemoteFSElem elem = new RemoteFSElem(entry.getvPath(), FileSystemElemNode.FT_DIR, now,now,now,0,0);
+                RemoteFSElemTreeElem e = new RemoteFSElemTreeElem(provider, elem, null);
+                List<RemoteFSElemTreeElem> ch = provider.getChildren(e);
+                if (ch.isEmpty())
+                    continue;
+            }
+
+            // DETECTED VALID AND EXISTING DIRECTORY IN MAPPER, NOW BUILD THE MAPPED DIRECTORY
+            String[] paths = entry.getuPath().split("/");
+            int pathIdx = 0;
+            if (paths.length == 0)
+                continue;
+
+            while (paths[pathIdx].isEmpty() && pathIdx < paths.length)
+                pathIdx++;
+
+            if (pathIdx >= paths.length)
+                continue;
+
+            appendChildNode( entry, null, root_list, paths, pathIdx );
+            
+        }
+        visibleList.addAll(root_list);
+
+    }
+    private void appendChildNode( VsmFsEntry entry, RemoteFSElemTreeElem parent, List<RemoteFSElemTreeElem> children, String[] paths, int pathIdx )
+    {
+        if (pathIdx >= paths.length)
+        {
+            long now = System.currentTimeMillis();
+            RemoteFSElem elem = new RemoteFSElem(entry.getvPath(), FileSystemElemNode.FT_DIR, now,now,now,0,0);
+            RemoteFSElemTreeElem newNode = provider.createNode(provider, elem, parent);
+            List<RemoteFSElemTreeElem> realChildren = provider.getChildren(newNode);
+            for (int i = 0; i < realChildren.size(); i++)
+            {
+                RemoteFSElemTreeElem remoteFSElemTreeElem = realChildren.get(i);
+                if (parent != null)
+                    parent.addChild(remoteFSElemTreeElem );
+                else
+                    children.add(remoteFSElemTreeElem );
+            }            
+            return;
+        }
+            
+
+        boolean added = false;
+        for (int r = 0; r < children.size(); r++)
+        {
+            RemoteFSElemTreeElem remoteFSElemTreeElem = children.get(r);
+            if (remoteFSElemTreeElem.getElem().getPath().equals(paths[pathIdx]))
+            {
+                appendChildNode( entry, remoteFSElemTreeElem, remoteFSElemTreeElem.getChildren(), paths, pathIdx + 1 );
+                added = true;
+                break;
+            }
+        }
+        if (!added)
+        {
+            long now = System.currentTimeMillis();
+            RemoteFSElem elem = new RemoteFSElem(paths[pathIdx], FileSystemElemNode.FT_DIR, now,now,now,0,0);
+            MappingTreeElem newElem =  new MappingTreeElem(provider, elem, parent);
+            if (parent != null)
+                parent.addChild(newElem );
+            else
+                children.add(newElem );
+
+            appendChildNode( entry, newElem, newElem.getChildren(), paths, pathIdx + 1 );
+        }
+    }
+
+
+    public void initRootTree(RemoteFSElemTreeElem elem)
+    {
+        root_list.add( elem);
+        visibleList.add(elem);
+    }
+    
     public void initRootlist(List<RemoteFSElem> root_fselem_list)
     {
-        // WARP THE ROOT ELEMS INTO MAPPED VSMSPACE IF NEEDED: Mapping /10.0.0.1/8082/Docs -> /Docs means  / is WARPED INTO /10.0.0.1/8082/Docs
-        if (mappingUser != null)
-        {
-            root_fselem_list = mappingUser.getFsMapper().fixVsmMappingRootPath( root_fselem_list );
-        }
 
         for (int i = 0; i < root_fselem_list.size(); i++)
         {
@@ -60,21 +158,22 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
             RemoteFSElemTreeElem root = provider.createNode(provider, elem, null);
             root.setContainer( this );
 
-
-            List<RemoteFSElemTreeElem> ch = provider.getChildren(root);
-            if (ch != null && !ch.isEmpty())
+            // SKIP EMPTY ROOT DIRECTORIES
+            if (skipEmptyDirs && root.getElem().isDirectory())
             {
-                root_list.add( root);
-                visibleList.add(root);
+                List<RemoteFSElemTreeElem> ch = provider.getChildren(root);
+                if (ch == null || ch.isEmpty())
+                {
+                    continue;
+                }
             }
+
+            root_list.add( root);
+            visibleList.add(root);
         }        
     }
 
-    public User getMappingUser()
-    {
-        return mappingUser;
-    }
-
+  
     
 
 
@@ -423,7 +522,7 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
                     String col = cols[i].toString();
                     if (col.equals("name"))
                     {
-                        int c = o1.getVsmName().compareTo(o2.getVsmName());
+                        int c = e1.getName().compareTo(e2.getName());
                         if (c != 0)
                             return (b) ? c : -c;
                     }
@@ -458,14 +557,6 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
         return l;
     }
 
-    String mapVsmToUserPath( String path )
-    {
-        if (path.charAt(0) != '/')
-            return path;
+   
 
-        if (mappingUser != null)
-            return mappingUser.mapVsmToUserPath(path);
-
-        return path;
-    }
 }

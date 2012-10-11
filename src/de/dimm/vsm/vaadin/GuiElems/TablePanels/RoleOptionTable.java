@@ -108,8 +108,8 @@ public class RoleOptionTable extends BaseDataEditTable<RoleOption>
             if (!t.isValidUserPath())
             {
                 main.Msg().errmOk("Bitte geben Sie bite den Pfad im Format <Rechner:Port/Pfad> an\n\nBeispiele:\n"
-                        + "10.1.1.1:8082/G:\\restore\n"
-                        + "dataserver:8082/opt/volumes/restore\nrestoreserver:8082/");
+                        + "10.1.1.1:8082:G:\\restore\n"
+                        + "dataserver:8082:/opt/volumes/restore\nrestoreserver:8082:/");
                 nok.run();
                 return;
             }

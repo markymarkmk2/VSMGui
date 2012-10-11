@@ -144,10 +144,14 @@ public class ErrMsgHandler extends Window
 
     public void errmOkCancel( String txt, ClickListener ok_listener, ClickListener abort_listener)
     {
+        errmOkCancel(txt, VSMCMain.Txt("Error"), ok_listener, abort_listener);
+    }
+    public void errmOkCancel( String txt, String caption, ClickListener ok_listener, ClickListener abort_listener)
+    {
         this.ok_listener = ok_listener;
         this.abort_listener = abort_listener;
 
-        this.setCaption(VSMCMain.Txt("Error"));
+        this.setCaption(caption);
         
         abort.setVisible(true);
         ok.setVisible(true);
@@ -159,6 +163,33 @@ public class ErrMsgHandler extends Window
 
         icon.setStyleName("errorIcon");
         //icon.setSizeFull();
+
+        setModal(true);
+
+        main.getRootWin().addWindow(this);
+    }
+    public void infoOkCancel( String txt, ClickListener ok_listener, ClickListener abort_listener)
+    {
+        infoOkCancel(txt, VSMCMain.Txt("Info"), ok_listener, abort_listener);
+    }
+
+    public void infoOkCancel( String txt, String caption, ClickListener ok_listener, ClickListener abort_listener)
+    {
+        this.ok_listener = ok_listener;
+        this.abort_listener = abort_listener;
+
+        this.setCaption(caption);
+
+        abort.setVisible(true);
+        ok.setVisible(true);
+
+        ta.setValue(txt);
+
+        icon.setStyleName("infoIcon");
+        //icon.setSizeFull();
+
+        ok.setCaption(VSMCMain.Txt("Okay"));
+        abort.setCaption(VSMCMain.Txt("Abbruch"));
 
         setModal(true);
 

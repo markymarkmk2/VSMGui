@@ -38,7 +38,8 @@ import java.util.Properties;
 public class RestoreLocationDlg extends Window implements Property.ValueChangeListener
 {
      static ArrayList<String> ipList = new ArrayList<String>();
-     static String lastPath = "";
+     static String lastPath = null;
+     static String lastIP = "127.0.0.1";
 
      VerticalLayout vl = new VerticalLayout();
      OptionGroup select;
@@ -75,6 +76,8 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
         }        
         if (path == null || path.isEmpty())
             path = lastPath;
+        if (ip == null || ip.isEmpty())
+            ip = lastIP;
         
         build_gui(ip, port, path, allowOrig);
     }
@@ -158,7 +161,10 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
                     c.addItem(string);
                 }
 
-                cbPath.setContainerDataSource(c);
+                if (cbPath != null)
+                {
+                    cbPath.setContainerDataSource(c);
+                }
             }
         }
     }
@@ -216,19 +222,11 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
 
         tfPort = new TextField(VSMCMain.Txt("Port"), Integer.toString(port) );
 
-        if (restrictedPath)
-        {
-            tfPort.setValue(getPortFromUserPath(tfIP.getValue().toString()).get(0));
-            tfPort.setReadOnly(true);
-        }
-        else
-        {
-            tfPort.addValidator( new IntegerValidator(""));
-            tfPort.setReadOnly(false);
-        }
 
         tfIP = new ComboBox(VSMCMain.Txt("IP"), ipList );
         tfIP.setNullSelectionAllowed(false);
+        tfIP.setImmediate(true);
+        
         
         if (restrictedPath)
         {
@@ -244,12 +242,23 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
                     updateRestrictedView();
                 }
             });
+
+            tfPort.setValue(getPortFromUserPath(tfIP.getValue().toString()).get(0));
+            tfPort.setReadOnly(true);
+
         }
         else
         {
             tfIP.setInvalidAllowed(true);
             tfIP.setNewItemsAllowed(true);
             tfIP.setValue(ip);
+            tfPort.addValidator( new IntegerValidator(""));
+            tfPort.setReadOnly(false);
+        }
+
+        if (lastIP != null && ipList.contains(lastIP))
+        {
+            tfIP.setValue(lastIP);
         }
 
         targetVl.addComponent(tfIP);
@@ -269,23 +278,30 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
                 if (string.endsWith("*"))
                     useFilter = true;
             }
-            
+
+            editor = new RemoteFSElemEditor(  VSMCMain.Txt("Zielpfad"), path, tfIP, tfPort, RemoteFSElemEditor.ONLY_DIRS);
+                editor.setFilter( l );
+            editor.setVisible(false);
+
+            cbPath = new ComboBox(VSMCMain.Txt("Zielpfad"), l );
+            cbPath.setNullSelectionAllowed(false);
+            cbPath.setInvalidAllowed(false);
+            cbPath.setNewItemsAllowed(false);
+            cbPath.setImmediate(true);
+            cbPath.setValue(l.get(0));
+            cbPath.setVisible(false);
+
+            targetVl.addComponent(editor);
+            targetVl.addComponent(cbPath);
+
             if (useFilter)
             {   
                 path = lastPath;
-                editor = new RemoteFSElemEditor(  VSMCMain.Txt("Zielpfad"), path, tfIP, tfPort, RemoteFSElemEditor.ONLY_DIRS);
-                editor.setFilter( l );
-                targetVl.addComponent(editor);
+                editor.setVisible(true);
             }
             else
             {
-                cbPath =  new ComboBox(VSMCMain.Txt("Zielpfad"), l );
-                cbPath.setNullSelectionAllowed(false);
-                cbPath.setInvalidAllowed(false);
-                cbPath.setNewItemsAllowed(false);
-                cbPath.setValue(l.get(0));
-
-                targetVl.addComponent(cbPath);
+                cbPath.setVisible(true);
             }
         }
         else
@@ -321,6 +337,7 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
                 updateIPGui();
             }
         });
+
 
         updateIPGui();
 
@@ -373,6 +390,33 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
             sb.append(" Ver:");
             sb.append(p.getProperty(AgentApi.OP_AG_VER));
         }
+
+        if (restrictedPath && !getPathFromUserPath(tfIP.getValue().toString()).isEmpty())
+        {
+            List<String> l = getPathFromUserPath(tfIP.getValue().toString());
+            boolean useFilter = false;
+            for (int i = 0; i < l.size(); i++)
+            {
+                String string = l.get(i);
+                if (string.endsWith("*"))
+                    useFilter = true;
+            }
+
+            if (useFilter)
+            {
+                editor.setFilter( l );
+                editor.setVisible(true);
+                cbPath.setVisible(false);
+            }
+            else
+            {
+                IndexedContainer cont = new IndexedContainer(l);
+                cbPath.setContainerDataSource(cont);
+                cbPath.setValue(l.get(0));
+                editor.setVisible(false);
+                cbPath.setVisible(true);
+            }
+        }
     }
 
     public OptionGroup getSelect()
@@ -381,7 +425,8 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
     }
     public String getIP()
     {
-        return tfIP.getValue().toString();
+        lastIP = tfIP.getValue().toString();
+        return lastIP;
     }
     public int getPort()
     {

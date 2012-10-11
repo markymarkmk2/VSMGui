@@ -95,7 +95,7 @@ public class StartBackupWin extends SidebarPanel
                         try
                         {
                             main.getGuiServerApi().startBackup(o, main.getUser());
-                            VSMCMain.notify(startBackup, VSMCMain.Txt("Backup") + " " + o.getName() + VSMCMain.Txt("wurde_gestartet"), "");
+                            VSMCMain.notify(startBackup, VSMCMain.Txt("Backup") + " " + o.getName() + " " + VSMCMain.Txt("wurde_gestartet"), "");
                         }
                         catch (Exception exception)
                         {

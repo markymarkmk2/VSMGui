@@ -24,7 +24,6 @@ import de.dimm.vsm.vaadin.GuiElems.VaadinHelpers;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.util.ArrayList;
 import java.util.List;
-import javax.naming.NamingException;
 
 
 /**
@@ -49,6 +48,8 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
     JPATextField txtLdapUserAttribute;
     JPATextField txtLdapgroupIdentifier;
 
+    JPATextField txtNtDomainName;
+
     final List<ComboEntry> typeList = new ArrayList<ComboEntry>();
 
     public AccountConnectorPreviewPanel( AccountConnectorTable j, boolean readOnly )
@@ -57,6 +58,7 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         typeList.add( new ComboEntry("dbs", X("Database")) );
         typeList.add( new ComboEntry("ldap", X("LDAP")) );
         typeList.add( new ComboEntry("ad", X("ActiveDirectory")) );
+        typeList.add( new ComboEntry("smtp", X("SMTP")) );
         typeList.add( new ComboEntry("imap", X("IMAP")) );
         typeList.add( new ComboEntry( "pop", X("POP3")) );
     }
@@ -102,6 +104,7 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         txtUser = new JPATextField(X("User"), "username");
         txtUser.setExpandRatio(1.0f);
         txtPwd = new JPAPasswordField(X("Password"), "pwd");
+
         
         // ADD TO LAYOUT
         addComponent(txtIp.createGui(node));
@@ -136,14 +139,17 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         txtLdapUserAttribute = new JPATextField(X("LDAP-Userattribute"), "searchattribute");
         txtLdapFilter = new JPATextField(X("LDAP-Filter"), "ldapfilter");
         txtLdapgroupIdentifier = new JPATextField(X("Gruppenkennung"), "groupIdentifier");
+        txtNtDomainName = new JPATextField(X("NT-Domain"), "ntDomainName");
+
         // ADD TO LAYOUT
         addComponent(txtSearchBase.createGui(node));
         //addComponent(txtLdapDomain.createGui(node));
         addComponent(txtLdapUserAttribute.createGui(node));
         addComponent(txtLdapFilter.createGui(node));
         addComponent(txtLdapgroupIdentifier.createGui(node));
+        addComponent(txtNtDomainName.createGui(node));
 
-        NativeButton testAD = new NativeButton( X("Test AD"));
+        NativeButton testAD = new NativeButton( X("Test Connect"));
         testAD.addListener( new ClickListener() {
 
             @Override
@@ -165,16 +171,16 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         {            
             VSMCMain.notify(this, X("Verbindung okay"), "");
 
-            try
-            {
-                ArrayList<String> l = auth.list_groups();
-                VSMCMain.Me(this).SelectObject(String.class, "Gruppen", "Ok", l, null);
-
-            }
-            catch (NamingException namingException)
-            {
-
-            }
+//            try
+//            {
+//                ArrayList<String> l = auth.list_groups();
+//                VSMCMain.Me(this).SelectObject(String.class, "Gruppen", "Ok", l, null);
+//
+//            }
+//            catch (NamingException namingException)
+//            {
+//
+//            }
             auth.disconnect();
         }
         else
@@ -195,14 +201,20 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
 
     void check_visibility()
     {
-        AccountConnectorTable tb = (AccountConnectorTable)this.table;
+        //AccountConnectorTable tb = (AccountConnectorTable)this.table;
 
         int idx = VaadinHelpers.getSelectedIndex(comboAuthType);
         boolean isLdap = (idx == 1);
+        boolean isAd = (idx == 2);
+        
         //txtLdapDomain.getGui().setVisible(isLdap);
         getGui(txtLdapUserAttribute).setVisible(isLdap);
         getGui(txtLdapFilter).setVisible(isLdap);
         getGui(txtLdapgroupIdentifier).setVisible(isLdap);
+
+        getGui(txtNtDomainName).setVisible(isAd);
+
+
 
     }
 

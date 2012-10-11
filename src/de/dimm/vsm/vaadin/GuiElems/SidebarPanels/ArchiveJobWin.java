@@ -33,7 +33,6 @@ import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.SearchEntry;
 import de.dimm.vsm.net.SearchWrapper;
 import de.dimm.vsm.net.StoragePoolWrapper;
-import de.dimm.vsm.net.interfaces.AgentApi;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.records.ArchiveJob;
 import de.dimm.vsm.records.FileSystemElemNode;
@@ -45,10 +44,10 @@ import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeColumn;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeContainer;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteFSElemTreeElem;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteProvider;
-import de.dimm.vsm.vaadin.GuiElems.Dialogs.FileinfoWindow;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.ArchiveJobInfoWindow;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.MountLocationDlg;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.RestoreLocationDlg;
+import de.dimm.vsm.vaadin.GuiElems.FileSystem.IContextMenuCallback;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteItemDescriptionGenerator;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.ArchivJobTable;
 import de.dimm.vsm.vaadin.SelectObjectCallback;
@@ -58,7 +57,7 @@ import de.dimm.vsm.vaadin.search.TimeIntervalPanel;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.vaadin.peter.contextmenu.ContextMenu;
@@ -670,11 +669,9 @@ public class ArchiveJobWin extends SidebarPanel
             {
                 return new RemoteItemDescriptionGenerator(searchWrapper, main );
             }
-
-
         };
 
-        container = new FSTreeContainer(provider, fields, /*NO USER FS MAPPING IN ARCHIV-FSmain.getUser()*/ null);
+        container = new FSTreeContainer(provider, fields);
 
         if (poolWrapper != null)
             main.getGuiServerApi().closePoolView(poolWrapper);
@@ -683,6 +680,8 @@ public class ArchiveJobWin extends SidebarPanel
 
 
         poolWrapper = main.getGuiServerApi().openPoolView(pool, true, job.getDirectory(), main.getGuiWrapper().getUser());
+        // DO NOT MAP ARCHIVE PATHS 
+        poolWrapper.getQry().setUseMappingFilter(false);
 
         RemoteFSElem root = new RemoteFSElem(job.getDirectory(), job.getDirectory().getAttributes());
         root.setIdx(job.getDirectory().getIdx());
@@ -716,8 +715,21 @@ public class ArchiveJobWin extends SidebarPanel
                 if (event.getItemId() instanceof RemoteFSElemTreeElem
                         && (event.getButton() & com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT) == com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT)
                 {
-                    RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
-                    create_fs_popup(event, rfstreeelem);
+                    RemoteFSElemTreeElem clickedItem = (RemoteFSElemTreeElem)event.getItemId();
+                    Object sel = tree.getValue();
+
+                    if (sel instanceof Set<?> && ((Set<?>)sel).size() > 1)
+                    {
+                        Set<RemoteFSElemTreeElem> set = (Set<RemoteFSElemTreeElem>)sel;
+                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>(set);
+                        create_fs_popup(event, list);
+                    }
+                    else
+                    {
+                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>();
+                        list.add(clickedItem);
+                        create_fs_popup(event, list);
+                    }
                 }
                 if (event.getItemId() instanceof RemoteFSElemTreeElem && event.isDoubleClick())
                 {
@@ -732,66 +744,92 @@ public class ArchiveJobWin extends SidebarPanel
         return tree;
     }
     ContextMenu lastMenu = null;
-
-    void create_fs_popup( ItemClickEvent event, final RemoteFSElemTreeElem rfstreeelem )
+    void create_fs_popup( ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems )
     {
-        ContextMenu menu = new ContextMenu();
-        ContextMenuItem dl = null;
-
-        // Generate main level items
-        final ContextMenuItem info = menu.addItem(VSMCMain.Txt("Information"));
-        
-        // SEPARATOR BENEATH THIS ONE
-        info.setSeparatorVisible(true);
-        
-        //final ContextMenuItem ver = menu.addItem(VSMCMain.Txt("Versions"));
-        final ContextMenuItem restore = menu.addItem(VSMCMain.Txt("Restore"));
-        if (!rfstreeelem.getElem().isDirectory())
-            dl = menu.addItem(VSMCMain.Txt("Download"));
-
-        final ContextMenuItem download = dl;
-
-
-        menu.addListener(new ContextMenu.ClickListener()
-        {
-
-            @Override
-            public void contextItemClick( ContextMenu.ClickEvent event )
-            {
-                // Get reference to clicked item
-                ContextMenuItem clickedItem = event.getClickedItem();
-                if (clickedItem == info)
-                {
-                    FileinfoWindow win = new FileinfoWindow(main, searchWrapper, rfstreeelem.getElem());
-
-                    // Do something with the reference
-                    getApplication().getMainWindow().addWindow(win);
-                }
-                
-                if (clickedItem == restore)
-                {
-                    handleRestoreTargetDialog(rfstreeelem);
-                }
-                if (clickedItem == download)
-                {
-                    handleDownload(rfstreeelem);
-                }
-            }
-        }); // Open Context Menu to mouse coordinates when user right clicks layout
-
-
         if (lastMenu != null)
         {
             treePanel.removeComponent(lastMenu);
         }
 
-        // HAS TO BE IN VAADIN VIEW
-        treePanel.getApplication().getMainWindow().addComponent(menu);
-        lastMenu = menu;
+        IContextMenuCallback callback = new IContextMenuCallback() {
 
-        menu.show(event.getClientX(), event.getClientY());
+            @Override
+            public void handleRestoreTargetDialog( List<RemoteFSElemTreeElem> rfstreeelems )
+            {
+                 RestoreLocationDlg dlg = FileSystemViewer.createRestoreTargetDialog(main, searchWrapper, rfstreeelems );
+                 treePanel.getApplication().getMainWindow().addWindow( dlg );
+            }
 
+            @Override
+            public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
+            {
+                DownloadResource downloadResource = FileSystemViewer.createDownloadResource( main, getApplication(), searchWrapper, singleRfstreeelem);
+                getWindow().open(downloadResource);
+            }
+        };
+
+        lastMenu = FileSystemViewer.create_fs_popup(main, searchWrapper, tree, container, event, rfstreeelems, callback);
     }
+
+//    void create_fs_popup( ItemClickEvent event, final RemoteFSElemTreeElem rfstreeelem )
+//    {
+//        ContextMenu menu = new ContextMenu();
+//        ContextMenuItem dl = null;
+//
+//        // Generate main level items
+//        final ContextMenuItem info = menu.addItem(VSMCMain.Txt("Information"));
+//
+//        // SEPARATOR BENEATH THIS ONE
+//        info.setSeparatorVisible(true);
+//
+//        //final ContextMenuItem ver = menu.addItem(VSMCMain.Txt("Versions"));
+//        final ContextMenuItem restore = menu.addItem(VSMCMain.Txt("Restore"));
+//        if (!rfstreeelem.getElem().isDirectory())
+//            dl = menu.addItem(VSMCMain.Txt("Download"));
+//
+//        final ContextMenuItem download = dl;
+//
+//
+//        menu.addListener(new ContextMenu.ClickListener()
+//        {
+//
+//            @Override
+//            public void contextItemClick( ContextMenu.ClickEvent event )
+//            {
+//                // Get reference to clicked item
+//                ContextMenuItem clickedItem = event.getClickedItem();
+//                if (clickedItem == info)
+//                {
+//                    FileinfoWindow win = new FileinfoWindow(main, searchWrapper, rfstreeelem.getElem());
+//
+//                    // Do something with the reference
+//                    getApplication().getMainWindow().addWindow(win);
+//                }
+//
+//                if (clickedItem == restore)
+//                {
+//                    handleRestoreTargetDialog(rfstreeelem);
+//                }
+//                if (clickedItem == download)
+//                {
+//                    handleDownload(rfstreeelem);
+//                }
+//            }
+//        }); // Open Context Menu to mouse coordinates when user right clicks layout
+//
+//
+//        if (lastMenu != null)
+//        {
+//            treePanel.removeComponent(lastMenu);
+//        }
+//
+//        // HAS TO BE IN VAADIN VIEW
+//        treePanel.getApplication().getMainWindow().addComponent(menu);
+//        lastMenu = menu;
+//
+//        menu.show(event.getClientX(), event.getClientY());
+//
+//    }
 
     ContextMenu lastArMenu = null;
     void create_archive_popup( ItemClickEvent event, final ArchiveJob job )
@@ -940,87 +978,87 @@ public class ArchiveJobWin extends SidebarPanel
             VSMCMain.notify(treePanel, VSMCMain.Txt("Das Löschen des Jobs schlug fehl"), exc.getMessage());
         }
     }
-
-    private void handleRestoreTargetDialog(  final RemoteFSElemTreeElem rfstreeelem)
-    {
-        final RestoreLocationDlg dlg = new RestoreLocationDlg(main, main.getIp(), 8082, "",  /*allowOriginal*/false );
-        Button.ClickListener okListener = new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( ClickEvent event )
-            {
-                handleRestoreOkayDialog( dlg, rfstreeelem);
-            }
-        };
-        dlg.setOkListener( okListener );
-        treePanel.getApplication().getMainWindow().addWindow( dlg );
-    }
-
-    private void handleRestoreOkayDialog( final RestoreLocationDlg dlg, final RemoteFSElemTreeElem rfstreeelem)
-    {
-        Button.ClickListener ok = new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick( ClickEvent event )
-            {
-                try
-                {
-                    String ip = dlg.getIP();
-                    int port = dlg.getPort();
-                    String path = dlg.getPath();
-                    if (dlg.isOriginal())
-                    {
-                        if (isHotfolderPath( rfstreeelem ))
-                        {
-                            main.Msg().errmOk(VSMCMain.Txt("Hotfolderobjekte_können_nicht_an_Original_restauriert_werden"));
-                            return;
-                        }
-                        ip = getIpFromPath( rfstreeelem );
-                        port = getPortFromPath( rfstreeelem );
-
-
-                        Properties p = main.getGuiServerApi().getAgentProperties( ip, port, false );
-                        boolean isWindows =  ( p != null && p.getProperty(AgentApi.OP_OS).startsWith("Win"));
-
-                        path = getTargetpathFromPath( rfstreeelem, isWindows );
-                    }
-
-                    int rflags = GuiServerApi.RF_RECURSIVE;
-                    if (isHotfolderPath(rfstreeelem))
-                        rflags |= GuiServerApi.RF_SKIPHOTFOLDER_TIMSTAMPDIR;
-                    if (dlg.isCompressed())
-                        rflags |= GuiServerApi.RF_COMPRESSION;
-                    if (dlg.isEncrypted())
-                        rflags |= GuiServerApi.RF_ENCRYPTION;
-
-
-                    boolean rret = main.getGuiServerApi().restoreFSElem(searchWrapper, rfstreeelem.getElem(), ip, port, path, rflags, main.getUser());
-                    if (!rret)
-                    {
-                        main.Msg().errmOk(VSMCMain.Txt("Der_Restore_schlug_fehl"));
-                    }
-                    else
-                    {
-                        main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_gestartet"));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_abgebrochen") + ": "+ ex.getMessage() );
-                }
-            }
-
-        };
-        if (rfstreeelem.getElem().isDirectory())
-        {
-            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_und_alle_darin_enthaltenen_Dateien_restaurieren?"), ok, null);
-        }
-        else
-        {
-            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_restaurieren?"), ok, null);
-        }
-
-    }
+//
+//    private void handleRestoreTargetDialog(  final List<RemoteFSElemTreeElem> rfstreeelems)
+//    {
+//        final RestoreLocationDlg dlg = new RestoreLocationDlg(main, main.getIp(), 8082, "",  /*allowOriginal*/false );
+//        Button.ClickListener okListener = new Button.ClickListener()
+//        {
+//            @Override
+//            public void buttonClick( ClickEvent event )
+//            {
+//                handleRestoreOkayDialog( dlg, rfstreeelems);
+//            }
+//        };
+//        dlg.setOkListener( okListener );
+//        treePanel.getApplication().getMainWindow().addWindow( dlg );
+//    }
+//
+//    private void handleRestoreOkayDialog( final RestoreLocationDlg dlg, final List<RemoteFSElemTreeElem> rfstreeelems)
+//    {
+//        Button.ClickListener ok = new Button.ClickListener()
+//        {
+//            @Override
+//            public void buttonClick( ClickEvent event )
+//            {
+//                try
+//                {
+//                    String ip = dlg.getIP();
+//                    int port = dlg.getPort();
+//                    String path = dlg.getPath();
+//                    if (dlg.isOriginal())
+//                    {
+//                        if (isHotfolderPath( rfstreeelem ))
+//                        {
+//                            main.Msg().errmOk(VSMCMain.Txt("Hotfolderobjekte_können_nicht_an_Original_restauriert_werden"));
+//                            return;
+//                        }
+//                        ip = getIpFromPath( rfstreeelem );
+//                        port = getPortFromPath( rfstreeelem );
+//
+//
+//                        Properties p = main.getGuiServerApi().getAgentProperties( ip, port, false );
+//                        boolean isWindows =  ( p != null && p.getProperty(AgentApi.OP_OS).startsWith("Win"));
+//
+//                        path = getTargetpathFromPath( rfstreeelem, isWindows );
+//                    }
+//
+//                    int rflags = GuiServerApi.RF_RECURSIVE;
+//                    if (isHotfolderPath(rfstreeelem))
+//                        rflags |= GuiServerApi.RF_SKIPHOTFOLDER_TIMSTAMPDIR;
+//                    if (dlg.isCompressed())
+//                        rflags |= GuiServerApi.RF_COMPRESSION;
+//                    if (dlg.isEncrypted())
+//                        rflags |= GuiServerApi.RF_ENCRYPTION;
+//
+//
+//                    boolean rret = main.getGuiServerApi().restoreFSElem(searchWrapper, rfstreeelem.getElem(), ip, port, path, rflags, main.getUser());
+//                    if (!rret)
+//                    {
+//                        main.Msg().errmOk(VSMCMain.Txt("Der_Restore_schlug_fehl"));
+//                    }
+//                    else
+//                    {
+//                        main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_gestartet"));
+//                    }
+//                }
+//                catch (Exception ex)
+//                {
+//                    main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_abgebrochen") + ": "+ ex.getMessage() );
+//                }
+//            }
+//
+//        };
+//        if (rfstreeelem.getElem().isDirectory())
+//        {
+//            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_dieses_Verzeichnis_und_alle_darin_enthaltenen_Dateien_restaurieren?"), ok, null);
+//        }
+//        else
+//        {
+//            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_restaurieren?"), ok, null);
+//        }
+//
+//    }
     private void handleRestoreOkayDialog( final RestoreLocationDlg dlg, final ArchiveJob job)
     {
         Button.ClickListener ok = new Button.ClickListener()

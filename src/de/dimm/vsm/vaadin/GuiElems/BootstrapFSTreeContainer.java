@@ -18,9 +18,9 @@ import java.util.ArrayList;
 public class BootstrapFSTreeContainer extends FSTreeContainer
 {
 
-    public BootstrapFSTreeContainer( RemoteProvider provider, ArrayList<FSTreeColumn> fields, User usr)
+    public BootstrapFSTreeContainer( RemoteProvider provider, ArrayList<FSTreeColumn> fields)
     {
-        super( provider, fields, usr );
+        super( provider, fields );
     }
 
 
