@@ -37,6 +37,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 
 
@@ -407,6 +408,10 @@ public class DBFSElemEditor extends HorizontalLayout
             public void buttonClick( ClickEvent event )
             {
                 Object o = treePanel.getValue();
+                if (o instanceof Set)
+                {
+                    o = ((Set)o).iterator().next();
+                }
                 if (o instanceof RemoteFSElemTreeElem)
                 {
                     RemoteFSElemTreeElem rfs = (RemoteFSElemTreeElem)o;
@@ -440,6 +445,10 @@ public class DBFSElemEditor extends HorizontalLayout
                     // NO SELECTION MEANS ROOT
                     RemoteFSElemTreeElem root = new RemoteFSElemTreeElem(treePanel.getProvider(), rootElem, null);
                     o = root;
+                }
+                if (o instanceof Set)
+                {
+                    o = ((Set)o).iterator().next();
                 }
                 if (o instanceof RemoteFSElemTreeElem)
                 {

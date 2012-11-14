@@ -285,7 +285,8 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
     protected void createChildDir( Window win, RemoteFSElemTreeElem rfs, String name )
     {
         String path = rfs.getElem().getPath() + rfs.getElem().getSeparatorChar() + name;
-        RemoteFSElem newDir = new RemoteFSElem(path, FileSystemElemNode.FT_DIR, 0,0, 0, 0, 0);
+        long now = System.currentTimeMillis();
+        RemoteFSElem newDir = new RemoteFSElem(path, FileSystemElemNode.FT_DIR, now,now, now, 0, 0);
         try
         {
             boolean b = api.create_dir(newDir);

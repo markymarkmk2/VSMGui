@@ -29,6 +29,7 @@ import de.dimm.vsm.vaadin.VSMCMain;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 
 
@@ -365,6 +366,10 @@ public class LocalFSElemEditor extends HorizontalLayout
                 {
                     event.getButton().getApplication().getMainWindow().showNotification(VSMCMain.Txt("Bitte wählen Sie ein Vaterverzeichnis aus"),"", Notification.TYPE_WARNING_MESSAGE);
                     return;
+                }
+                if (o instanceof Set)
+                {
+                    o = ((Set)o).iterator().next();
                 }
                 if (o instanceof RemoteFSElemTreeElem)
                 {
