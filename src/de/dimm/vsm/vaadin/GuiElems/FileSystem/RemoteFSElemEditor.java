@@ -204,7 +204,7 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
 
                     if ((options & ONLY_DIRS) != 0)
                     {
-                        if (!rfse.isDirectory())
+                        if (!rfse.isDirectory() && !rfse.isSymbolicLink())
                             continue;
                     }
 
