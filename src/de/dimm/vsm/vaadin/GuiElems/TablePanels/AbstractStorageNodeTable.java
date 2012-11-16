@@ -55,6 +55,7 @@ public class AbstractStorageNodeTable extends BaseDataEditTable<AbstractStorageN
         ArrayList<ComboEntry> entries = new ArrayList<ComboEntry>();
         entries.add( new ComboEntry(AbstractStorageNode.NM_VIRGIN, VSMCMain.Txt("Erzeugt")));
         entries.add( new ComboEntry(AbstractStorageNode.NM_ONLINE, VSMCMain.Txt("Online")));
+        entries.add( new ComboEntry(AbstractStorageNode.NM_FULL, VSMCMain.Txt("Voll")));
         entries.add( new ComboEntry(AbstractStorageNode.NM_OFFLINE, VSMCMain.Txt("Offline")));
         entries.add( new ComboEntry(AbstractStorageNode.NM_EMPTYING, VSMCMain.Txt("Wird_geleert")));
         entries.add( new ComboEntry(AbstractStorageNode.NM_EMPTIED, VSMCMain.Txt("Wurde_geleert")));
