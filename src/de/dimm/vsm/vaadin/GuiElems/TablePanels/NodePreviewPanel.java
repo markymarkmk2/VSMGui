@@ -10,6 +10,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.NativeButton;
 import de.dimm.vsm.records.AbstractStorageNode;
+import de.dimm.vsm.vaadin.GuiElems.Dialogs.CheckStorageNodeDlg;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBLinkField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
 import de.dimm.vsm.vaadin.GuiElems.Table.PreviewPanel;
@@ -88,6 +89,17 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
             }
         });
 
+
+        NativeButton checkNode = new NativeButton(VSMCMain.Txt("Node prüfen"), new ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                showCheckNodeDlg( node );
+            }
+        });
+
+
         hl.addComponent(deleteNode);
         hl.addComponent(moveNode);
 
@@ -95,10 +107,17 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
         {
              hl.addComponent(syncNode);
         }
+        hl.addComponent(checkNode);
 
         addComponent(hl);
 
 
+    }
+
+    private void showCheckNodeDlg( AbstractStorageNode activeElem )
+    {
+        CheckStorageNodeDlg dlg = new CheckStorageNodeDlg(table.getMain(), activeElem);
+        table.getApplication().getMainWindow().addWindow(dlg);
     }
 
 

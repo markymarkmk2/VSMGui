@@ -18,6 +18,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.Notification;
 import de.dimm.vsm.fsengine.GenericEntityManager;
+import de.dimm.vsm.fsengine.checks.ICheck;
 import de.dimm.vsm.mail.NotificationServer;
 import de.dimm.vsm.net.GuiWrapper;
 import de.dimm.vsm.net.interfaces.GuiLoginApi;
@@ -95,6 +96,15 @@ public class VSMCMain extends GenericMain
             return ((Boolean) o).booleanValue();
         }
 
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+    public static ICheck getCheck(String className )
+    {
+        Object o = callLogicControl("getCheck", className);
+        if (o != null && o instanceof ICheck)
+        {
+            return (ICheck)o;
+        }
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
@@ -275,6 +285,52 @@ public class VSMCMain extends GenericMain
         }
         return null;
     }
+    public static Object callLogicControl( String func, Object arg[])
+    {
+        try
+        {
+            return callLogicControl(func, arg, true);
+        }
+        catch (Exception ex)
+        {
+            // CANNOT HAPPEN, IS CAUGHT INSIDE
+        }
+        return null;
+    }
+
+    public static Object callLogicControl( String func, Object arg[], boolean catchException ) throws Exception
+    {
+        try
+        {
+            Class cl = Class.forName("de.dimm.vsm.Main");
+            Class[] types = new Class[1];
+            types[0] = arg.getClass();
+            Object[] args = new Object[1];
+            args[0] = arg;
+            Method get_control = cl.getMethod("get_control", (Class[]) null);
+            Object logicControl = get_control.invoke(null, (Object[]) null);
+
+            Class logic_class = Class.forName("de.dimm.vsm.LogicControl");
+            Method m_func = logic_class.getMethod(func, types);
+            Object result = m_func.invoke(logicControl, args);
+            return result;
+        }
+        catch (Exception exc)
+        {
+            if (!catchException)
+                throw exc;
+
+            if (exc instanceof InvocationTargetException)
+            {
+                InvocationTargetException ite = (InvocationTargetException)exc;
+                notify(VSMCMain.me.root, ite.getTargetException().getMessage(), "");
+                return null;
+            }
+            System.out.println("Error in reflection call " + func + ":" + exc.getMessage());
+        }
+        return null;
+    }
+
 
     public void runInBusy( String txt, final Runnable r )
     {
