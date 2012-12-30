@@ -28,25 +28,36 @@ import java.util.List;
  */
 public class CheckStorageNodeDlg extends Window
 {
-
      AbstractStorageNode snode;
      VSMCMain main;
      
      VerticalLayout vl = new VerticalLayout();
-    
-
-   
 
 
     public CheckStorageNodeDlg( VSMCMain main, AbstractStorageNode node )
     {
         this.main = main;
         this.snode = node;
-
         build_gui();
-
     }
     
+    void addChecks( VerticalLayout vl, List<String> niceTexts) {
+        for (int i = 0; i < niceTexts.size(); i++) {
+            String niceText = niceTexts.get(i);
+            Button check = new NativeButton(niceText);
+            vl.addComponent(check);
+            check.addListener( new Button.ClickListener() {
+
+                @Override
+                public void buttonClick( ClickEvent event )
+                {
+                    String checkName = event.getButton().getCaption();
+                    main.getGuiServerApi().initCheck(main.getUser(), checkName, snode, null);
+                    main.Msg().notify(checkName + " " + VSMCMain.Txt("wurde gestartet"), VSMCMain.Txt("Details siehe unter Jobs"));
+                }
+            });
+        }
+    }
 
     final void build_gui( )
     {
@@ -64,13 +75,12 @@ public class CheckStorageNodeDlg extends Window
         vl.setImmediate(true);
         vl.setStyleName("editWin");
 
-        this.setCaption(VSMCMain.Txt("Prüffunktionen für StorageNodesl") + " " + snode.getName());
-
-      
-        Button checkPhysicalHashblockIntegrity = new NativeButton(VSMCMain.Txt("Physikalische Hashblöcke prüfen"));
-        vl.addComponent(checkPhysicalHashblockIntegrity);
-
+        this.setCaption(VSMCMain.Txt("Prüffunktionen für StorageNodes") + " " + snode.getName());
         
+        
+      
+        addChecks( vl, main.getGuiServerApi().getCheckNames());
+             
         Button close = new NativeButton(VSMCMain.Txt("Zurück"));
 
         vl.addComponent(close);
@@ -84,17 +94,7 @@ public class CheckStorageNodeDlg extends Window
             {
                 event.getButton().getApplication().getMainWindow().removeWindow(w);
             }
-        });
-
-        checkPhysicalHashblockIntegrity.addListener( new Button.ClickListener() {
-
-            @Override
-            public void buttonClick( ClickEvent event )
-            {
-                handleCheck( VSMCMain.getCheck("CheckPhysicalHashblockIntegrity"));
-            }
-        });
-        
+        });        
     }
 
     Window createUserSelect(  final ICheck check, String caption, final List<String> userSelect )
@@ -177,51 +177,6 @@ public class CheckStorageNodeDlg extends Window
         };
 
         VSMCMain.Me(vl).runInBusyCancel(check.getName() + " " + caption, r, abortClick );
-    }
-
-    void handleCheck( final ICheck check )
-    {
-        Runnable r = new Runnable() {
-
-            @Override
-            public void run()
-            {
-                if (check.check())
-                {
-                    List<String> userSelect = new ArrayList<String>();
-
-                    String txt = check.fillUserOptions(userSelect);
-                    if (userSelect.isEmpty())
-                    {
-                        VSMCMain.Me(vl).Msg().errmOk(txt);
-                    }
-                    else
-                    {
-                        Window win = createUserSelect( check, txt, userSelect );
-                        vl.getApplication().getMainWindow().addWindow(win);
-                    }
-                }
-                else
-                {
-                    VSMCMain.Me(vl).Msg().errmOk(check.getErrText());
-                }
-            }
-        };
-        Button.ClickListener abortClick = new Button.ClickListener() {
-
-            @Override
-            public void buttonClick( ClickEvent event )
-            {
-                check.abort();
-            }
-        };
-
-        if (!check.init(snode))
-        {
-            VSMCMain.Me(vl).Msg().errmOk("Fehlerhafte Initialisierung des Checks");
-            return;
-        }
-        VSMCMain.Me(vl).runInBusyCancel(VSMCMain.Txt("Prüfe") + " " + check.getName() + "...", r, abortClick );
     }
 
 }

@@ -686,6 +686,24 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
         return false;
     }
 
+    @Override
+    public void initCheck(User user, String checkName, Object arg, Object optArg) {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+             guiServerApi.initCheck(user, checkName, arg, optArg);
+
+        
+    }
+
+    @Override
+    public List<String> getCheckNames() {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.getCheckNames();
+
+        return null;
+    }
+
 
 
 

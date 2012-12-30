@@ -12,8 +12,10 @@ import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.MethodProperty;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Label;
@@ -22,8 +24,11 @@ import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import de.dimm.vsm.fsengine.checks.ICheck;
+import de.dimm.vsm.jobs.CheckJobInterface;
 import de.dimm.vsm.jobs.InteractionEntry;
 import de.dimm.vsm.jobs.JobEntry;
+import de.dimm.vsm.jobs.JobInterface;
 import de.dimm.vsm.jobs.JobInterface.JOBSTATE;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.JobInfoWindow;
 import de.dimm.vsm.vaadin.GuiElems.Fields.ColumnGeneratorField;
@@ -42,6 +47,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import org.vaadin.addons.lazyquerycontainer.CompositeItem;
 
 
@@ -548,10 +554,126 @@ public class JobTable extends Table
         activeElem = null;
 //        timer.stop();
     }
+    
+    Window createUserSelect(  final ICheck check, String caption, final List<String> userSelect )
+    {
+        final Window win = new Window("Auswahl treffen");
+        win.setModal(true);
+        win.setStyleName("vsm");
+
+        VerticalLayout vl = new VerticalLayout();
+        win.addComponent(vl);
+
+        vl.setSpacing(true);
+        vl.setSizeFull();
+        vl.setImmediate(true);
+        vl.setStyleName("editWin");
+        Label lb = new Label(caption);
+        vl.addComponent(lb);
+
+        final ComboBox cbSelect  = new ComboBox("Was tun", userSelect);
+        cbSelect.setNullSelectionAllowed(false);
+        cbSelect.setNewItemsAllowed(false);
+        cbSelect.setValue(userSelect.get(0));
+
+        vl.addComponent(cbSelect);
+
+        OkAbortPanel panel = new OkAbortPanel();
+        vl.addComponent(panel);
+
+        panel.setOkText("Start");
+        panel.getBtOk().addListener( new Button.ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                String val = cbSelect.getValue().toString();
+                for (int i = 0; i < userSelect.size(); i++)
+                {
+                    String string = userSelect.get(i);
+                    if (string.equals(val))
+                    {
+                        handleUserChoice( check, string, i );
+                        event.getButton().getApplication().getMainWindow().removeWindow(win);
+                    }
+                }
+
+            }
+        });
+        panel.getBtAbort().addListener( new Button.ClickListener() {
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                event.getButton().getApplication().getMainWindow().removeWindow(win);
+            }
+        });
+        return win;
+
+    }
+
+    void handleUserChoice( final ICheck check, final String caption, final int i )
+    {
+        Runnable r = new Runnable() {
+
+            @Override
+            public void run()
+            {
+                StringBuffer sb = new StringBuffer();
+                if (!check.handleUserChoice(i, sb))
+                {
+                    VSMCMain.Me(JobTable.this).Msg().errmOk(sb.toString());
+                }
+            }
+        };
+        Button.ClickListener abortClick = new Button.ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                check.abort();
+            }
+        };
+
+        VSMCMain.Me(this).runInBusyCancel(check.getName() + " " + caption, r, abortClick );
+    }
+
+     private void handleSelectJobInteraction(JobInterface job) {
+        
+         if (job instanceof CheckJobInterface) {
+             final CheckJobInterface cjob = (CheckJobInterface)job;
+             List<String> options = new ArrayList<String>();
+             String caption = cjob.getCheck().fillUserOptions(options);
+             if (!options.isEmpty())
+             {
+                Window win = createUserSelect(cjob.getCheck(), caption, options );
+                getApplication().getMainWindow().addWindow(win);
+             }
+             else
+             {
+                 String msg = cjob.getCheck().getErrText();
+                 Button.ClickListener okClick = new Button.ClickListener() {
+
+                    @Override
+                    public void buttonClick( ClickEvent event )
+                    {
+                        cjob.abortJob();
+                    }
+                 };
+
+
+                 main.Msg().errmOk(msg, okClick);
+             }
+         }
+    }
 
     private void callJobInteraction( final JobEntry jobEntry )
     {
         final InteractionEntry ie = jobEntry.getJob().getInteractionEntry();
+        if (ie.getInteractionType() == InteractionEntry.INTERACTION_TYPE.SELECT) {
+            handleSelectJobInteraction(jobEntry.getJob());
+            return;
+        }
+            
         OkAbortPanel okPanel = new OkAbortPanel();
 
         if (ie.getInteractionType() == InteractionEntry.INTERACTION_TYPE.OK)
@@ -559,6 +681,7 @@ public class JobTable extends Table
         if (ie.getInteractionType() == InteractionEntry.INTERACTION_TYPE.OK_RETRY_CANCEL)
             okPanel.getBtRetry().setVisible(true);
         
+
         okPanel.setOkText(VSMCMain.Txt("Weiter"));
 
 
@@ -609,4 +732,6 @@ public class JobTable extends Table
 
         this.getApplication().getMainWindow().addWindow(win);
     }    
+
+   
 }

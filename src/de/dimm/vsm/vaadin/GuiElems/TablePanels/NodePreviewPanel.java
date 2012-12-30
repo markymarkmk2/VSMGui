@@ -63,6 +63,8 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
 
         HorizontalLayout hl = new HorizontalLayout();
         hl.setSpacing(true);
+        HorizontalLayout hCheck = new HorizontalLayout();
+        hCheck.setSpacing(true); 
         
         NativeButton deleteNode = new NativeButton(VSMCMain.Txt("Nodeinhalt_leeren"), new ClickListener() {
 
@@ -107,9 +109,11 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
         {
              hl.addComponent(syncNode);
         }
-        hl.addComponent(checkNode);
+        
+        hCheck.addComponent(checkNode);
 
         addComponent(hl);
+        addComponent(hCheck);
 
 
     }

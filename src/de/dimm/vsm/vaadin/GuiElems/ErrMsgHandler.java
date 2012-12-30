@@ -6,6 +6,7 @@
 package de.dimm.vsm.vaadin.GuiElems;
 
 
+import com.sun.org.apache.bcel.internal.generic.LASTORE;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -118,6 +119,17 @@ public class ErrMsgHandler extends Window
         setImmediate(true);
         this.addComponent(layout);
     }
+    
+    public void notify(String largeText, String smallText) {
+        main.getRootWin().showNotification(smallText, largeText, Window.Notification.TYPE_HUMANIZED_MESSAGE);
+    }
+    public void warn(String largeText, String smallText) {
+        main.getRootWin().showNotification(smallText, largeText, Window.Notification.TYPE_WARNING_MESSAGE);
+    }
+    public void fatal(String largeText, String smallText) {
+        main.getRootWin().showNotification(smallText, largeText, Window.Notification.TYPE_ERROR_MESSAGE);
+    }
+    
 
     public void errmOk(String txt, ClickListener ok_listener)
     {
