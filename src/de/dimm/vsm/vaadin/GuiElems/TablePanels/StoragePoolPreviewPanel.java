@@ -11,6 +11,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.NativeButton;
 import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.BlockStatusDlg;
+import de.dimm.vsm.vaadin.GuiElems.Dialogs.CheckObjectDlg;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBLinkField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
 import de.dimm.vsm.vaadin.GuiElems.Table.PreviewPanel;
@@ -73,9 +74,19 @@ public class StoragePoolPreviewPanel extends PreviewPanel<StoragePool>
             }
 
         });
+               NativeButton checkPool = new NativeButton(VSMCMain.Txt("Pool prüfen"), new ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                showCheckPoolDlg( node );
+            }
+        });
+
         
 
         hl.addComponent(statusBt);
+        hl.addComponent(checkPool);
         
 
         addComponent(hl);
@@ -87,6 +98,11 @@ public class StoragePoolPreviewPanel extends PreviewPanel<StoragePool>
         table.getApplication().getMainWindow().addWindow(dlg);
     }
 
+    private void showCheckPoolDlg( StoragePool pool )
+    {
+        CheckObjectDlg dlg = new CheckObjectDlg(table.getMain(), pool, "StoragePool");
+        table.getApplication().getMainWindow().addWindow(dlg);
+    }
 
 
 }

@@ -14,10 +14,8 @@ import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import de.dimm.vsm.fsengine.checks.ICheck;
-import de.dimm.vsm.records.AbstractStorageNode;
 import de.dimm.vsm.vaadin.GuiElems.OkAbortPanel;
 import de.dimm.vsm.vaadin.VSMCMain;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -26,18 +24,20 @@ import java.util.List;
  *
  * @author Administrator
  */
-public class CheckStorageNodeDlg extends Window
+public class CheckObjectDlg extends Window
 {
-     AbstractStorageNode snode;
+     Object object;
      VSMCMain main;
+     String name;
      
      VerticalLayout vl = new VerticalLayout();
 
 
-    public CheckStorageNodeDlg( VSMCMain main, AbstractStorageNode node )
+    public CheckObjectDlg( VSMCMain main, Object object, String name )
     {
         this.main = main;
-        this.snode = node;
+        this.object = object;
+        this.name = name;
         build_gui();
     }
     
@@ -52,7 +52,7 @@ public class CheckStorageNodeDlg extends Window
                 public void buttonClick( ClickEvent event )
                 {
                     String checkName = event.getButton().getCaption();
-                    main.getGuiServerApi().initCheck(main.getUser(), checkName, snode, null);
+                    main.getGuiServerApi().initCheck(main.getUser(), checkName, object, null);
                     main.Msg().notify(checkName + " " + VSMCMain.Txt("wurde gestartet"), VSMCMain.Txt("Details siehe unter Jobs"));
                 }
             });
@@ -75,11 +75,11 @@ public class CheckStorageNodeDlg extends Window
         vl.setImmediate(true);
         vl.setStyleName("editWin");
 
-        this.setCaption(VSMCMain.Txt("Prüffunktionen für StorageNodes") + " " + snode.getName());
+        this.setCaption(VSMCMain.Txt("Prüffunktionen für") + name + " " + object.toString());
         
         
       
-        addChecks( vl, main.getGuiServerApi().getCheckNames());
+        addChecks( vl, main.getGuiServerApi().getCheckNames(object.getClass()));
              
         Button close = new NativeButton(VSMCMain.Txt("Zurück"));
 

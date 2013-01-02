@@ -696,15 +696,12 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
 
     @Override
-    public List<String> getCheckNames() {
+    public List<String> getCheckNames(Class<?> clazz) {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
-            return guiServerApi.getCheckNames();
+            return guiServerApi.getCheckNames(clazz);
 
         return null;
     }
-
-
-
 
 }

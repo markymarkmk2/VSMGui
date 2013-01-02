@@ -238,7 +238,7 @@ public class JobTable extends Table
                     String colName = propertyId.toString();
                     if(colName.equals("edit"))
                     {
-                        return "edit";
+                        return "zoom";
                     }
                     if(colName.equals("abort"))
                     {
@@ -555,7 +555,7 @@ public class JobTable extends Table
 //        timer.stop();
     }
     
-    Window createUserSelect(  final ICheck check, String caption, final List<String> userSelect )
+    Window createUserSelect( final CheckJobInterface cjob, String caption, final List<String> userSelect )
     {
         final Window win = new Window("Auswahl treffen");
         win.setModal(true);
@@ -592,12 +592,11 @@ public class JobTable extends Table
                 {
                     String string = userSelect.get(i);
                     if (string.equals(val))
-                    {
-                        handleUserChoice( check, string, i );
+                    {                       
                         event.getButton().getApplication().getMainWindow().removeWindow(win);
+                        cjob.getInteractionEntry().setAnswer(InteractionEntry.INTERACTION_ANSWER.OK);                        
                     }
                 }
-
             }
         });
         panel.getBtAbort().addListener( new Button.ClickListener() {
@@ -645,7 +644,7 @@ public class JobTable extends Table
              String caption = cjob.getCheck().fillUserOptions(options);
              if (!options.isEmpty())
              {
-                Window win = createUserSelect(cjob.getCheck(), caption, options );
+                Window win = createUserSelect(cjob, caption, options );
                 getApplication().getMainWindow().addWindow(win);
              }
              else

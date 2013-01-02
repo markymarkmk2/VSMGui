@@ -14,6 +14,7 @@ import com.vaadin.ui.DateField;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -72,7 +73,7 @@ public class JobInfoWindow extends Window
         statistic.setReadOnly(true);
         statistic.setWidth("100%");
 
-        TextField procent = new TextField(VSMCMain.Txt("Fortschritt"), ji.getProcessPercent() + ji.getProcessPercentDimension() );
+        TextField procent = new TextField(VSMCMain.Txt("Fortschritt"), ji.getProcessPercent() + " " + ji.getProcessPercentDimension() );
         vl.addComponent(procent);
         procent.setReadOnly(true);
         procent.setWidth("100%");
@@ -90,6 +91,13 @@ public class JobInfoWindow extends Window
                         Component c = createTableView( (List)o );
                         vl.addComponent(c);
                     }
+                }
+                else
+                {
+                    TextArea ta = new TextArea("Meldung");
+                    ta.setValue(o.toString());
+                    ta.setSizeFull();
+                    vl.addComponent(ta);
                 }
             }
         }
