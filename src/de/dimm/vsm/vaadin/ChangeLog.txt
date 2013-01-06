@@ -1,3 +1,7 @@
+Veränderungen in V0.8.2
+UPD: Checks für StoragePool
+UPD: Checks für StorageNode
+
 Veränderungen in V0.8.0
 UPD: Sichten des Dateisystems über BenutzerMapping
 
