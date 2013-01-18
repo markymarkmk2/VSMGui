@@ -560,6 +560,8 @@ public class JobTable extends Table
         final Window win = new Window("Auswahl treffen");
         win.setModal(true);
         win.setStyleName("vsm");
+        win.setWidth("400px");
+        
 
         VerticalLayout vl = new VerticalLayout();
         win.addComponent(vl);
@@ -575,8 +577,10 @@ public class JobTable extends Table
         cbSelect.setNullSelectionAllowed(false);
         cbSelect.setNewItemsAllowed(false);
         cbSelect.setValue(userSelect.get(0));
+        cbSelect.setWidth("100%");
 
         vl.addComponent(cbSelect);
+
 
         OkAbortPanel panel = new OkAbortPanel();
         vl.addComponent(panel);
@@ -594,7 +598,7 @@ public class JobTable extends Table
                     if (string.equals(val))
                     {                       
                         event.getButton().getApplication().getMainWindow().removeWindow(win);
-                        cjob.getInteractionEntry().setAnswer(InteractionEntry.INTERACTION_ANSWER.OK);                        
+                        cjob.getInteractionEntry().setSelect(i);
                     }
                 }
             }
@@ -609,32 +613,32 @@ public class JobTable extends Table
         return win;
 
     }
-
-    void handleUserChoice( final ICheck check, final String caption, final int i )
-    {
-        Runnable r = new Runnable() {
-
-            @Override
-            public void run()
-            {
-                StringBuffer sb = new StringBuffer();
-                if (!check.handleUserChoice(i, sb))
-                {
-                    VSMCMain.Me(JobTable.this).Msg().errmOk(sb.toString());
-                }
-            }
-        };
-        Button.ClickListener abortClick = new Button.ClickListener() {
-
-            @Override
-            public void buttonClick( ClickEvent event )
-            {
-                check.abort();
-            }
-        };
-
-        VSMCMain.Me(this).runInBusyCancel(check.getName() + " " + caption, r, abortClick );
-    }
+//
+//    void handleUserChoice( final ICheck check, final String caption, final int i )
+//    {
+//        Runnable r = new Runnable() {
+//
+//            @Override
+//            public void run()
+//            {
+//                StringBuffer sb = new StringBuffer();
+//                if (!check.handleUserChoice(i, sb))
+//                {
+//                    VSMCMain.Me(JobTable.this).Msg().errmOk(sb.toString());
+//                }
+//            }
+//        };
+//        Button.ClickListener abortClick = new Button.ClickListener() {
+//
+//            @Override
+//            public void buttonClick( ClickEvent event )
+//            {
+//                check.abort();
+//            }
+//        };
+//
+//        VSMCMain.Me(this).runInBusyCancel(check.getName() + " " + caption, r, abortClick );
+//    }
 
      private void handleSelectJobInteraction(JobInterface job) {
         

@@ -145,7 +145,7 @@ public class AbstractStorageNodeTable extends BaseDataEditTable<AbstractStorageN
                 main.Msg().errmOkCancel(VSMCMain.Txt("Der CloneNode wird jetzt mit diesem Node abgeglichen, dies kann ja nach Füllstand dieses Nodes lange dauern"), okClick, null);
             }
         }
-
+        
         ok.run();
     }
 

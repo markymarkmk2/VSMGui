@@ -102,26 +102,28 @@ public class CheckObjectDlg extends Window
         final Window win = new Window("Auswahl treffen");
         win.setModal(true);
         win.setStyleName("vsm");
+        win.setWidth("400px");
+        win.setHeight("350px");
+        
+        VerticalLayout mainVl = new VerticalLayout();
+        win.addComponent(mainVl);
 
-        VerticalLayout vl = new VerticalLayout();
-        win.addComponent(vl);
-
-        vl.setSpacing(true);
-        vl.setSizeFull();
-        vl.setImmediate(true);
-        vl.setStyleName("editWin");
+        mainVl.setSpacing(true);
+        mainVl.setSizeFull();
+        mainVl.setImmediate(true);
+        mainVl.setStyleName("editWin");
         Label lb = new Label(caption);
-        vl.addComponent(lb);
+        mainVl.addComponent(lb);
 
         final ComboBox cbSelect  = new ComboBox("Was tun", userSelect);
         cbSelect.setNullSelectionAllowed(false);
         cbSelect.setNewItemsAllowed(false);
         cbSelect.setValue(userSelect.get(0));
 
-        vl.addComponent(cbSelect);
+        mainVl.addComponent(cbSelect);
 
         OkAbortPanel panel = new OkAbortPanel();
-        vl.addComponent(panel);
+        mainVl.addComponent(panel);
 
         panel.setOkText("Start");
         panel.getBtOk().addListener( new Button.ClickListener() {

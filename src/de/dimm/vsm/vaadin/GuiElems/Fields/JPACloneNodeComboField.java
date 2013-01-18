@@ -42,17 +42,27 @@ public class JPACloneNodeComboField extends JPAAbstractComboField
 
         List<AbstractStorageNode> list = pool.getStorageNodes(VSMCMain.get_util_em(pool));
 
+        AbstractStorageNode actNode = (AbstractStorageNode)node;
+
         // ADD ALL NODES BIGGER AS OUR OWN NODE
         for (int i = 0; i < list.size(); i++)
         {
             AbstractStorageNode object = list.get(i);
-            if (!object.isOnline())
+            
+            // Den eigenen CloneNode immer dazupacken
+            if (actNode != null && actNode.getCloneNode() != null && object.getIdx() == actNode.getCloneNode().getIdx())
+            {
+                ComboEntry ce = new ComboEntry(object, object.getName());
+                entries.add(ce);
                 continue;
+            }
 
+            if (!object.isOnline() )
+                continue;
 
             if (node != null && node instanceof AbstractStorageNode)
             {
-                AbstractStorageNode actNode = (AbstractStorageNode)node;
+               
                 if (object.getIdx() <= actNode.getIdx())
                     continue;
             }
