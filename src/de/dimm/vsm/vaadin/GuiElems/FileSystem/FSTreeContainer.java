@@ -59,43 +59,43 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
         return skipEmptyDirs;
     }
 
-    public void initRootWithUserMapping(VsmFsMapper mapper)
-    {
-        
-        mapper.getVsmList();
-        for (int i = 0; i < mapper.getVsmList().size(); i++)
-        {
-            VsmFsEntry entry =  mapper.getVsmList().get(i);
-
-            long now = System.currentTimeMillis();
-            
-            if (skipEmptyDirs)
-            {
-                RemoteFSElem elem = new RemoteFSElem(entry.getvPath(), FileSystemElemNode.FT_DIR, now,now,now,0,0);
-                RemoteFSElemTreeElem e = new RemoteFSElemTreeElem(provider, elem, null);
-                List<RemoteFSElemTreeElem> ch = provider.getChildren(e);
-                if (ch.isEmpty())
-                    continue;
-            }
-
-            // DETECTED VALID AND EXISTING DIRECTORY IN MAPPER, NOW BUILD THE MAPPED DIRECTORY
-            String[] paths = entry.getuPath().split("/");
-            int pathIdx = 0;
-            if (paths.length == 0)
-                continue;
-
-            while (paths[pathIdx].isEmpty() && pathIdx < paths.length)
-                pathIdx++;
-
-            if (pathIdx >= paths.length)
-                continue;
-
-            appendChildNode( entry, null, root_list, paths, pathIdx );
-            
-        }
-        visibleList.addAll(root_list);
-
-    }
+//    public void initRootWithUserMapping(VsmFsMapper mapper)
+//    {
+//
+//        mapper.getVsmList();
+//        for (int i = 0; i < mapper.getVsmList().size(); i++)
+//        {
+//            VsmFsEntry entry =  mapper.getVsmList().get(i);
+//
+//            long now = System.currentTimeMillis();
+//
+//            if (skipEmptyDirs)
+//            {
+//                RemoteFSElem elem = new RemoteFSElem(entry.getvPath(), FileSystemElemNode.FT_DIR, now,now,now,0,0);
+//                RemoteFSElemTreeElem e = new RemoteFSElemTreeElem(provider, elem, null);
+//                List<RemoteFSElemTreeElem> ch = provider.getChildren(e);
+//                if (ch.isEmpty())
+//                    continue;
+//            }
+//
+//            // DETECTED VALID AND EXISTING DIRECTORY IN MAPPER, NOW BUILD THE MAPPED DIRECTORY
+//            String[] paths = entry.getuPath().split("/");
+//            int pathIdx = 0;
+//            if (paths.length == 0)
+//                continue;
+//
+//            while (paths[pathIdx].isEmpty() && pathIdx < paths.length)
+//                pathIdx++;
+//
+//            if (pathIdx >= paths.length)
+//                continue;
+//
+//            appendChildNode( entry, null, root_list, paths, pathIdx );
+//
+//        }
+//        visibleList.addAll(root_list);
+//
+//    }
     private void appendChildNode( VsmFsEntry entry, RemoteFSElemTreeElem parent, List<RemoteFSElemTreeElem> children, String[] paths, int pathIdx )
     {
         if (pathIdx >= paths.length)

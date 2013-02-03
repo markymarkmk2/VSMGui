@@ -365,11 +365,11 @@ public class FileSystemViewer extends SidebarPanel
         container.setSkipEmptyDirs(true);
 
 
-        if (!VSMCMain.Me(this).getGuiUser().getUser().getFsMapper().isEmpty())
-        {
-            container.initRootWithUserMapping( VSMCMain.Me(this).getGuiUser().getUser().getFsMapper() );
-        }
-        else
+//        if (!VSMCMain.Me(this).getGuiUser().getUser().getFsMapper().isEmpty())
+//        {
+//            container.initRootWithUserMapping( VSMCMain.Me(this).getGuiUser().getUser().getFsMapper() );
+//        }
+//        else
         {
             List<RemoteFSElem> poolRootList;
             RemoteFSElem slash =  new RemoteFSElem("/", FileSystemElemNode.FT_DIR, 0, 0, 0, 0, 0);
