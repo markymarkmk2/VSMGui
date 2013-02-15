@@ -8,7 +8,6 @@ import com.vaadin.Application;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.IContextMenuCallback;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
-import com.vaadin.ui.AbsoluteLayout;
 import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -20,6 +19,7 @@ import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TreeTable;
+import com.vaadin.ui.VerticalLayout;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.AgentApi;
@@ -27,6 +27,7 @@ import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.net.interfaces.IWrapper;
 import de.dimm.vsm.records.FileSystemElemNode;
 import de.dimm.vsm.records.HotFolder;
+import de.dimm.vsm.records.MountEntry;
 import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.FileinfoWindow;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.RestoreLocationDlg;
@@ -36,6 +37,7 @@ import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeContainer;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteFSElemTreeElem;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteProvider;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteItemDescriptionGenerator;
+import de.dimm.vsm.vaadin.GuiElems.TablePanels.MountEntryTable;
 import de.dimm.vsm.vaadin.SelectObjectCallback;
 import de.dimm.vsm.vaadin.VSMCMain;
 import de.dimm.vsm.vaadin.net.DownloadResource;
@@ -80,22 +82,24 @@ public class FileSystemViewer extends SidebarPanel
 
         this.setStyleName("statusWin");
         this.setSizeFull();
-        AbsoluteLayout al = new AbsoluteLayout();
-        al.setSizeFull();
-        this.addComponent(al);
+//        AbsoluteLayout al = new AbsoluteLayout();
+//        al.setSizeFull();
+//        this.addComponent(al);
+        VerticalLayout vl = new VerticalLayout();
+        vl.setSizeFull();
+        this.addComponent(vl);
+        vl.setSpacing(true);
+        Component c = createHotfolderPanel();
 
+        vl.addComponent(c);
 
         final TextField txt_mnt_drive = new TextField("MountDrive");
         final DateField dta_ts = new DateField("Timestamp", new Date());
-
 
         txt_agent_ip.setValue("localhost");
         txt_agent_port.setValue("8082");
         txt_mnt_drive.setValue("R:");
         final Button btVol = new NativeButton("Mount Volume");
-
-
-
 
         btVol.addListener(new Button.ClickListener()
         {
@@ -171,23 +175,26 @@ public class FileSystemViewer extends SidebarPanel
                 main.SelectObject(StoragePool.class, VSMCMain.Txt("Pool"), VSMCMain.Txt("Weiter"), list, cb);
             }
         });
-        al.addComponent(btVol, "top:30px;left:10px");
-        al.addComponent(dta_ts, "top:30px;left:150px");
-        al.addComponent(txt_agent_ip, "top:30px;left:320px");
-        al.addComponent(txt_agent_port, "top:30px;left:440px");
-        al.addComponent(txt_mnt_drive, "top:30px;left:560px");
+        
+        HorizontalLayout hl = new HorizontalLayout();
+        hl.setSpacing(true);
+        hl.addComponent(btVol);
+        hl.addComponent(dta_ts);
+        hl.addComponent(txt_agent_ip);
+        hl.addComponent(txt_agent_port);
+        hl.addComponent(txt_mnt_drive);
 
 
 
         final DateField dta_view_ts = new DateField("Timestamp", new Date());
 
         btViewVol = new NativeButton("View file system");
-        HorizontalLayout hl = new HorizontalLayout();
+        HorizontalLayout hl2 = new HorizontalLayout();
         btViewVolLive = new NativeButton("Open live file system");
         cbDeleted = new CheckBox("Gelöschte Dateien sichtbar");
-        hl.addComponent(btViewVolLive);
-        hl.addComponent(cbDeleted);
-        hl.setSpacing(true);
+        hl2.addComponent(btViewVolLive);
+        hl2.addComponent(cbDeleted);
+        hl2.setSpacing(true);
         
 
         Button.ClickListener listener = new Button.ClickListener()
@@ -260,16 +267,21 @@ public class FileSystemViewer extends SidebarPanel
 
         btViewVol.addListener(listener);
         btViewVolLive.addListener(listener);
-        al.addComponent(btViewVol, "top:70px;left:10px");
-        al.addComponent(dta_view_ts, "top:70px;left:150px");
+        HorizontalLayout hl3 = new HorizontalLayout();
+        hl3.setSpacing(true);
 
-        al.addComponent(hl, "top:110px;left:10px");
+        hl3.addComponent(btViewVol);
+        hl3.addComponent(dta_view_ts);
+
+        vl.addComponent(hl);
+        vl.addComponent(hl2);
+        vl.addComponent(hl3);
 
         treePanel = new HorizontalLayout();
         // reserve excess space for the "treecolumn"
         treePanel.setSizeFull();
 
-        al.addComponent(treePanel, "top:150px;left:10px");
+        vl.addComponent(treePanel);
     }
     
     void closePoolView()
@@ -930,6 +942,42 @@ public class FileSystemViewer extends SidebarPanel
             sb.append( pathArr[i] );
         }
         return sb.toString();
+    }
+    
+    
+    final Component createHotfolderPanel()
+    {        
+        ItemClickListener l = new ItemClickListener()
+        {
+            @Override
+            public void itemClick( ItemClickEvent event )
+            {
+                //setActiveHotFolder();
+            }
+        };
+        List<MountEntry> list = null;
+        try
+        {
+            list = VSMCMain.get_base_util_em().createQuery("select p from MountEntry p", MountEntry.class);
+        }
+        catch (SQLException sQLException)
+        {
+            VSMCMain.notify(this, "Fehler beim Erzeugen der MountgEntry-Tabelle", sQLException.getMessage());
+            return new VerticalLayout();
+        }
+
+        MountEntryTable mountEntryTable = MountEntryTable.createTable(main, list, l);
+
+        final VerticalLayout tableWin  = new VerticalLayout();
+        tableWin.setSizeFull();
+        tableWin.setSpacing(true);
+
+        Component head = mountEntryTable.createHeader(VSMCMain.Txt("Liste der Mount-Einträge:"));
+
+        tableWin.addComponent(head);
+        tableWin.addComponent(mountEntryTable);
+        tableWin.setExpandRatio(mountEntryTable, 1.0f);
+        return tableWin;
     }
 }
 
