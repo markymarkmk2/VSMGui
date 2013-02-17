@@ -144,7 +144,11 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
 
         ArrayList<RemoteFSElem> root_list;
 
-        if (startPath == null)
+        if ((options & LocalFSElemEditor.MOUNT_POINT_MODE) != 0)
+        {
+            root_list = api.list_roots(AgentApi.LR_LISTMOUNTS);
+        }
+        else if(startPath == null)
         {
             if (filter == null)
             {

@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author Administrator
  */
-public class JPADBLinkField<T> extends JPAField
+public class JPADBLinkField<T> extends JPAField<T>
 {
     Class client;
     DBLinkColumnGenerator colg;
@@ -49,7 +49,7 @@ public class JPADBLinkField<T> extends JPAField
     }
 
     @Override
-    public Component createGui( Object _node)
+    public Component createGui( T _node)
     {
         node = _node;
         

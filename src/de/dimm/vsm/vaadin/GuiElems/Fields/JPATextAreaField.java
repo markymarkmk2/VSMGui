@@ -19,7 +19,7 @@ import com.vaadin.ui.TextArea;
  *
  * @author Administrator
  */
-public class JPATextAreaField extends JPAField
+public class JPATextAreaField<T> extends JPAField<T>
 {
     int fieldHeight = -1;
 
@@ -29,7 +29,7 @@ public class JPATextAreaField extends JPAField
     }
 
     @Override
-    public Component createGui(Object _node)
+    public Component createGui(T _node)
     {
         node = _node;
         

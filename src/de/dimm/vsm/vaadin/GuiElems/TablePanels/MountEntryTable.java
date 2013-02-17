@@ -40,22 +40,25 @@ public class MountEntryTable extends BaseDataEditTable<MountEntry>
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
         fieldList.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
         fieldList.add(new JPACheckBox(VSMCMain.Txt("Gesperrt"), "disabled"));
-
-        fieldList.add(new JPATextField(VSMCMain.Txt("IP"), "ip"));
-        fieldList.add(new JPATextField(VSMCMain.Txt("Port"), "port"));
-       
-
-        JPAPoolQrySelectField poolQryField = new JPAPoolQrySelectField( main, "username", "ts", "readOnly", "showDeleted");
-        fieldList.add(poolQryField);
         JPAPoolComboField poolCombo = new JPAPoolComboField( main, "poolIdx");
         fieldList.add(poolCombo);
-        fieldList.add(new JPARemoteFSField(VSMCMain.Txt("MountPfad"), "mountPath", "ip", "port" ));
+
+        fieldList.add(new JPATextField(VSMCMain.Txt("Ziel-IP"), "ip"));
+        fieldList.add(new JPATextField(VSMCMain.Txt("Ziel-Port"), "port"));
+
+        fieldList.add(new JPACheckBox(VSMCMain.Txt("Mounted"), "mounted"));
+
+        JPAPoolQrySelectField poolQryField = new JPAPoolQrySelectField( main, "typ", "username", "ts", "snapshotIdx");
+        fieldList.add(poolQryField);
+        fieldList.add(new JPACheckBox(VSMCMain.Txt("Gelöschte Dateien anzeigen"), "showDeleted"));
+
+        JPARemoteFSField remMountPath = new JPARemoteFSField(VSMCMain.Txt("Ziel-Pfad"), "mountPath", "ip", "port" );
+        remMountPath.setMountPointMode(true);
+        fieldList.add(remMountPath);
 
         setTableColumnVisible(fieldList, "port", false);
+        setTableColumnVisible(fieldList, "showDeleted", false);
         
-        //setTableColumnVisible(fieldList, "createDateSubdir", false);
-
-
 
         return new MountEntryTable( main, list, fieldList, listener);
     }
@@ -64,12 +67,7 @@ public class MountEntryTable extends BaseDataEditTable<MountEntry>
        public AbstractOrderedLayout createEditComponentPanel(  boolean readOnly )
     {
         PreviewPanel panel = new MountEntryPreviewPanel(this, readOnly);
-        
-
-        // THIS IS NEEDED TO RESOLVE POOL ENTRY INSIDE FSFIELD EDITOR (HE NEEDS TO OPEN POOLWRAPPER)
-        JPAPoolQrySelectField qryField = (JPAPoolQrySelectField) getField("poolSelectQry");
-
-        
+       
 
         panel.recreateContent(activeElem);
 
@@ -77,12 +75,6 @@ public class MountEntryTable extends BaseDataEditTable<MountEntry>
     }
 
 
-
-//    @Override
-//    public <HotFolder> BaseDataEditTable createChildTable( VSMCMain main, HotFolder parent, List<HotFolder> list, Class child, ItemClickListener listener )
-//    {
-//        return null;
-//    }
 
     @Override
     protected GenericEntityManager get_em()

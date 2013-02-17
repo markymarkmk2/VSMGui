@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @author Administrator
  */
-public abstract class JPAAbstractComboField extends JPAField {
+public abstract class JPAAbstractComboField<T> extends JPAField<T> {
 
     public JPAAbstractComboField( String caption, String fieldName, String tooltip )
     {
@@ -36,7 +36,7 @@ public abstract class JPAAbstractComboField extends JPAField {
 
 
     @Override
-    public Component createGui(Object _node)
+    public Component createGui(T _node)
     {
         node = _node;
 
@@ -61,7 +61,6 @@ public abstract class JPAAbstractComboField extends JPAField {
         final MethodProperty p = new JPAComboMethodProperty(node,fieldName, entries);
         p.addListener(vcl);
 
-
         ComboBox comboBox = new ComboBox(caption, entries);
         IndexedContainer container = new IndexedContainer();
         container.addContainerProperty(fieldName, String.class, null);
@@ -74,7 +73,6 @@ public abstract class JPAAbstractComboField extends JPAField {
                 throw new RuntimeException("Doppelter Comboeintrag");
             it.getItemProperty(fieldName).setValue(comboEntry.getDbEntry());
         }
-
 
         comboBox.setContainerDataSource(container);
         comboBox.setPropertyDataSource(p);
@@ -97,18 +95,18 @@ public abstract class JPAAbstractComboField extends JPAField {
         }
 
 
-
         for (int i = 0; i < entries.size(); i++)
         {
             ComboEntry comboEntry = entries.get(i);
-            if (p.getValue() != null && p.getValue().equals(comboEntry.getDbEntry()))
+
+//            if (p.getValue() != null && p.getValue().equals(comboEntry.getDbEntry()))
+            if (p.getValue() != null && p.getValue().equals(comboEntry.getGuiEntryKey()))
             {
-                comboBox.setValue(comboEntry.getGuiEntryKey());
+                comboBox.setValue(comboEntry.getDbEntry());
                 break;
             }
         }
         comboBox.setVisible(isFieldVisible());
-
 
         comboBox.setData(this);
 
@@ -158,5 +156,72 @@ public abstract class JPAAbstractComboField extends JPAField {
         }
         // MAYBE NOT VISIUAL, WE USSUME UNCHANGED OR IRRELEVANT
         return true;
+    }
+
+    public static class JPAComboMethodProperty extends MethodProperty
+    {
+        List<ComboEntry> entries;
+
+        public JPAComboMethodProperty( Object node,String fieldName, List<ComboEntry> entries)
+        {
+            super(node,fieldName);
+            this.entries = entries;
+        }
+
+        @Override
+        public Object getValue()
+        {
+            Object dbVal = super.getValue();
+            if (dbVal == null)
+                return null;
+
+            for (int i = 0; i < entries.size(); i++)
+            {
+                ComboEntry comboEntry = entries.get(i);
+
+                if (comboEntry.getDbEntry() == dbVal)
+                    return comboEntry.getGuiEntryKey();
+
+                if (comboEntry.getDbEntry().toString().equals( dbVal.toString()))
+                {
+                    //System.out.println("JPAComboMethodProperty.getValue returns " + comboEntry.getGuiEntryKey());
+                    return comboEntry.getGuiEntryKey();
+                }
+            }
+            //System.out.println("JPAComboMethodProperty.getValue returns empty");
+            return "";
+        }
+
+
+
+        @Override
+        public void setValue( Object newValue ) throws ReadOnlyException, ConversionException
+        {
+            if (newValue != null)
+            {
+
+                for (int i = 0; i < entries.size(); i++)
+                {
+                    ComboEntry comboEntry = entries.get(i);
+                    if (comboEntry.isGuiEntry(newValue.toString()))
+                        newValue = comboEntry.getDbEntry();
+                }
+            }
+
+            //System.out.println("JPAComboMethodProperty.setValue " + newValue);
+            super.setValue(newValue);
+        }
+
+        @Override
+        protected void invokeSetMethod( Object value )
+        {
+            super.invokeSetMethod(value);
+        }
+
+        @Override
+        public String toString()
+        {
+            return super.toString();
+        }
     }
 }

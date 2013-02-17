@@ -18,42 +18,12 @@ import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 
 
-class NoNullMethodProperty extends MethodProperty
-{
 
-    public NoNullMethodProperty( Object o, String f)
-    {
-        super( o, f );
-    }
-
-
-    @Override
-    public Object getValue()
-    {
-        Object o = super.getValue();
-        if (o == null)
-            o = "";
-        return o;
-    }
-
-    @Override
-    public void setValue( Object newValue ) throws ReadOnlyException, ConversionException
-    {
-        Object o = super.getValue();
-        if (newValue != null && newValue.toString().isEmpty() && o == null)
-        {
-            return;
-        }
-
-        super.setValue(newValue);
-    }
-
-}
 /**
  *
  * @author Administrator
  */
-public class JPATextField extends JPAField
+public class JPATextField<T> extends JPAField<T>
 {
     protected boolean password = false;
     public JPATextField(String caption, String fieldName)
@@ -62,7 +32,7 @@ public class JPATextField extends JPAField
     }
 
     @Override
-    public Component createGui(Object _node)
+    public Component createGui(T _node)
     {
         node = _node;
         
@@ -146,6 +116,37 @@ public class JPATextField extends JPAField
         }
         // MAYBE NOT VISIUAL, WE USSUME UNCHANGED OR IRRELEVANT
         return true;
+    }
+    public static class NoNullMethodProperty extends MethodProperty
+    {
+
+        public NoNullMethodProperty( Object o, String f)
+        {
+            super( o, f );
+        }
+
+
+        @Override
+        public Object getValue()
+        {
+            Object o = super.getValue();
+            if (o == null)
+                o = "";
+            return o;
+        }
+
+        @Override
+        public void setValue( Object newValue ) throws ReadOnlyException, ConversionException
+        {
+            Object o = super.getValue();
+            if (newValue != null && newValue.toString().isEmpty() && o == null)
+            {
+                return;
+            }
+
+            super.setValue(newValue);
+        }
+
     }
 
 }

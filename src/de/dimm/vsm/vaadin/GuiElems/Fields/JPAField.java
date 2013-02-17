@@ -13,16 +13,15 @@ import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.CustomComponent;
-import de.dimm.vsm.fsengine.GenericEntityManager;
 import java.util.Iterator;
 
 /**
  *
  * @author Administrator
  */
-public abstract class JPAField
+public abstract class JPAField<T>
 {
-    protected Object node;
+    protected T node;
     protected String caption;
     protected String fieldName;
     ValueChangeListener changeListener;
@@ -53,7 +52,7 @@ public abstract class JPAField
     }
 
 
-    public abstract Component createGui(Object node);
+    public abstract Component createGui(T node);
     public void setValueChangeListener( ValueChangeListener l)
     {
         changeListener = l;
@@ -121,7 +120,7 @@ public abstract class JPAField
         return defaultExpandRatio;
     }
 
-    public void update( BeanItem oldItem )
+    public void update( BeanItem<T> oldItem )
     {
         String property = getFieldName();
         if (oldItem.getItemProperty(property) == null)
@@ -134,7 +133,7 @@ public abstract class JPAField
     }
 
 
-    public void update( BeanItem oldItem, BeanItem newItem )
+    public void update( BeanItem<T> oldItem, BeanItem<T> newItem )
     {
         String property = getFieldName();
         Object v = newItem.getItemProperty(property).getValue();

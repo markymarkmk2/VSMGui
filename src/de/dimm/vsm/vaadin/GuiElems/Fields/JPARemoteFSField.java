@@ -25,6 +25,7 @@ public class JPARemoteFSField extends JPAField
     String ipField;
     String portField;
     boolean onlyDirs = true;
+    boolean mountPointMode = false;
 
     public JPARemoteFSField(String caption, String fieldName, String ip, int port)
     {
@@ -43,6 +44,12 @@ public class JPARemoteFSField extends JPAField
     {
         this.onlyDirs = onlyDirs;
     }
+
+    public void setMountPointMode( boolean mountPointMode )
+    {
+        this.mountPointMode = mountPointMode;
+    }
+
 
 
     @Override
@@ -67,6 +74,8 @@ public class JPARemoteFSField extends JPAField
         int options = 0;
         if (onlyDirs)
             options |= RemoteFSElemEditor.ONLY_DIRS;
+        if (mountPointMode)
+            options |= RemoteFSElemEditor.MOUNT_POINT_MODE;
 
         if (ipField != null)
             tf = new RemoteFSElemEditor(caption, p, node, ipField, portField, options);

@@ -15,73 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 
 
-class JPAComboMethodProperty extends MethodProperty
-{
-    List<ComboEntry> entries;
 
-    public JPAComboMethodProperty( Object node,String fieldName, List<ComboEntry> entries)
-    {
-        super(node,fieldName);
-        this.entries = entries;
-    }
-
-    @Override
-    public Object getValue()
-    {
-        Object dbVal = super.getValue();
-        if (dbVal == null)
-            return null;
-
-        for (int i = 0; i < entries.size(); i++)
-        {
-            ComboEntry comboEntry = entries.get(i);
-            
-            if (comboEntry.getDbEntry() == dbVal)
-                return comboEntry.getGuiEntryKey();
-
-            if (comboEntry.getDbEntry().toString().equals( dbVal.toString()))
-            {
-                //System.out.println("JPAComboMethodProperty.getValue returns " + comboEntry.getGuiEntryKey());
-                return comboEntry.getGuiEntryKey();
-            }
-        }
-        //System.out.println("JPAComboMethodProperty.getValue returns empty");
-        return "";
-    }
-
-
-
-    @Override
-    public void setValue( Object newValue ) throws ReadOnlyException, ConversionException
-    {
-        if (newValue != null)
-        {
-
-            for (int i = 0; i < entries.size(); i++)
-            {
-                ComboEntry comboEntry = entries.get(i);
-                if (comboEntry.isGuiEntry(newValue.toString()))
-                    newValue = comboEntry.getDbEntry();
-            }
-        }
-
-        //System.out.println("JPAComboMethodProperty.setValue " + newValue);
-        super.setValue(newValue);
-    }
-
-    @Override
-    protected void invokeSetMethod( Object value )
-    {
-        super.invokeSetMethod(value);
-    }
-
-    @Override
-    public String toString()
-    {
-        return super.toString();
-    }
-
-}
 /**
  *
  * @author Administrator

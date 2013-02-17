@@ -89,7 +89,7 @@ public class FileSystemViewer extends SidebarPanel
         vl.setSizeFull();
         this.addComponent(vl);
         vl.setSpacing(true);
-        Component c = createHotfolderPanel();
+        Component c = createMountEntryPanel();
 
         vl.addComponent(c);
 
@@ -945,7 +945,7 @@ public class FileSystemViewer extends SidebarPanel
     }
     
     
-    final Component createHotfolderPanel()
+    final Component createMountEntryPanel()
     {        
         ItemClickListener l = new ItemClickListener()
         {

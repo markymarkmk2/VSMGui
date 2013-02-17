@@ -5,40 +5,76 @@
 
 package de.dimm.vsm.vaadin.GuiElems.Fields;
 
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItem;
+import com.vaadin.data.util.MethodProperty;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
-import de.dimm.vsm.records.MessageLog;
 import de.dimm.vsm.records.MountEntry;
+import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.PoolQryEditor;
 import de.dimm.vsm.vaadin.VSMCMain;
+import java.sql.SQLException;
+import java.util.List;
+
+
+
+class JPAPoolQryMethodProperty extends MethodProperty
+{
+
+    public JPAPoolQryMethodProperty( Object node,String fieldName)
+    {
+        super(node,fieldName);
+    }
+
+    @Override
+    public Object getValue()
+    {
+        Object dbVal = super.getValue();
+        if (dbVal == null)
+            return null;
+
+
+        return "";
+    }
+}
 
 
 /**
  *
  * @author Administrator
  */
-public class JPAPoolQrySelectField extends JPAField  implements ColumnGeneratorField
+public class JPAPoolQrySelectField extends JPAField<MountEntry>  implements ColumnGeneratorField
 {
-
     VSMCMain main;
+     String typFieldName;
+     String userFieldName;
+     String tsFieldName;
+     String snFieldName;
 
    
-    public JPAPoolQrySelectField( VSMCMain main, String userFieldName, String tsFieldName, String rdFieldName, String showDeletedFieldName)
+    
+
+    public JPAPoolQrySelectField( VSMCMain main, String typFieldName, String userFieldName, String tsFieldName, String snFieldName )
     {
         super( VSMCMain.Txt("Zugriffsrechte"), "PoolQrySelect" );
-        this.main = main;        
+        this.main = main;
+        this.typFieldName = typFieldName;
+        this.userFieldName = userFieldName;
+        this.tsFieldName = tsFieldName;
+        this.snFieldName = snFieldName;
+       
     }
 
+
     @Override
-    public Component createGui(Object node) {
-        if (!(node instanceof MountEntry))
-            return null;
-        
-        MountEntry me = (MountEntry)node;
-        PoolQryEditor ed = new PoolQryEditor(main, me);
+    public Component createGui(MountEntry node) {
+        this.node = node;
+        PoolQryEditor ed = new PoolQryEditor(main, node, changeListener, typFieldName, userFieldName, tsFieldName, snFieldName);
+  
         return ed;
     }
 
@@ -47,7 +83,22 @@ public class JPAPoolQrySelectField extends JPAField  implements ColumnGeneratorF
         return new PoolQrySelectColumnGenerator();
     }
 
-    
+
+    @Override
+    public void update( BeanItem<MountEntry> oldItem )
+    {
+        MountEntry me = oldItem.getBean();
+        String property = getFieldName();
+        if (oldItem.getItemProperty(property) == null)
+        {
+            System.out.println("No property: " + property);
+            return;
+        }
+        Object v = oldItem.getItemProperty(property).getValue();
+        oldItem.getItemProperty(property).setValue(v);
+    }
+
+   
 
     
 class PoolQrySelectColumnGenerator implements Table.ColumnGenerator
@@ -59,7 +110,9 @@ class PoolQrySelectColumnGenerator implements Table.ColumnGenerator
         BeanItem it = (BeanItem) source.getItem(itemId);
         MountEntry job = (MountEntry)it.getBean();
 
-        Label lb = new Label(job.getTyp());
+        String str = PoolQryEditor.getNiceStr( job );
+       
+        Label lb = new Label( str );
         return lb;
     }
 }

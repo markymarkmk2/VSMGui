@@ -922,7 +922,7 @@ public class VSMCMain extends GenericMain
     }
 
 
-    List<StoragePool> _getStoragePoolList()
+    static List<StoragePool> _getStoragePoolList()
     {
         Object o = callLogicControl("getStoragePoolList");
         if (o != null && o instanceof List)
@@ -962,7 +962,7 @@ public class VSMCMain extends GenericMain
         return host;
     }
 
-    public StoragePool getStoragePool( long poolIdx )
+    public static StoragePool getStoragePool( long poolIdx )
     {
         List<StoragePool> list = _getStoragePoolList();
         for (int i = 0; i < list.size(); i++)

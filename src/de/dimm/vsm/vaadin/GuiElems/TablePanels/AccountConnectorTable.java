@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-class JPAAccountConnectorField extends JPATextField implements ColumnGeneratorField
+class JPAAccountConnectorField extends JPATextField<AccountConnector> implements ColumnGeneratorField
 {
     
     AccountConnectorColumnGenerator colgen;
@@ -37,15 +37,13 @@ class JPAAccountConnectorField extends JPATextField implements ColumnGeneratorFi
     }
 
     @Override
-    public Component createGui(Object _node)
+    public Component createGui(AccountConnector _node)
     {
-        node = _node;
-
-        AccountConnector job = (AccountConnector)node;
+        node = _node;        
 
         TextField tf = new TextField(VSMCMain.Txt("AccountConnector"));
 
-        tf.setValue( getNiceText(job) );
+        tf.setValue( getNiceText(node) );
         tf.setData(this);
 
         return tf;
@@ -53,9 +51,9 @@ class JPAAccountConnectorField extends JPATextField implements ColumnGeneratorFi
 
     // THIS IS CALLED WHEN OBJECT WAS CHANGED TO REFLECT CHANGES GENERATED COLUMN
     @Override
-    public void update( BeanItem oldItem )
+    public void update( BeanItem<AccountConnector> oldItem )
     {
-        AccountConnector job = (AccountConnector)oldItem.getBean();
+        AccountConnector job = oldItem.getBean();
 
         if ( colgen != null )
         {
@@ -102,17 +100,13 @@ class AccountConnectorColumnGenerator implements Table.ColumnGenerator
      * The column is irrelevant in this use case.
      */
     @Override
-    public Component generateCell(Table source, Object itemId,Object columnId)
+    public Component generateCell(Table source, Object itemId, Object columnId)
     {        
-        BeanItem bi = (BeanItem)source.getItem(itemId);
-        Object _a = bi.getBean();
-        if (_a instanceof AccountConnector)
-        {
-            String txt = JPAAccountConnectorField.getNiceText((AccountConnector)_a);
-            label = new Label(txt);
-            return label;
-        }
-        return null;
+        BeanItem<AccountConnector> bi = (BeanItem)source.getItem(itemId);
+        AccountConnector _a = bi.getBean();
+        String txt = JPAAccountConnectorField.getNiceText(_a);
+        label = new Label(txt);
+        return label;
     }
 }
 
