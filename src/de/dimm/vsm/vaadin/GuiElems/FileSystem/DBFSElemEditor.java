@@ -158,7 +158,8 @@ public class DBFSElemEditor extends HorizontalLayout
     Object node;
     int options;
     GuiServerApi api;
-    JPAPoolComboField poolCombo;
+    IActPoolGetter poolGetter;
+    
     PreviewPanel panel;
 
     public void setPanel( PreviewPanel panel )
@@ -188,10 +189,10 @@ public class DBFSElemEditor extends HorizontalLayout
 
         initButton();
     }
-    public DBFSElemEditor( GuiServerApi api, JPAPoolComboField poolCombo, PreviewPanel panel, String caption, MethodProperty p, Object node, int options)
+    public DBFSElemEditor( GuiServerApi api, IActPoolGetter poolGetter, PreviewPanel panel, String caption, MethodProperty p, Object node, int options)
     {
         this.api = api;
-        this.poolCombo = poolCombo;
+        this.poolGetter = poolGetter;
         this.panel = panel;
         this.node = node;
         
@@ -362,12 +363,11 @@ public class DBFSElemEditor extends HorizontalLayout
             s = value.toString();
 
 
-        ComboEntry sel = poolCombo.getSelectedEntry(panel);
-        if (sel == null)
-            return;
-        Long idx = (Long) sel.getDbEntry();
         VSMCMain main = VSMCMain.Me(tf);
-        StoragePool pool = main.resolveStoragePool( idx );
+        StoragePool pool = poolGetter.getActStoragePool();
+        if (pool == null)
+            return;
+        
         final StoragePoolWrapper wrapper = api.openPoolView(pool, false, "/", main.getGuiWrapper().getUser());
         final FSTree treePanel = createClientPathTree(api, wrapper, main.getUser());
 
@@ -410,7 +410,13 @@ public class DBFSElemEditor extends HorizontalLayout
                 Object o = treePanel.getValue();
                 if (o instanceof Set)
                 {
-                    o = ((Set)o).iterator().next();
+                    Set s = (Set)o;
+                    if (s.isEmpty()) 
+                    {
+                        VSMCMain.Me(win).Msg().errmOk(VSMCMain.Txt("Bitte wählen Sie einen Pfad aus"));
+                        return;
+                    }
+                    o = s.iterator().next();
                 }
                 if (o instanceof RemoteFSElemTreeElem)
                 {

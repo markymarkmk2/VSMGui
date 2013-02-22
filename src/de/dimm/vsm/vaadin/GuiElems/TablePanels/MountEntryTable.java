@@ -9,12 +9,11 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.AbstractOrderedLayout;
 import de.dimm.vsm.fsengine.GenericEntityManager;
 import de.dimm.vsm.records.FileSystemElemNode;
-import de.dimm.vsm.records.HotFolder;
 import de.dimm.vsm.records.MountEntry;
+import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBFSField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
-import de.dimm.vsm.vaadin.GuiElems.Fields.JPAPoolComboField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAPoolQrySelectField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPARemoteFSField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPATextField;
@@ -30,37 +29,45 @@ import java.util.List;
  */
 public class MountEntryTable extends BaseDataEditTable<MountEntry>
 {
-    private MountEntryTable( VSMCMain main, List<MountEntry> list, ArrayList<JPAField> _fieldList, ItemClickListener listener)
+    StoragePool pool;
+    
+    private MountEntryTable( VSMCMain main, StoragePool pool, List<MountEntry> list, ArrayList<JPAField> _fieldList, ItemClickListener listener)
     {
         super(main, list, MountEntry.class, _fieldList, listener);
+        this.pool = pool;
     }
 
-    public static MountEntryTable createTable( VSMCMain main, List<MountEntry> list, ItemClickListener listener)
+    public static MountEntryTable createTable( VSMCMain main,  StoragePool pool, List<MountEntry> list, ItemClickListener listener)
     {
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
         fieldList.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
         fieldList.add(new JPACheckBox(VSMCMain.Txt("Gesperrt"), "disabled"));
-        JPAPoolComboField poolCombo = new JPAPoolComboField( main, "poolIdx");
-        fieldList.add(poolCombo);
+        
 
         fieldList.add(new JPATextField(VSMCMain.Txt("Ziel-IP"), "ip"));
         fieldList.add(new JPATextField(VSMCMain.Txt("Ziel-Port"), "port"));
 
-        fieldList.add(new JPACheckBox(VSMCMain.Txt("Mounted"), "mounted"));
+        fieldList.add(new JPACheckBox(VSMCMain.Txt("AutoMount"), "autoMount"));
+       // fieldList.add(new JPACheckBox(VSMCMain.Txt("Mounted"), "mounted"));
+        
+        GenericEntityManager em = VSMCMain.get_util_em(pool);
 
-        JPAPoolQrySelectField poolQryField = new JPAPoolQrySelectField( main, "typ", "username", "ts", "snapshotIdx");
+        JPAPoolQrySelectField poolQryField = new JPAPoolQrySelectField( main, em, "typ", "username", "ts", "snapShot");
         fieldList.add(poolQryField);
         fieldList.add(new JPACheckBox(VSMCMain.Txt("Gelöschte Dateien anzeigen"), "showDeleted"));
 
         JPARemoteFSField remMountPath = new JPARemoteFSField(VSMCMain.Txt("Ziel-Pfad"), "mountPath", "ip", "port" );
         remMountPath.setMountPointMode(true);
         fieldList.add(remMountPath);
+        JPADBFSField subPath = new JPADBFSField(VSMCMain.Txt("DB-Pfad"), "subPath", main, pool);
+        subPath.setOnlyDirs(true);
+        fieldList.add(subPath);
 
         setTableColumnVisible(fieldList, "port", false);
         setTableColumnVisible(fieldList, "showDeleted", false);
         
 
-        return new MountEntryTable( main, list, fieldList, listener);
+        return new MountEntryTable( main, pool, list, fieldList, listener);
     }
 
     @Override
@@ -74,13 +81,13 @@ public class MountEntryTable extends BaseDataEditTable<MountEntry>
         return panel;
     }
 
-
-
     @Override
     protected GenericEntityManager get_em()
     {
-        return VSMCMain.get_base_util_em();
+        return VSMCMain.get_util_em(pool);
     }
+
+   
 
 
     @Override
@@ -93,6 +100,7 @@ public class MountEntryTable extends BaseDataEditTable<MountEntry>
         p.setPort(8082);
         p.setDisabled(true);
         p.setTyp(MountEntry.TYP_RDONLY);
+        p.setPool( pool );
 
         
         // CREATE ROOT DIR

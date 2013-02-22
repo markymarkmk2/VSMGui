@@ -13,6 +13,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
+import de.dimm.vsm.fsengine.GenericEntityManager;
 import de.dimm.vsm.records.MountEntry;
 import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.PoolQryEditor;
@@ -54,11 +55,12 @@ public class JPAPoolQrySelectField extends JPAField<MountEntry>  implements Colu
      String userFieldName;
      String tsFieldName;
      String snFieldName;
+     GenericEntityManager em;
 
    
     
 
-    public JPAPoolQrySelectField( VSMCMain main, String typFieldName, String userFieldName, String tsFieldName, String snFieldName )
+    public JPAPoolQrySelectField( VSMCMain main, GenericEntityManager em, String typFieldName, String userFieldName, String tsFieldName, String snFieldName )
     {
         super( VSMCMain.Txt("Zugriffsrechte"), "PoolQrySelect" );
         this.main = main;
@@ -66,6 +68,7 @@ public class JPAPoolQrySelectField extends JPAField<MountEntry>  implements Colu
         this.userFieldName = userFieldName;
         this.tsFieldName = tsFieldName;
         this.snFieldName = snFieldName;
+        this.em = em;
        
     }
 
@@ -73,7 +76,7 @@ public class JPAPoolQrySelectField extends JPAField<MountEntry>  implements Colu
     @Override
     public Component createGui(MountEntry node) {
         this.node = node;
-        PoolQryEditor ed = new PoolQryEditor(main, node, changeListener, typFieldName, userFieldName, tsFieldName, snFieldName);
+        PoolQryEditor ed = new PoolQryEditor(main, em, node, changeListener, typFieldName, userFieldName, tsFieldName, snFieldName);
   
         return ed;
     }

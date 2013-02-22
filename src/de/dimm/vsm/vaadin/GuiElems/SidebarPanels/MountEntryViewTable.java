@@ -8,21 +8,20 @@ package de.dimm.vsm.vaadin.GuiElems.SidebarPanels;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.EmptyColumnGenerator;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
-import com.vaadin.data.util.BeanContainer;
 import com.vaadin.data.util.BeanItem;
+import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.MethodProperty;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
-import de.dimm.vsm.tasks.InteractionEntry;
+import de.dimm.vsm.records.MountEntry;
 import de.dimm.vsm.tasks.TaskEntry;
 import de.dimm.vsm.tasks.TaskInterface.TASKSTATE;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.TaskInfoWindow;
@@ -31,13 +30,15 @@ import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAComboField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPATextField;
-import de.dimm.vsm.vaadin.GuiElems.OkAbortPanel;
+import de.dimm.vsm.vaadin.GuiElems.FileSystem.PoolQryEditor;
 import de.dimm.vsm.vaadin.GuiElems.Table.ComboColumnGenerator;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import org.vaadin.addons.lazyquerycontainer.CompositeItem;
 
 
@@ -57,50 +58,30 @@ import org.vaadin.addons.lazyquerycontainer.CompositeItem;
 //
 //
 //}
-class TaskStateColumnGenerator implements Table.ColumnGenerator
+class MountEntryColumnGenerator implements Table.ColumnGenerator
 {
     Label label;
     @Override
     public Component generateCell( Table source, Object itemId, Object columnId )
     {
         BeanItem it = (BeanItem) source.getItem(itemId);
-        TaskEntry job = (TaskEntry)it.getBean();
-        label = new Label(getTaskStatusStr(job.getTaskStatus()));
+        MountEntry job = (MountEntry)it.getBean();
+        label = new Label(job.getName() + " " + PoolQryEditor.getNiceStr( job )  + " " + job.getIp() + ":" + job.getMountPath().getPath());
         return label;
-    }
-
-    public String getTaskStatusStr(TASKSTATE st)
-    {
-        return VSMCMain.Txt( st.toString());
     }
 }
 
 
-//
-//class JobPercentColumnGenerator implements Table.ColumnGenerator
-//{
-//    Label label;
-//    @Override
-//    public Component generateCell( Table source, Object itemId, Object columnId )
-//    {
-//        BeanItem it = (BeanItem) source.getItem(itemId);
-//        JobEntry job = (JobEntry)it.getBean();
-//        label = new Label(Integer.toString(job.getProcessPercent()) + " " + job.getProcessPercentDimension());
-//        return label;
-//    }
-//
-//
-//}
 
 
-class TaskStatusField extends JPATextField implements ColumnGeneratorField
+class MountEntryField extends JPATextField implements ColumnGeneratorField
 {
 
-    TaskStateColumnGenerator colgen;
+    MountEntryColumnGenerator colgen;
 
-    public TaskStatusField()
+    public MountEntryField()
     {
-        super("TaskStatus", "taskStatus");
+        super("MountEntry", "mountEntry");
     }
 
     @Override
@@ -110,7 +91,7 @@ class TaskStatusField extends JPATextField implements ColumnGeneratorField
 
         TaskEntry job = (TaskEntry)node;
 
-        TextField tf = new TextField("TaskStatus");
+        TextField tf = new TextField("MountEntry");
 
         tf.setValue( colgen.label.getValue());
         tf.setData(this);
@@ -120,7 +101,7 @@ class TaskStatusField extends JPATextField implements ColumnGeneratorField
     @Override
     public ColumnGenerator getColumnGenerator()
     {
-        colgen = new TaskStateColumnGenerator();
+        colgen = new MountEntryColumnGenerator();
         return colgen;
     }
 }
@@ -130,7 +111,7 @@ class TaskStatusField extends JPATextField implements ColumnGeneratorField
  *
  * @author Administrator
  */
-public class TasksPanel extends Table
+public class MountEntryViewTable extends Table
 {
     VSMCMain main;
     public static final String CHECKBOX_MAGIC_PREFIX = "CHECK.";
@@ -138,26 +119,24 @@ public class TasksPanel extends Table
 
     protected ArrayList<JPAField> fieldList;
 
-    TaskEntry activeElem;
-    final BeanContainer<Long, TaskEntry> bc;
-//    Timer timer;
+    MountEntry activeElem;
+    final BeanItemContainer< MountEntry> bc;
 
 
-    public TasksPanel( VSMCMain main )
+    public MountEntryViewTable( VSMCMain main )
     {
         this.main = main;
-        bc = new BeanContainer<Long, TaskEntry>(TaskEntry.class);
-        bc.setBeanIdProperty("idx");
-
+        bc = new BeanItemContainer<MountEntry>(MountEntry.class);
 
         ArrayList<JPAField> fl = new ArrayList<JPAField>();
-        fl.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
-        fl.add( new TaskStatusField());
-        fl.add(new JPATextField(VSMCMain.Txt("Status"), "statusStr"));
-        fl.add(new JPATextField(VSMCMain.Txt("Statistik"), "statistic"));
+        //fl.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
+        
+        MountEntryField mef = new MountEntryField();
+        mef.setExpandRatio( 1);
+        fl.add( mef);
         
         
-        initTable( fl, true, true );
+        initTable( fl, false, true );
 
     }
 
@@ -200,39 +179,10 @@ public class TasksPanel extends Table
                         }
                         if(colName.equals("pause"))
                         {
-                            BeanItem item = (BeanItem) getItem(itemId);
-                            if (item != null && item.getBean() instanceof TaskEntry)
-                            {
-                                TaskEntry te = (TaskEntry)item.getBean();
-                                if (te.getTaskStatus() == TASKSTATE.PAUSED)
-                                {
-                                    return "paused";
-                                }
-                            }
-                            else
-                            {
-                                return null;
-                            }
-
-                            return "running";
+                            
+                            return "delete";
                         }
-                        if(colName.equals("statusStr"))
-                        {
-                            BeanItem item = (BeanItem) getItem(itemId);
-
-                            if (item != null && item.getBean() instanceof TaskEntry)
-                            {
-                                TaskEntry je = (TaskEntry)item.getBean();
-                                if (je.getTaskStatus() == TASKSTATE.NEEDS_INTERACTION)
-                                {
-                                    return "userInteraction";
-                                }
-                            }
-                            else
-                            {
-                                return null;
-                            }
-                        }
+                        
                         if (colName.startsWith(CHECKBOX_MAGIC_PREFIX))
                         {
                             colName = colName.substring(CHECKBOX_MAGIC_PREFIX.length());
@@ -316,7 +266,7 @@ public class TasksPanel extends Table
         if (show_pause)
         {
             columns[act_index] = "pause";
-            columnLabels[act_index] = "";// Main.Txt("Del");
+            columnLabels[act_index] = "Unmount";// Main.Txt("Del");
             addGeneratedColumn(columns[act_index], new EmptyColumnGenerator() );
             act_index++;
         }
@@ -353,71 +303,50 @@ public class TasksPanel extends Table
                 if (item instanceof BeanItem)
                 {
                     BeanItem bit = (BeanItem)item;
-                    callTableClick( event, (TaskEntry)bit.getBean() );
+                    callTableClick( event, (MountEntry)bit.getBean() );
                 }
             }
         };
 
         addListener(l);
     }
-    HashMap<Long, String> lastStateMap = new  HashMap<Long, String>();
-
+    
     void listTasks()
     {
-        TaskEntry[] arr = main.getDummyGuiServerApi().listTasks();
-        if (arr.length == 0)
+        List<MountEntry> allEntries = main.getDummyGuiServerApi().getAllMountEntries();
+        List<MountEntry> mountedEntries = main.getDummyGuiServerApi().getMountedMountEntries();
+        if (mountedEntries.isEmpty())
         {
             activeElem = null;
             synchronized(bc)
             {
                 bc.removeAllItems();
             }
+            
             return;
         }
         
-
-        HashMap<Long, TaskEntry> newMap = new  HashMap<Long, TaskEntry>();
-        for (int i = 0; i < arr.length; i++)
-        {
-            TaskEntry jobEntry = arr[i];
-            newMap.put(jobEntry.getIdx(), jobEntry);
-        }
+        List<MountEntry> newMap = new ArrayList<MountEntry>();        
+        newMap.addAll( mountedEntries);
 
         synchronized(bc)
         {
-            boolean changed = false;
-            for (int b = 0; b < bc.size(); b++)
+            Collection<MountEntry> coll = bc.getItemIds();
+            for (MountEntry mountEntry : coll)
             {
-                long id = bc.getIdByIndex(b);
-                String lastState = lastStateMap.get(id);
-                TaskEntry newEntry = newMap.get(id);
-                if (lastState == null || !lastState.equals(newEntry.hash()) )
+                if (newMap.contains(mountEntry))
                 {
-                    changed = true;
-                    break;
+                    newMap.remove(mountEntry);
                 }
-                if (newMap.containsKey(id))
-                {
-                    newMap.remove(id);
-                }
-
             }
-            if (!changed && newMap.isEmpty())
+            
+            if (newMap.isEmpty())
             {
                 return;
             }
 
-
-
             bc.removeAllItems();
-
-            for (int i = 0; i < arr.length; i++)
-            {
-                TaskEntry jobEntry = arr[i];
-                bc.addBean( jobEntry );
-                lastStateMap.put(jobEntry.getIdx(), jobEntry.hash());
-            }
-
+            bc.addAll( mountedEntries );
         }
     }
 
@@ -455,7 +384,7 @@ public class TasksPanel extends Table
         return null;
     }
 
-    public void callTableClick( ItemClickEvent event, final TaskEntry item )
+    public void callTableClick( ItemClickEvent event, final MountEntry item )
     {
         activeElem = item;
 
@@ -465,7 +394,7 @@ public class TasksPanel extends Table
 
         if (col_id.equals("edit"))
         {
-            callTaskDisplay(item);
+            callDisplay(item);
         }
         else if(col_id.equals("pause"))
         {
@@ -474,44 +403,21 @@ public class TasksPanel extends Table
                 @Override
                 public void buttonClick( ClickEvent event )
                 {
-                    callTaskPause(item);
+                    callUnmount(item);
                 }
             };
-            if (item.getTaskStatus() != TASKSTATE.PAUSED)
-            {
-                main.Msg().errmOkCancel(VSMCMain.Txt("Wollen Sie diese Task pausieren?"), ok, null);
-            }
-            else
-            {
-                callTaskPause(item);
-            }
+            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen Sie diesen Eintrag unmounten?"), ok, null);
+            
+            
         }
-        else if (item.getTaskStatus() == TASKSTATE.NEEDS_INTERACTION)
-        {
-            callTaskInteraction( item );
-        }
+        
     }
-    public TaskEntry getActiveElem()
+    public MountEntry getActiveElem()
     {
         return activeElem;
     }
 
-    private void callTaskDisplay( TaskEntry item )
-    {
-        TaskInfoWindow dlg = new TaskInfoWindow(main, item);
-
-        this.getApplication().getMainWindow().addWindow(dlg);
-
-        
-    }
-    private void callTaskPause( TaskEntry item )
-    {
-        if (item.getTaskStatus() == TASKSTATE.PAUSED)
-            item.setTaskStatus(TASKSTATE.RUNNING);
-        else
-            item.setTaskStatus(TASKSTATE.PAUSED);
-
-    }
+    
 
 
     private void requestStatus()
@@ -552,65 +458,17 @@ public class TasksPanel extends Table
 //        timer.stop();
     }
 
-    private void callTaskInteraction( final TaskEntry taskEntry )
-    {
-        final InteractionEntry ie = taskEntry.getTask().getInteractionEntry();
-        OkAbortPanel okPanel = new OkAbortPanel();
 
-        if (ie.getInteractionType() == InteractionEntry.INTERACTION_TYPE.OK)
-            okPanel.getBtAbort().setVisible(false);
-        if (ie.getInteractionType() == InteractionEntry.INTERACTION_TYPE.OK_RETRY_CANCEL)
-            okPanel.getBtRetry().setVisible(true);
-        
-        okPanel.setOkText(VSMCMain.Txt("Weiter"));
-
-
-        final Window win = new Window(ie.getShortText());
-        VerticalLayout vl = new VerticalLayout();
-        vl.setSizeFull();
-        vl.setSpacing(true);
-
-        Label plainText = new Label(ie.getText());
-        plainText.setContentMode(Label.CONTENT_XHTML);
-        vl.addComponent(plainText);
-        vl.setExpandRatio(plainText, 1);
-        vl.addComponent(okPanel);
-
-        win.addComponent(vl);
-
-        okPanel.getBtOk().addListener( new ClickListener() {
-
-            @Override
-            public void buttonClick( ClickEvent event )
-            {
-                win.getApplication().getMainWindow().removeWindow(win);
-                ie.setAnswer(InteractionEntry.INTERACTION_ANSWER.OK);
-                taskEntry.setTaskStatus(TASKSTATE.RUNNING);
-            }
-        });
-        okPanel.getBtAbort().addListener( new ClickListener() {
-
-            @Override
-            public void buttonClick( ClickEvent event )
-            {
-                win.getApplication().getMainWindow().removeWindow(win);
-                ie.setAnswer(InteractionEntry.INTERACTION_ANSWER.CANCEL);
-                taskEntry.setTaskStatus(TASKSTATE.RUNNING);
-            }
-        });
-        okPanel.getBtRetry().addListener( new ClickListener() {
-
-            @Override
-            public void buttonClick( ClickEvent event )
-            {
-                win.getApplication().getMainWindow().removeWindow(win);
-                ie.setAnswer(InteractionEntry.INTERACTION_ANSWER.RETRY);
-                taskEntry.setTaskStatus(TASKSTATE.RUNNING);
-            }
-        });
-
-
-        this.getApplication().getMainWindow().addWindow(win);
+    private void callUnmount( MountEntry val )
+    {                   
+         main.getDummyGuiServerApi().unMountEntry( val );
     }
+
+    private void callDisplay( MountEntry item )
+    {
+        
+    }
+
+   
 
 }

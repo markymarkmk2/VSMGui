@@ -17,10 +17,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.VerticalSplitPanel;
-import de.dimm.vsm.records.AbstractStorageNode;
-import de.dimm.vsm.records.Retention;
 import de.dimm.vsm.records.Schedule;
-import de.dimm.vsm.records.Snapshot;
 import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.AbstractStorageNodeTable;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.RetentionTable;
@@ -29,6 +26,7 @@ import de.dimm.vsm.vaadin.GuiElems.TablePanels.SnapshotTable;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.StoragePoolTable;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import java.util.List;
 
@@ -42,25 +40,24 @@ import java.util.List;
 public class PoolEditorWin extends SidebarPanel
 {
     VerticalSplitPanel poolSplitter;
+    
+    List<PoolSubDBPanel<?>> subPanelList;
 
-    VerticalSplitPanel scheduleSplitter;
-    VerticalSplitPanel snapshotSplitter;
-    VerticalSplitPanel retentionSplitter;
-    VerticalSplitPanel nodeSplitter;
     TabSheet poolSubElemsTabsheet;
 
-    BaseDataEditTable<AbstractStorageNode> nodeTable;
     BaseDataEditTable<StoragePool> poolTable;
-    BaseDataEditTable<Schedule> schedTable;
-    BaseDataEditTable<Snapshot> snapshotTable;
-    BaseDataEditTable<Retention> retentionTable;
     HorizontalSplitPanel mainPanel;
-
 
 
     public PoolEditorWin(VSMCMain main)
     {
         super(main);
+        subPanelList = new ArrayList<PoolSubDBPanel<?>>();
+        subPanelList.add( new StorageNodeSubDBPanel(this, main));
+        subPanelList.add( new SnapshotSubDBPanel(this, main));
+        subPanelList.add( new ScheduleSubDBPanel(this, main));
+        subPanelList.add( new MountEntrySubDBPanel(this, main));
+        subPanelList.add( new RetentionSubDBPanel(this, main));
     }
 
     @Override
@@ -86,14 +83,11 @@ public class PoolEditorWin extends SidebarPanel
 
         poolSplitter = new VerticalSplitPanel();
         poolSplitter.setSplitPosition(30, Sizeable.UNITS_PERCENTAGE);
-        scheduleSplitter = new VerticalSplitPanel();
-        scheduleSplitter.setSplitPosition(30, Sizeable.UNITS_PERCENTAGE);
-        snapshotSplitter = new VerticalSplitPanel();
-        snapshotSplitter.setSplitPosition(30, Sizeable.UNITS_PERCENTAGE);
-        retentionSplitter = new VerticalSplitPanel();
-        retentionSplitter.setSplitPosition(30, Sizeable.UNITS_PERCENTAGE);
-        nodeSplitter = new VerticalSplitPanel();
-        nodeSplitter.setSplitPosition(30, Sizeable.UNITS_PERCENTAGE);
+        
+        for (PoolSubDBPanel<?> panel : subPanelList) 
+        {
+            panel.build_gui();
+        }
 
         poolSplitter.setFirstComponent(tableWin);
 
@@ -117,20 +111,29 @@ public class PoolEditorWin extends SidebarPanel
         poolSubElemsTabsheet = new TabSheet();
         
         poolSubElemsTabsheet.setSizeFull();
-        ThemeResource icon_schedule = new ThemeResource( "images/schedule.png");
-        ThemeResource icon_snapshot = new ThemeResource( "images/snapshot.png");
-        ThemeResource icon_retention = new ThemeResource( "images/retention.png");
+//        ThemeResource icon_schedule = new ThemeResource( "images/schedule.png");
+//        ThemeResource icon_snapshot = new ThemeResource( "images/snapshot.png");
+//        ThemeResource icon_retention = new ThemeResource( "images/retention.png");
         
+        for (PoolSubDBPanel<?> panel : subPanelList) 
+        {
+            poolSubElemsTabsheet.addTab( panel.getSplitter(), panel.getName(), panel.getIcon() );
+        }
 
-        poolSubElemsTabsheet.addTab(nodeSplitter, VSMCMain.Txt("Speicherorte"), icon_node);
-        poolSubElemsTabsheet.addTab(scheduleSplitter, VSMCMain.Txt("Sicherungspläne"), icon_schedule);
-        poolSubElemsTabsheet.addTab(snapshotSplitter, VSMCMain.Txt("Snapshots"), icon_snapshot);
-        poolSubElemsTabsheet.addTab(retentionSplitter, VSMCMain.Txt("Gültigkeitspläne"), icon_retention);
+
+//        poolSubElemsTabsheet.addTab(nodeSplitter, VSMCMain.Txt("Speicherorte"), icon_node);
+//        poolSubElemsTabsheet.addTab(scheduleSplitter, VSMCMain.Txt("Sicherungspläne"), icon_schedule);
+//        poolSubElemsTabsheet.addTab(snapshotSplitter, VSMCMain.Txt("Snapshots"), icon_snapshot);
+//        poolSubElemsTabsheet.addTab(retentionSplitter, VSMCMain.Txt("Gültigkeitspläne"), icon_retention);
 
         mainPanel.setSecondComponent(poolSubElemsTabsheet);
 
-
     }
+
+    public BaseDataEditTable<StoragePool> getPoolTable() {
+        return poolTable;
+    }
+    
     
 
     final Component createPoolTablePanel()
@@ -170,188 +173,64 @@ public class PoolEditorWin extends SidebarPanel
         panel.setWidth("100%");
 
         poolSplitter.setSecondComponent(panel);
-
-        Component tableWin  = createNodeTablePanel( poolTable.getActiveElem() );
-        nodeSplitter.setFirstComponent(tableWin);
-        nodeSplitter.setSecondComponent(new Label(""));
-
-        tableWin  = createScheduleTablePanel( poolTable.getActiveElem() );
-        scheduleSplitter.setFirstComponent(tableWin);
-        scheduleSplitter.setSecondComponent(new Label(""));
-
-        tableWin  = createSnapshotTablePanel( poolTable.getActiveElem() );
-        snapshotSplitter.setFirstComponent(tableWin);
-        snapshotSplitter.setSecondComponent(new Label(""));
-
-        tableWin  = createRetentionTablePanel( poolTable.getActiveElem() );
-        retentionSplitter.setFirstComponent(tableWin);
-        retentionSplitter.setSecondComponent(new Label(""));
-    }
-
-
-    final Component createScheduleTablePanel(StoragePool pool)
-    {
-        ItemClickListener l = new ItemClickListener()
-        {
-            @Override
-            public void itemClick( ItemClickEvent event )
-            {
-                setActiveSched();
-            }
-        };
-        long idx = pool.getIdx();
-        List<Schedule> list = null;
-        try
-        {
-            list = VSMCMain.get_util_em(pool).createQuery("select s from Schedule s where T1.pool_idx=" + idx, Schedule.class);
-        }
-        catch (SQLException sQLException)
-        {
-            VSMCMain.notify(this, "Fehelr beim Erzeugen der Liste", sQLException.getMessage());
-        }
-        //List<Schedule> list = tq.getResultList();
-
-        schedTable = ScheduleTable.createTable(main, pool, list, l);
-
-        final VerticalLayout tableWin  = new VerticalLayout();
-        tableWin.setSizeFull();
-        tableWin.setSpacing(true);
-
-        Component head = schedTable.createHeader(VSMCMain.Txt("Liste der Sicherungspläne:"));
-
-        tableWin.addComponent(head);
-        tableWin.addComponent(schedTable);
-        tableWin.setExpandRatio(schedTable, 1.0f);
-        return tableWin;
-    }
-    final Component createSnapshotTablePanel(StoragePool pool)
-    {
-        ItemClickListener l = new ItemClickListener()
-        {
-            @Override
-            public void itemClick( ItemClickEvent event )
-            {
-                setActiveSnapshot();
-            }
-        };
-
-
-        //List<Schedule> list = tq.getResultList();
-
-        try
-        {
-            snapshotTable = SnapshotTable.createTable(main, pool, l);
-        }
-        catch (Exception sQLException)
-        {
-            VSMCMain.notify(this, "Fehler beim Erzeugen der Snapshot-Tabelle", sQLException.getMessage());
-            return new VerticalLayout();
-        }
-        final VerticalLayout tableWin  = new VerticalLayout();
-        tableWin.setSizeFull();
-        tableWin.setSpacing(true);
-
-        Component head = snapshotTable.createHeader(VSMCMain.Txt("Liste der Snapshots:"));
-
-        tableWin.addComponent(head);
-        tableWin.addComponent(snapshotTable);
-        tableWin.setExpandRatio(snapshotTable, 1.0f);
-        return tableWin;
-    }
-
-    final Component createRetentionTablePanel(StoragePool pool)
-    {
-        ItemClickListener l = new ItemClickListener()
-        {
-            @Override
-            public void itemClick( ItemClickEvent event )
-            {
-                setActiveRetention();
-            }
-        };
-
-
-        //List<Schedule> list = tq.getResultList();
-
-        try
-        {
-            retentionTable = RetentionTable.createTable(main, pool, l);
-        }
-        catch (Exception sQLException)
-        {
-            VSMCMain.notify(this, "Fehler beim Erzeugen der Retention-Tabelle", sQLException.getMessage());
-            return new VerticalLayout();
-        }
         
-        final VerticalLayout tableWin  = new VerticalLayout();
-        tableWin.setSizeFull();
-        tableWin.setSpacing(true);
-
-        Component head = retentionTable.createHeader(VSMCMain.Txt("Liste der Retentions:"));
-
-        tableWin.addComponent(head);
-        tableWin.addComponent(retentionTable);
-        tableWin.setExpandRatio(retentionTable, 1.0f);
-        return tableWin;
-    }
-
-
-
-    Component createNodeTablePanel( StoragePool pool )
-    {
-        ItemClickListener l = new ItemClickListener()
+        for (PoolSubDBPanel<?> spanel : subPanelList) 
         {
-            @Override
-            public void itemClick( ItemClickEvent event )
-            {
-                setActiveStorageNode();
-            }
-        };
-        nodeTable = AbstractStorageNodeTable.createTable(main, pool, l);
+           spanel.setActiveStoragePool();
+        }
 
-        final VerticalLayout tablePanel  = new VerticalLayout();
-        tablePanel.setSizeFull();
-        tablePanel.setSpacing(true);
 
-        Component head = nodeTable.createHeader(VSMCMain.Txt("StorageNodes des aktuellen StoragePools:"));
-
-        tablePanel.addComponent( head );
-        tablePanel.addComponent(nodeTable);
-        tablePanel.setExpandRatio(nodeTable, 1.0f);
-
-        return tablePanel;
-        
+//        Component tableWin  = createNodeTablePanel( poolTable.getActiveElem() );
+//        nodeSplitter.setFirstComponent(tableWin);
+//        nodeSplitter.setSecondComponent(new Label(""));
+//
+//        tableWin  = createScheduleTablePanel( poolTable.getActiveElem() );
+//        scheduleSplitter.setFirstComponent(tableWin);
+//        scheduleSplitter.setSecondComponent(new Label(""));
+//
+//        tableWin  = createSnapshotTablePanel( poolTable.getActiveElem() );
+//        snapshotSplitter.setFirstComponent(tableWin);
+//        snapshotSplitter.setSecondComponent(new Label(""));
+//
+//        tableWin  = createRetentionTablePanel( poolTable.getActiveElem() );
+//        retentionSplitter.setFirstComponent(tableWin);
+//        retentionSplitter.setSecondComponent(new Label(""));
     }
 
 
-    private void setActiveSched()
-    {
-        AbstractLayout panel = schedTable.createLocalPreviewPanel();
-        panel.setSizeUndefined();
-        panel.setWidth("100%");
-        scheduleSplitter.setSecondComponent(panel);
-    }
-    private void setActiveSnapshot()
-    {
-        AbstractLayout panel = snapshotTable.createLocalPreviewPanel();
-        panel.setSizeUndefined();
-        panel.setWidth("100%");
-        snapshotSplitter.setSecondComponent(panel);
-    }
-    private void setActiveRetention()
-    {
-        AbstractLayout panel = retentionTable.createLocalPreviewPanel();
-        panel.setSizeUndefined();
-        panel.setWidth("100%");
-        retentionSplitter.setSecondComponent(panel);
-    }
-    private void setActiveStorageNode()
-    {
-        AbstractLayout panel = nodeTable.createLocalPreviewPanel();
-        panel.setSizeUndefined();
-        panel.setWidth("100%");
-        nodeSplitter.setSecondComponent(panel);
-    }
+   
+
+
+
+
+//    private void setActiveSched()
+//    {
+//        AbstractLayout panel = schedTable.createLocalPreviewPanel();
+//        panel.setSizeUndefined();
+//        panel.setWidth("100%");
+//        scheduleSplitter.setSecondComponent(panel);
+//    }
+//    private void setActiveSnapshot()
+//    {
+//        AbstractLayout panel = snapshotTable.createLocalPreviewPanel();
+//        panel.setSizeUndefined();
+//        panel.setWidth("100%");
+//        snapshotSplitter.setSecondComponent(panel);
+//    }
+//    private void setActiveRetention()
+//    {
+//        AbstractLayout panel = retentionTable.createLocalPreviewPanel();
+//        panel.setSizeUndefined();
+//        panel.setWidth("100%");
+//        retentionSplitter.setSecondComponent(panel);
+//    }
+//    private void setActiveStorageNode()
+//    {
+//        AbstractLayout panel = nodeTable.createLocalPreviewPanel();
+//        panel.setSizeUndefined();
+//        panel.setWidth("100%");
+//        nodeSplitter.setSecondComponent(panel);
+//    }
 
 
 }

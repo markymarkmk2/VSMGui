@@ -13,12 +13,14 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.HorizontalLayout;
 import de.dimm.vsm.fsengine.GenericEntityManager;
+import de.dimm.vsm.records.AccountConnector;
 import de.dimm.vsm.records.MountEntry;
 import de.dimm.vsm.records.Snapshot;
 import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAAbstractComboField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAComboField;
+import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBComboField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPADateField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPATextField;
 import de.dimm.vsm.vaadin.VSMCMain;
@@ -27,58 +29,61 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
-class JPASnapShotComboField extends JPAAbstractComboField<MountEntry>
+class AccountConnectorJPADBComboField extends JPADBComboField
 {
-
-    VSMCMain main;
-
-   
-  
-
-    public JPASnapShotComboField( VSMCMain main,  MountEntry me, String fieldName)
+    public AccountConnectorJPADBComboField(GenericEntityManager em)
     {
-        super( VSMCMain.Txt("Snapshot"), fieldName );
-        this.main = main;
-        node = me;
-
+        super( VSMCMain.Txt("Authentifizierer"), "accountConnector", em, AccountConnector.class, "select T1 from AccountConnector T1", "");
     }
-
-
 
     @Override
-    public List<ComboEntry> getEntries()
+    public List<ComboEntry> getEntries() throws SQLException
     {
-        return getEntries(node);
+        List<ComboEntry> entries = new ArrayList<ComboEntry>();
+
+        List<AccountConnector> list = em.createQuery(qry, clazz);
+
+        for (int i = 0; i < list.size(); i++)
+        {
+            AccountConnector acct = list.get(i);
+            String s = acct.getType() + ":" + acct.getIp();
+
+            ComboEntry ce = new ComboEntry(acct, s);
+            entries.add(ce);
+        }
+
+        return entries;    
+    }
+}
+
+
+class JPASnapShotComboField extends JPADBComboField
+{
+    VSMCMain main;
+
+    public JPASnapShotComboField( GenericEntityManager em, String fieldName)
+    {
+        super( VSMCMain.Txt("Snapshot"), fieldName, em, Snapshot.class, "select T1 from snapshot T1", "");
     }
 
-    public static List<ComboEntry> getEntries(MountEntry me)
+
+   @Override
+    public List<ComboEntry> getEntries() throws SQLException
     {
-        List<ComboEntry> snapShotList = new ArrayList<ComboEntry>();
+        List<ComboEntry> entries = new ArrayList<ComboEntry>();
 
-        if (me == null)
-            return snapShotList;
+        List<Snapshot> list = em.createQuery(qry, clazz);
 
-        StoragePool pool = VSMCMain.getStoragePool(me.getPoolIdx());
-        if (pool == null)
-            return snapShotList;
+        for (int i = 0; i < list.size(); i++)
+        {
+            Snapshot acct = list.get(i);
+            String s = acct.getName();
 
-        GenericEntityManager em = VSMCMain.get_util_em(pool);
-        try {
-            List<Snapshot> list = em.createQuery("select t1 from Snapshot t1", Snapshot.class);
-
-            for (int i = 0; i < list.size(); i++)
-            {
-                Snapshot snapshot = list.get(i);
-                snapShotList.add( new ComboEntry(snapshot.getIdx(), snapshot.getName()));
-            }
-
-        } catch (SQLException sQLException) {
-        } catch (IllegalStateException illegalStateException) {
+            ComboEntry ce = new ComboEntry(acct, s);
+            entries.add(ce);
         }
-        
-        return snapShotList;
+
+        return entries;    
     }
 
 }
@@ -100,7 +105,7 @@ public class PoolQryEditor extends HorizontalLayout
     
 
     //ComboBox cbTyp;
-    JPASnapShotComboField cbSnapShot;
+    JPADBComboField cbSnapShot;
    // DateField dtTimestamp;
    // AbstractField tfUser;
 
@@ -119,10 +124,20 @@ public class PoolQryEditor extends HorizontalLayout
         typeList.add( new ComboEntry(MountEntry.TYP_RDONLY, VSMCMain.Txt("Aktuell nur lesen")));
         typeList.add( new ComboEntry(MountEntry.TYP_RDWR, VSMCMain.Txt("Aktuell lesen/schreiben")));
     }
+    public static String getTypeText( String typ)
+    {
+        for (ComboEntry ce : typeList)
+        {
+            if (ce.isDbEntry( typ))
+                return ce.getGuiEntryKey();
+            
+        }
+        return "";
+    }
     
   
 
-    public PoolQryEditor( VSMCMain main, final MountEntry me, final ValueChangeListener changeListener, String typFieldName, String userFieldName, String tsFieldName, String snFieldName )
+    public PoolQryEditor( VSMCMain main, GenericEntityManager em, final MountEntry me, final ValueChangeListener changeListener, String typFieldName, String userFieldName, String tsFieldName, String snFieldName )
     {
         this.node = me;
         this.typFieldName = typFieldName;
@@ -137,7 +152,7 @@ public class PoolQryEditor extends HorizontalLayout
        
 
         cbTyp = new JPAComboField("Art", typFieldName, typeList);
-        cbSnapShot = new JPASnapShotComboField(main, node, snFieldName);
+        cbSnapShot = new JPASnapShotComboField(em, snFieldName);
         tfUser = new JPATextField("Benutzer", userFieldName);
         dtTimestamp = new JPADateField("Timestamp", tsFieldName, DateField.RESOLUTION_MIN);
       
@@ -168,20 +183,7 @@ public class PoolQryEditor extends HorizontalLayout
 
         ComboBox snap = (ComboBox)cbSnapShot.getGuiforField(this);
         snap.setVisible(typ.equals(MountEntry.TYP_SNAPSHOT));
-        if (snap.isVisible()) 
-        {
-            Container container = snap.getContainerDataSource();
-            container.removeAllItems();
-
-            List<ComboEntry> entries = cbSnapShot.getEntries(me);
-            for (ComboEntry comboEntry : entries)
-            {
-                Item it = container.addItem(comboEntry.getGuiEntryKey());
-                if (it == null)
-                    throw new RuntimeException("Doppelter Comboeintrag");
-                it.getItemProperty(snFieldName).setValue(comboEntry.getDbEntry());
-            }
-        }
+        
     }
 
   
@@ -197,10 +199,10 @@ public class PoolQryEditor extends HorizontalLayout
     public static String getNiceStr( MountEntry me )
     {
         StringBuilder sb = new StringBuilder();
-        sb.append(me.getUsername());
-
-        sb.append(me.getUsername());
-
+        if (me.getUsername() != null)
+        {
+            sb.append(me.getUsername());                
+        }
         for (ComboEntry ge : typeList)
         {
             if (ge.isDbEntry(me.getTyp()))
@@ -210,18 +212,10 @@ public class PoolQryEditor extends HorizontalLayout
                 break;
             }
         }
-        if (me.getTyp(). equals(MountEntry.TYP_SNAPSHOT))
+        if (me.getTyp(). equals(MountEntry.TYP_SNAPSHOT) && me.getSnapShot() != null)
         {
-            List<ComboEntry> snList = JPASnapShotComboField.getEntries(me);
-            for (ComboEntry ge : snList)
-            {
-                if (ge.isDbEntry(me.getSnapshotIdx()))
-                {
-                    sb.append(" ");
-                    sb.append(ge.getGuiEntryKey());
-                    break;
-                }
-            }
+            sb.append(" ");
+            sb.append(me.getSnapShot().getName());
         }
         if (me.getTyp(). equals(MountEntry.TYP_TIMESTAMP) && me.getTs() != null)
         {

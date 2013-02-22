@@ -25,6 +25,7 @@ import de.dimm.vsm.records.ArchiveJob;
 import de.dimm.vsm.records.FileSystemElemNode;
 import de.dimm.vsm.records.HotFolder;
 import de.dimm.vsm.records.MessageLog;
+import de.dimm.vsm.records.MountEntry;
 import de.dimm.vsm.records.Schedule;
 import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.tasks.TaskEntry;
@@ -703,5 +704,45 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
 
         return null;
     }
+
+    @Override
+    public List<MountEntry> getMountedMountEntries()
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.getMountedMountEntries();
+
+        return null;
+    }
+    
+    @Override
+    public List<MountEntry> getAllMountEntries()
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.getAllMountEntries();
+
+        return null;
+    }
+    
+    @Override
+    public StoragePoolWrapper mountEntry(User user,  MountEntry mountEntry )
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.mountEntry( user, mountEntry );
+
+        return null;
+    }
+    @Override
+    public void unMountEntry(MountEntry mountEntry )
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            guiServerApi.unMountEntry( mountEntry );
+
+        return;
+    }
+    
 
 }

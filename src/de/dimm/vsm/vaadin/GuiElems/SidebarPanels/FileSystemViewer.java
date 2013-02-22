@@ -4,6 +4,7 @@
  */
 package de.dimm.vsm.vaadin.GuiElems.SidebarPanels;
 
+import com.github.wolfie.refresher.Refresher;
 import com.vaadin.Application;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.IContextMenuCallback;
 import com.vaadin.event.ItemClickEvent;
@@ -15,11 +16,14 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.VerticalLayout;
+import de.dimm.vsm.auth.User;
+import de.dimm.vsm.auth.UserManager;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.AgentApi;
@@ -29,6 +33,7 @@ import de.dimm.vsm.records.FileSystemElemNode;
 import de.dimm.vsm.records.HotFolder;
 import de.dimm.vsm.records.MountEntry;
 import de.dimm.vsm.records.StoragePool;
+import de.dimm.vsm.vaadin.GuiElems.Dialogs.ComboBoxDlg;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.FileinfoWindow;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.RestoreLocationDlg;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTree;
@@ -37,7 +42,6 @@ import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeContainer;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteFSElemTreeElem;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteProvider;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteItemDescriptionGenerator;
-import de.dimm.vsm.vaadin.GuiElems.TablePanels.MountEntryTable;
 import de.dimm.vsm.vaadin.SelectObjectCallback;
 import de.dimm.vsm.vaadin.VSMCMain;
 import de.dimm.vsm.vaadin.net.DownloadResource;
@@ -59,8 +63,6 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
  */
 public class FileSystemViewer extends SidebarPanel
 {
-
-  
     boolean mounted = false;
     boolean volMounted = false;
     StoragePoolWrapper viewWrapper = null;
@@ -74,116 +76,163 @@ public class FileSystemViewer extends SidebarPanel
     Button btViewVol;
     Button btViewVolLive;
 
+    MountEntryViewTable mountpanel;
+    final Refresher refresher = new Refresher();
+       public static final int RF_INTERVALL = 1000;
 
     public FileSystemViewer( VSMCMain _main )
     {
 
         super(_main);
-
+        
         this.setStyleName("statusWin");
         this.setSizeFull();
-//        AbsoluteLayout al = new AbsoluteLayout();
-//        al.setSizeFull();
-//        this.addComponent(al);
+        this.setSpacing( true);
         VerticalLayout vl = new VerticalLayout();
-        vl.setSizeFull();
+        
         this.addComponent(vl);
         vl.setSpacing(true);
-        Component c = createMountEntryPanel();
-
-        vl.addComponent(c);
-
-        final TextField txt_mnt_drive = new TextField("MountDrive");
-        final DateField dta_ts = new DateField("Timestamp", new Date());
-
-        txt_agent_ip.setValue("localhost");
-        txt_agent_port.setValue("8082");
-        txt_mnt_drive.setValue("R:");
-        final Button btVol = new NativeButton("Mount Volume");
-
-        btVol.addListener(new Button.ClickListener()
-        {
+        HorizontalLayout hlMount = new HorizontalLayout();
+        hlMount.setSpacing( true);
+        hlMount.setWidth( "100%");
+        VerticalLayout vlMountCombo = new VerticalLayout();
+        vlMountCombo.setSpacing( true);
+        
+        Button btMount = new NativeButton( "Mount", new Button.ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )
             {
-                SelectObjectCallback cb = new SelectObjectCallback<StoragePool>()
-                {
+                doMount();
+            }
+        });
+        Button btUnMount = new NativeButton( "UnMount", new Button.ClickListener() {
 
-                    @Override
-                    public void SelectedAction( StoragePool pool )
-                    {
-                        String ip = txt_agent_ip.getValue().toString();
-                        int port = Integer.parseInt(txt_agent_port.getValue().toString());
-                        String drive = txt_mnt_drive.getValue().toString();
-                        Date timestamp = (Date) dta_ts.getValue();
-
-
-                        mountWrapper = main.getGuiServerApi().getMounted(ip, port, pool);
-
-                        if (!volMounted)
-                        {
-                            Properties p = null;
-
-                            try
-                            {
-                                p = main.getGuiServerApi().getAgentProperties(ip, port, false);
-                            }
-                            catch (Exception e)
-                            {
-                            }
-                            if (p == null)
-                            {
-                                main.Msg().errmOk(VSMCMain.Txt("Der Agent ist nicht erreichbar"));
-                                return;
-                            }
-
-                            if (mountWrapper != null && !mountWrapper.isPhysicallyMounted())
-                            {
-                                main.getGuiServerApi().remountVolume(mountWrapper);
-                                volMounted = true;
-                            }
-                            else
-                            {
-                                mountWrapper = main.getGuiServerApi().mountVolume(ip, port, pool, timestamp, "", main.getGuiWrapper().getUser(), drive);
-                                if (mountWrapper == null)
-                                {
-                                    main.Msg().errmOk(VSMCMain.Txt("Der Mount schlug fehl"));
-                                    return;
-                                }
-                            }
-
-                            btVol.setCaption("Unmount Volume");
-                            volMounted = true;
-
-                        }
-                        else
-                        {
-                            if (mountWrapper != null)
-                            {
-                                main.getGuiServerApi().unmountVolume(mountWrapper);
-                                mountWrapper = null;
-                            }
-
-                            btVol.setCaption("Mount Volume");
-                            volMounted = false;
-                        }
-                    }
-                };
-
-                List<StoragePool> list = main.getStoragePoolList();
-                main.SelectObject(StoragePool.class, VSMCMain.Txt("Pool"), VSMCMain.Txt("Weiter"), list, cb);
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                doUnMount();
             }
         });
         
-        HorizontalLayout hl = new HorizontalLayout();
-        hl.setSpacing(true);
-        hl.addComponent(btVol);
-        hl.addComponent(dta_ts);
-        hl.addComponent(txt_agent_ip);
-        hl.addComponent(txt_agent_port);
-        hl.addComponent(txt_mnt_drive);
-
+        VerticalLayout vlMountTable = new VerticalLayout();
+        vlMountTable.setWidth( "100%");
+        vlMountTable.setSpacing( true);
+        
+        mountpanel = new MountEntryViewTable(main);
+        mountpanel.setSizeFull();
+        vlMountTable.addComponent( new Label(VSMCMain.Txt( "Gemountete Volumes") ));
+        vlMountTable.addComponent( mountpanel);
+        vlMountTable.setExpandRatio( mountpanel, 1);
+        vlMountTable.setHeight( "100px");
+        
+        vlMountCombo.addComponent( new Label(VSMCMain.Txt( "Volumes mounten") ));
+        vlMountCombo.addComponent( btMount);
+        btMount.setWidth( "100%");
+        btUnMount.setWidth( "100%");
+        vlMountCombo.addComponent( btUnMount);
+        hlMount.addComponent( vlMountCombo);
+        vlMountCombo.setWidth( "150px");
+        hlMount.addComponent( vlMountTable);
+        hlMount.setExpandRatio( vlMountTable, 1);
+        
+        
+//        Component c = createMountEntryPanel();
+//
+        vl.addComponent(hlMount);
+        
+//
+//        final TextField txt_mnt_drive = new TextField("MountDrive");
+//        final DateField dta_ts = new DateField("Timestamp", new Date());
+//
+//        txt_agent_ip.setValue("localhost");
+//        txt_agent_port.setValue("8082");
+//        txt_mnt_drive.setValue("R:");
+//        final Button btVol = new NativeButton("Mount Volume");
+//
+//        btVol.addListener(new Button.ClickListener()
+//        {
+//
+//            @Override
+//            public void buttonClick( ClickEvent event )
+//            {
+//                SelectObjectCallback cb = new SelectObjectCallback<StoragePool>()
+//                {
+//
+//                    @Override
+//                    public void SelectedAction( StoragePool pool )
+//                    {
+//                        String ip = txt_agent_ip.getValue().toString();
+//                        int port = Integer.parseInt(txt_agent_port.getValue().toString());
+//                        String drive = txt_mnt_drive.getValue().toString();
+//                        Date timestamp = (Date) dta_ts.getValue();
+//
+//
+//                        mountWrapper = main.getGuiServerApi().getMounted(ip, port, pool);
+//
+//                        if (!volMounted)
+//                        {
+//                            Properties p = null;
+//
+//                            try
+//                            {
+//                                p = main.getGuiServerApi().getAgentProperties(ip, port, false);
+//                            }
+//                            catch (Exception e)
+//                            {
+//                            }
+//                            if (p == null)
+//                            {
+//                                main.Msg().errmOk(VSMCMain.Txt("Der Agent ist nicht erreichbar"));
+//                                return;
+//                            }
+//
+//                            if (mountWrapper != null && !mountWrapper.isPhysicallyMounted())
+//                            {
+//                                main.getGuiServerApi().remountVolume(mountWrapper);
+//                                volMounted = true;
+//                            }
+//                            else
+//                            {
+//                                mountWrapper = main.getGuiServerApi().mountVolume(ip, port, pool, timestamp, "", main.getGuiWrapper().getUser(), drive);
+//                                if (mountWrapper == null)
+//                                {
+//                                    main.Msg().errmOk(VSMCMain.Txt("Der Mount schlug fehl"));
+//                                    return;
+//                                }
+//                            }
+//
+//                            btVol.setCaption("Unmount Volume");
+//                            volMounted = true;
+//
+//                        }
+//                        else
+//                        {
+//                            if (mountWrapper != null)
+//                            {
+//                                main.getGuiServerApi().unmountVolume(mountWrapper);
+//                                mountWrapper = null;
+//                            }
+//
+//                            btVol.setCaption("Mount Volume");
+//                            volMounted = false;
+//                        }
+//                    }
+//                };
+//
+//                List<StoragePool> list = main.getStoragePoolList();
+//                main.SelectObject(StoragePool.class, VSMCMain.Txt("Pool"), VSMCMain.Txt("Weiter"), list, cb);
+//            }
+//        });
+//        
+//        HorizontalLayout hl = new HorizontalLayout();
+//        hl.setSpacing(true);
+//        hl.addComponent(btVol);
+//        hl.addComponent(dta_ts);
+//        hl.addComponent(txt_agent_ip);
+//        hl.addComponent(txt_agent_port);
+//        hl.addComponent(txt_mnt_drive);
+//
 
 
         final DateField dta_view_ts = new DateField("Timestamp", new Date());
@@ -273,7 +322,7 @@ public class FileSystemViewer extends SidebarPanel
         hl3.addComponent(btViewVol);
         hl3.addComponent(dta_view_ts);
 
-        vl.addComponent(hl);
+        //vl.addComponent(hl);
         vl.addComponent(hl2);
         vl.addComponent(hl3);
 
@@ -282,6 +331,29 @@ public class FileSystemViewer extends SidebarPanel
         treePanel.setSizeFull();
 
         vl.addComponent(treePanel);
+        
+        refresher.addListener( new Refresher.RefreshListener() {
+
+            @Override
+            public void refresh( Refresher source )
+            {
+                source.setRefreshInterval(0);
+               long s = System.currentTimeMillis();
+               mountpanel.refresh();
+
+               long e = System.currentTimeMillis();
+
+               // COMM TIME SHOULD NOT EXCEED 20% OF CYCLE TIME
+               int rfi = (int)((e-s) * 5);
+               if (rfi < RF_INTERVALL)
+                   rfi = RF_INTERVALL;
+
+               source.setRefreshInterval(rfi);
+            }
+        });
+        this.addComponent( refresher);
+
+
     }
     
     void closePoolView()
@@ -315,9 +387,15 @@ public class FileSystemViewer extends SidebarPanel
     {
         super.deactivate();
 
+        mountpanel.deactivate();
         closePoolView();
     }
 
+    @Override
+    public void activate()
+    {
+        mountpanel.activate();
+    }
 
     Component initFsTree( final StoragePoolWrapper wrapper )
     {        
@@ -945,40 +1023,94 @@ public class FileSystemViewer extends SidebarPanel
     }
     
     
-    final Component createMountEntryPanel()
-    {        
-        ItemClickListener l = new ItemClickListener()
+//    final Component createMountEntryPanel()
+//    {        
+//        ItemClickListener l = new ItemClickListener()
+//        {
+//            @Override
+//            public void itemClick( ItemClickEvent event )
+//            {
+//                //setActiveHotFolder();
+//            }
+//        };
+//        List<MountEntry> list = null;
+//        try
+//        {
+//            list = VSMCMain.get_base_util_em().createQuery("select p from MountEntry p", MountEntry.class);
+//        }
+//        catch (SQLException sQLException)
+//        {
+//            VSMCMain.notify(this, "Fehler beim Erzeugen der MountgEntry-Tabelle", sQLException.getMessage());
+//            return new VerticalLayout();
+//        }
+//
+//        MountEntryTable mountEntryTable = MountEntryTable.createTable(main, list, l);
+//
+//        final VerticalLayout tableWin  = new VerticalLayout();
+//        tableWin.setSizeFull();
+//        tableWin.setSpacing(true);
+//
+//        Component head = mountEntryTable.createHeader(VSMCMain.Txt("Liste der Mount-Einträge:"));
+//
+//        tableWin.addComponent(head);
+//        tableWin.addComponent(mountEntryTable);
+//        tableWin.setExpandRatio(mountEntryTable, 1.0f);
+//        return tableWin;
+//    }
+    
+    User getUser( MountEntry mountEntry )
+    {
+        if (mountEntry.getUsername() == null ||  mountEntry.getUsername().isEmpty())
         {
-            @Override
-            public void itemClick( ItemClickEvent event )
-            {
-                //setActiveHotFolder();
-            }
-        };
-        List<MountEntry> list = null;
-        try
-        {
-            list = VSMCMain.get_base_util_em().createQuery("select p from MountEntry p", MountEntry.class);
+            return User.createSystemInternal();
         }
-        catch (SQLException sQLException)
-        {
-            VSMCMain.notify(this, "Fehler beim Erzeugen der MountgEntry-Tabelle", sQLException.getMessage());
-            return new VerticalLayout();
-        }
-
-        MountEntryTable mountEntryTable = MountEntryTable.createTable(main, list, l);
-
-        final VerticalLayout tableWin  = new VerticalLayout();
-        tableWin.setSizeFull();
-        tableWin.setSpacing(true);
-
-        Component head = mountEntryTable.createHeader(VSMCMain.Txt("Liste der Mount-Einträge:"));
-
-        tableWin.addComponent(head);
-        tableWin.addComponent(mountEntryTable);
-        tableWin.setExpandRatio(mountEntryTable, 1.0f);
-        return tableWin;
+        
+        UserManager um = (UserManager)VSMCMain.callLogicControl( "getUsermanager" );
+        User user = um.getUser( mountEntry.getUsername() );
+        return user;
     }
+     void doMount()
+     {
+         List<MountEntry> allEntries = main.getDummyGuiServerApi().getAllMountEntries();
+         List<MountEntry> mountedEntries = main.getDummyGuiServerApi().getMountedMountEntries();
+         allEntries.removeAll( mountedEntries);
+         
+         final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg( "Mount", "Auswahl", "Diesen User verwenden", allEntries);
+         dlg.setOkActionListener(  new Button.ClickListener() {
+
+             @Override
+             public void buttonClick( ClickEvent event )
+             {
+                 MountEntry val = dlg.getValue();
+                 User usr = main.getUser();
+                 if (!dlg.isButton())
+                     usr = getUser( val );
+                 
+                 main.getDummyGuiServerApi().mountEntry( usr, val );
+             }
+         });
+         main.getRootWin().addWindow( dlg );
+         
+         
+     }
+     void doUnMount()
+     {
+         List<MountEntry> mountedEntries = main.getDummyGuiServerApi().getMountedMountEntries();
+         final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg( "Mount", "Auswahl", mountedEntries);
+         dlg.setOkActionListener(  new Button.ClickListener() {
+
+             @Override
+             public void buttonClick( ClickEvent event )
+             {
+                 MountEntry val = dlg.getValue();                 
+                 main.getDummyGuiServerApi().unMountEntry( val );
+             }
+         });
+         main.getRootWin().addWindow( dlg );
+     }
+    
+    
+   
 }
 
 

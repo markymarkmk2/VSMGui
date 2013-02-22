@@ -13,8 +13,11 @@ import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextField;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
+import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
+import de.dimm.vsm.vaadin.GuiElems.FileSystem.ComboPoolGetter;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.DBFSElemEditor;
+import de.dimm.vsm.vaadin.GuiElems.FileSystem.IActPoolGetter;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.LocalFSElemEditor;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteFSElemEditor;
 import de.dimm.vsm.vaadin.GuiElems.Table.PreviewPanel;
@@ -28,15 +31,31 @@ public class JPADBFSField extends JPAField
 {
     boolean onlyDirs = true;
     VSMCMain main;
-    JPAPoolComboField poolCombo;
+    IActPoolGetter poolGetter;
+    
     PreviewPanel panel;
 
     public JPADBFSField(String caption, String fieldName, VSMCMain main, JPAPoolComboField poolCombo)
     {
         super( caption, fieldName );
         this.main = main;
-        this.poolCombo = poolCombo;
+        
+        poolGetter = new ComboPoolGetter(poolCombo, panel);
     }
+    public JPADBFSField(String caption, String fieldName, VSMCMain main, final StoragePool pool)
+    {
+        super( caption, fieldName );
+        this.main = main;
+        this.poolGetter = new IActPoolGetter() {
+
+            @Override
+            public StoragePool getActStoragePool()
+            {
+                return pool;
+            }
+        };
+    }
+
 
     public void setOnlyDirs( boolean onlyDirs )
     {
@@ -69,8 +88,9 @@ public class JPADBFSField extends JPAField
 
         GuiServerApi api = main.getGuiServerApi();
         
+        
 
-        tf = new DBFSElemEditor(api, poolCombo, panel, caption, p, node,  options);
+        tf = new DBFSElemEditor(api, poolGetter, panel, caption, p, node,  options);
 
         if (toolTip != null)
             tf.setDescription(toolTip);
