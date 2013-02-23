@@ -16,7 +16,6 @@ import de.dimm.vsm.net.RemoteCallFactory;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.AgentApi;
-import de.dimm.vsm.records.FileSystemElemNode;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -164,7 +163,7 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
                     if (idx > 0)
                         pathfilter = pathfilter.substring(0, idx);
                     
-                    List<RemoteFSElem> l = api.list_dir(new RemoteFSElem(pathfilter, FileSystemElemNode.FT_DIR, 0, 0, 0, 0, 0),/*withAcl*/ true);
+                    List<RemoteFSElem> l = api.list_dir( RemoteFSElem.createDir(pathfilter),/*withAcl*/ true);
                     for (int j = 0; j < l.size(); j++)
                     {
                         RemoteFSElem remoteFSElem = l.get(j);
@@ -273,8 +272,6 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
             tf.getWindow().showNotification(VSMCMain.Txt("Der_Agent_kann_nicht_kontaktiert_werden"), cause, Notification.TYPE_WARNING_MESSAGE);
             return null;
         }
-        final RemoteCallFactory factory = _factory;
-
 
         final FSTree treePanel = createClientPathTree( wrapper, main, api, tf, /*startPath*/ null, filter, options, false, null, null);
 
@@ -289,8 +286,7 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
     protected void createChildDir( Window win, RemoteFSElemTreeElem rfs, String name )
     {
         String path = rfs.getElem().getPath() + rfs.getElem().getSeparatorChar() + name;
-        long now = System.currentTimeMillis();
-        RemoteFSElem newDir = new RemoteFSElem(path, FileSystemElemNode.FT_DIR, now,now, now, 0, 0);
+        RemoteFSElem newDir = RemoteFSElem.createDir(path);
         try
         {
             boolean b = api.create_dir(newDir);

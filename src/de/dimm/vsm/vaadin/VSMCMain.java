@@ -787,6 +787,7 @@ public class VSMCMain extends GenericMain
         NativeButton ok = new NativeButton(buttonCaption);
 
         final Window win = new Window(Txt("Auswahl") + " " + caption);
+        win.setWidth("350px");
 
         ok.addListener(new ClickListener()
         {
@@ -800,10 +801,11 @@ public class VSMCMain extends GenericMain
         });
 
         vl.addComponent(sel);
+        sel.setWidth("80%");
         vl.addComponent(ok);
         vl.setComponentAlignment(ok, Alignment.BOTTOM_RIGHT);
 
-        vl.setSizeUndefined();
+        vl.setSizeFull();
         win.addComponent(vl);
         getRootWin().addWindow(win);
     }

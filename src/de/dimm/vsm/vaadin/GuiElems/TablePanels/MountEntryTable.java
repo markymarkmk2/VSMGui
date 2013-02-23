@@ -7,6 +7,7 @@ package de.dimm.vsm.vaadin.GuiElems.TablePanels;
 
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.AbstractOrderedLayout;
+import com.vaadin.ui.Component;
 import de.dimm.vsm.fsengine.GenericEntityManager;
 import de.dimm.vsm.records.FileSystemElemNode;
 import de.dimm.vsm.records.MountEntry;
@@ -52,19 +53,21 @@ public class MountEntryTable extends BaseDataEditTable<MountEntry>
         
         GenericEntityManager em = VSMCMain.get_util_em(pool);
 
-        JPAPoolQrySelectField poolQryField = new JPAPoolQrySelectField( main, em, "typ", "username", "ts", "snapShot");
+        JPAPoolQrySelectField poolQryField = new JPAPoolQrySelectField( main, em);
         fieldList.add(poolQryField);
         fieldList.add(new JPACheckBox(VSMCMain.Txt("Gelöschte Dateien anzeigen"), "showDeleted"));
 
         JPARemoteFSField remMountPath = new JPARemoteFSField(VSMCMain.Txt("Ziel-Pfad"), "mountPath", "ip", "port" );
         remMountPath.setMountPointMode(true);
         fieldList.add(remMountPath);
-        JPADBFSField subPath = new JPADBFSField(VSMCMain.Txt("DB-Pfad"), "subPath", main, pool);
+        JPADBFSField subPath = new JPADBFSField(VSMCMain.Txt("VSM-Pfad"), "subPath", main, pool);
         subPath.setOnlyDirs(true);
         fieldList.add(subPath);
 
         setTableColumnVisible(fieldList, "port", false);
         setTableColumnVisible(fieldList, "showDeleted", false);
+
+        setTooltipText(fieldList, "subPath", VSMCMain.Txt("Pfad des VSM-Dateisystems, der im Zielpfad sichtbar wird"));
         
 
         return new MountEntryTable( main, pool, list, fieldList, listener);
@@ -127,6 +130,33 @@ public class MountEntryTable extends BaseDataEditTable<MountEntry>
         return null;
 
     }
+
+    @Override
+    public boolean isValid()
+    {
+        return isValid(activeElem, this);
+    }
+    public static boolean isValid(MountEntry me, Component c)
+    {
+        if (me.getName() == null || me.getName().isEmpty())
+        {
+            VSMCMain.notify(c, VSMCMain.Txt("Parameterfehler"), VSMCMain.Txt("Name fehlt"));
+            return false;
+        }
+        if (me.getMountPath() == null || me.getMountPath().getPath().isEmpty())
+        {
+            VSMCMain.notify(c, VSMCMain.Txt("Parameterfehler"), VSMCMain.Txt("Ziel-Pfad fehlt"));
+            return false;
+        }
+        if (me.getSubPath() == null || me.getSubPath().isEmpty())
+        {
+            VSMCMain.notify(c, VSMCMain.Txt("Parameterfehler"), VSMCMain.Txt("VSM-Pfad fehlt"));
+            return false;
+        }
+
+        return true;
+    }
+
 
 
 

@@ -59,89 +59,6 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
         return skipEmptyDirs;
     }
 
-//    public void initRootWithUserMapping(VsmFsMapper mapper)
-//    {
-//
-//        mapper.getVsmList();
-//        for (int i = 0; i < mapper.getVsmList().size(); i++)
-//        {
-//            VsmFsEntry entry =  mapper.getVsmList().get(i);
-//
-//            long now = System.currentTimeMillis();
-//
-//            if (skipEmptyDirs)
-//            {
-//                RemoteFSElem elem = new RemoteFSElem(entry.getvPath(), FileSystemElemNode.FT_DIR, now,now,now,0,0);
-//                RemoteFSElemTreeElem e = new RemoteFSElemTreeElem(provider, elem, null);
-//                List<RemoteFSElemTreeElem> ch = provider.getChildren(e);
-//                if (ch.isEmpty())
-//                    continue;
-//            }
-//
-//            // DETECTED VALID AND EXISTING DIRECTORY IN MAPPER, NOW BUILD THE MAPPED DIRECTORY
-//            String[] paths = entry.getuPath().split("/");
-//            int pathIdx = 0;
-//            if (paths.length == 0)
-//                continue;
-//
-//            while (paths[pathIdx].isEmpty() && pathIdx < paths.length)
-//                pathIdx++;
-//
-//            if (pathIdx >= paths.length)
-//                continue;
-//
-//            appendChildNode( entry, null, root_list, paths, pathIdx );
-//
-//        }
-//        visibleList.addAll(root_list);
-//
-//    }
-    private void appendChildNode( VsmFsEntry entry, RemoteFSElemTreeElem parent, List<RemoteFSElemTreeElem> children, String[] paths, int pathIdx )
-    {
-        if (pathIdx >= paths.length)
-        {
-            long now = System.currentTimeMillis();
-            RemoteFSElem elem = new RemoteFSElem(entry.getvPath(), FileSystemElemNode.FT_DIR, now,now,now,0,0);
-            RemoteFSElemTreeElem newNode = provider.createNode(provider, elem, parent);
-            List<RemoteFSElemTreeElem> realChildren = provider.getChildren(newNode);
-            for (int i = 0; i < realChildren.size(); i++)
-            {
-                RemoteFSElemTreeElem remoteFSElemTreeElem = realChildren.get(i);
-                if (parent != null)
-                    parent.addChild(remoteFSElemTreeElem );
-                else
-                    children.add(remoteFSElemTreeElem );
-            }            
-            return;
-        }
-            
-
-        boolean added = false;
-        for (int r = 0; r < children.size(); r++)
-        {
-            RemoteFSElemTreeElem remoteFSElemTreeElem = children.get(r);
-            if (remoteFSElemTreeElem.getElem().getPath().equals(paths[pathIdx]))
-            {
-                appendChildNode( entry, remoteFSElemTreeElem, remoteFSElemTreeElem.getChildren(), paths, pathIdx + 1 );
-                added = true;
-                break;
-            }
-        }
-        if (!added)
-        {
-            long now = System.currentTimeMillis();
-            RemoteFSElem elem = new RemoteFSElem(paths[pathIdx], FileSystemElemNode.FT_DIR, now,now,now,0,0);
-            MappingTreeElem newElem =  new MappingTreeElem(provider, elem, parent);
-            if (parent != null)
-                parent.addChild(newElem );
-            else
-                children.add(newElem );
-
-            appendChildNode( entry, newElem, newElem.getChildren(), paths, pathIdx + 1 );
-        }
-    }
-
-
     public void initRootTree(RemoteFSElemTreeElem elem)
     {
         root_list.add( elem);
@@ -150,7 +67,6 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
     
     public void initRootlist(List<RemoteFSElem> root_fselem_list)
     {
-
         for (int i = 0; i < root_fselem_list.size(); i++)
         {
             RemoteFSElem elem = root_fselem_list.get(i);

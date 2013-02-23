@@ -59,7 +59,7 @@ public class HotFolderTable extends BaseDataEditTable<HotFolder>
         fieldList.add(poolCombo);
         fieldList.add(new JPARemoteFSField(VSMCMain.Txt("Überwachter Ordner"), "mountPath", "ip", "port" ));
 
-        fieldList.add(new JPADBFSField(VSMCMain.Txt("Datenbankpfad"), "basePath", main, poolCombo ));
+        fieldList.add(new JPADBFSField(VSMCMain.Txt("VSM-Pfad"), "basePath", main, poolCombo ));
 
         //fieldList.add(new JPACheckBox(VSMCMain.Txt("Unterordner mit Datum erzeugen"), "createDateSubdir"));
         fieldList.add(new JPACheckBox(VSMCMain.Txt("MM-Archiv"), "mmArchive"));
@@ -83,6 +83,8 @@ public class HotFolderTable extends BaseDataEditTable<HotFolder>
         setTableColumnVisible(fieldList, "mmIP", false);
         setTableColumnVisible(fieldList, "mmMountPath", false);
         setTableFieldWidth(fieldList, "mmMountPath", 250);
+
+        setTooltipText(fieldList, "basePath", VSMCMain.Txt("Pfad unter dem die gesicherten Daten im VSM-Dateisystem sichtbar sind"));
         
         //setTableColumnVisible(fieldList, "createDateSubdir", false);
 

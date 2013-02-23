@@ -87,7 +87,6 @@ public class RichTextAreaDlg extends Window
         okPanel.getBtAbort().setVisible(false);
       
 
-
         final Window w = this;
         
         okPanel.getBtOk().addListener( new Button.ClickListener() {

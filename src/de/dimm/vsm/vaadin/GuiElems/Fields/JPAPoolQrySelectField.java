@@ -51,23 +51,17 @@ class JPAPoolQryMethodProperty extends MethodProperty
 public class JPAPoolQrySelectField extends JPAField<MountEntry>  implements ColumnGeneratorField
 {
     VSMCMain main;
-     String typFieldName;
-     String userFieldName;
-     String tsFieldName;
-     String snFieldName;
+
      GenericEntityManager em;
 
    
     
 
-    public JPAPoolQrySelectField( VSMCMain main, GenericEntityManager em, String typFieldName, String userFieldName, String tsFieldName, String snFieldName )
+    public JPAPoolQrySelectField( VSMCMain main, GenericEntityManager em )
     {
         super( VSMCMain.Txt("Zugriffsrechte"), "PoolQrySelect" );
         this.main = main;
-        this.typFieldName = typFieldName;
-        this.userFieldName = userFieldName;
-        this.tsFieldName = tsFieldName;
-        this.snFieldName = snFieldName;
+
         this.em = em;
        
     }
@@ -76,7 +70,7 @@ public class JPAPoolQrySelectField extends JPAField<MountEntry>  implements Colu
     @Override
     public Component createGui(MountEntry node) {
         this.node = node;
-        PoolQryEditor ed = new PoolQryEditor(main, em, node, changeListener, typFieldName, userFieldName, tsFieldName, snFieldName);
+        PoolQryEditor ed = new PoolQryEditor(main, em, node, changeListener);
   
         return ed;
     }

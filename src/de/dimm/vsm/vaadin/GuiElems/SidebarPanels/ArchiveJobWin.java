@@ -47,6 +47,7 @@ import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteProvider;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.ArchiveJobInfoWindow;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.MountLocationDlg;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.RestoreLocationDlg;
+import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreePanel;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.IContextMenuCallback;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteItemDescriptionGenerator;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.ArchivJobTable;
@@ -368,7 +369,6 @@ public class ArchiveJobWin extends SidebarPanel
         }
 
         hideFS();
-
     }
 
     @Override
@@ -379,14 +379,9 @@ public class ArchiveJobWin extends SidebarPanel
         treePanel.removeAllComponents();
     }
 
-
-
-
     void startSearch()
     {
         final String searchStr = txt_search_name.getValue().toString().replace('_', ' ').trim();
-
-
         
         SelectObjectCallback cb = new SelectObjectCallback<StoragePool>()
         {
@@ -756,19 +751,19 @@ public class ArchiveJobWin extends SidebarPanel
             @Override
             public void handleRestoreTargetDialog( List<RemoteFSElemTreeElem> rfstreeelems )
             {
-                 RestoreLocationDlg dlg = FileSystemViewer.createRestoreTargetDialog(main, searchWrapper, rfstreeelems );
+                 RestoreLocationDlg dlg = FSTreePanel.createRestoreTargetDialog(main, searchWrapper, rfstreeelems );
                  treePanel.getApplication().getMainWindow().addWindow( dlg );
             }
 
             @Override
             public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
             {
-                DownloadResource downloadResource = FileSystemViewer.createDownloadResource( main, getApplication(), searchWrapper, singleRfstreeelem);
+                DownloadResource downloadResource = FSTreePanel.createDownloadResource( main, getApplication(), searchWrapper, singleRfstreeelem);
                 getWindow().open(downloadResource);
             }
         };
 
-        lastMenu = FileSystemViewer.create_fs_popup(main, searchWrapper, tree, container, event, rfstreeelems, callback);
+        lastMenu = FSTreePanel.create_fs_popup(main, searchWrapper, tree, container, event, rfstreeelems, callback);
     }
 
 //    void create_fs_popup( ItemClickEvent event, final RemoteFSElemTreeElem rfstreeelem )

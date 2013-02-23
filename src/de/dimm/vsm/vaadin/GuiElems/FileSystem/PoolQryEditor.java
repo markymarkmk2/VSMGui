@@ -96,14 +96,7 @@ class JPASnapShotComboField extends JPADBComboField
 public class PoolQryEditor extends HorizontalLayout
 {
     public static final String DEFAULTWIDTH = "450px";
-
-    String typFieldName;
-     String userFieldName;
-     String tsFieldName;
-     
-     String snFieldName;
-    
-
+  
     //ComboBox cbTyp;
     JPADBComboField cbSnapShot;
    // DateField dtTimestamp;
@@ -129,37 +122,29 @@ public class PoolQryEditor extends HorizontalLayout
         for (ComboEntry ce : typeList)
         {
             if (ce.isDbEntry( typ))
-                return ce.getGuiEntryKey();
-            
+                return ce.getGuiEntryKey();            
         }
         return "";
     }
     
   
-
-    public PoolQryEditor( VSMCMain main, GenericEntityManager em, final MountEntry me, final ValueChangeListener changeListener, String typFieldName, String userFieldName, String tsFieldName, String snFieldName )
+    public PoolQryEditor( VSMCMain main, GenericEntityManager em, final MountEntry me, final ValueChangeListener changeListener )
     {
-        this.node = me;
-        this.typFieldName = typFieldName;
-        this.userFieldName = userFieldName;
-        this.tsFieldName = tsFieldName;       
-        this.snFieldName = snFieldName;
-       
-        
+        this.node = me;               
         this.setSpacing(true);
-        
-        
-       
+                       
+        cbTyp = new JPAComboField("Art", "typ", typeList);
+        cbSnapShot = new JPASnapShotComboField(em, "snapShot");
+        tfUser = new JPATextField("Benutzer", "username");
+        dtTimestamp = new JPADateField("Timestamp", "ts", DateField.RESOLUTION_MIN);
 
-        cbTyp = new JPAComboField("Art", typFieldName, typeList);
-        cbSnapShot = new JPASnapShotComboField(em, snFieldName);
-        tfUser = new JPATextField("Benutzer", userFieldName);
-        dtTimestamp = new JPADateField("Timestamp", tsFieldName, DateField.RESOLUTION_MIN);
-      
-        
-                
-        addComponent(tfUser.createGui(me));
+        // ONLY ROOT IS ALLOWED TO CHANGE USER
+        if (main.getGuiUser().isSuperUser())
+        {
+            addComponent(tfUser.createGui(me));
+        }
         addComponent(cbTyp.createGui(me));
+
         addComponent(dtTimestamp.createGui(me));
         addComponent(cbSnapShot.createGui(me));
 
@@ -171,8 +156,7 @@ public class PoolQryEditor extends HorizontalLayout
                 updateVisibility(me);
             }
         });
-        updateVisibility(me);
-        
+        updateVisibility(me);        
     }
     final void updateVisibility( final MountEntry me)
     {
@@ -182,8 +166,7 @@ public class PoolQryEditor extends HorizontalLayout
         dtTimestamp.getGuiforField(this).setVisible(typ.equals(MountEntry.TYP_TIMESTAMP));
 
         ComboBox snap = (ComboBox)cbSnapShot.getGuiforField(this);
-        snap.setVisible(typ.equals(MountEntry.TYP_SNAPSHOT));
-        
+        snap.setVisible(typ.equals(MountEntry.TYP_SNAPSHOT));        
     }
 
   

@@ -199,13 +199,11 @@ public class LocalFSElemEditor extends HorizontalLayout
                     return f.mkdir();
                 }
 
-            @Override
-            public ItemDescriptionGenerator getItemDescriptionGenerator()
-            {
-                return new LocalItemDescriptionGenerator();
-            }
-
-
+                @Override
+                public ItemDescriptionGenerator getItemDescriptionGenerator()
+                {
+                    return new LocalItemDescriptionGenerator();
+                }
             };
 
             FSTree tree = createClientPathTree(provider, root_list, tf, startPath, options, ssl, keystore, keypwd);
