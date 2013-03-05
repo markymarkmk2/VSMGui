@@ -242,7 +242,14 @@ public class FileSystemViewer extends SidebarPanel
                     usr = getUser(val);
                 }
 
-                main.getDummyGuiServerApi().mountEntry(usr, val);
+                try
+                {
+                    main.getDummyGuiServerApi().mountEntry(usr, val);
+                }
+                catch (Exception e)
+                {
+                    main.Msg().errmOk(VSMCMain.Txt("Der Mount schlug fehl") + ": " + e.getMessage());
+                }
             }
         });
         main.getRootWin().addWindow(dlg);
@@ -280,7 +287,14 @@ public class FileSystemViewer extends SidebarPanel
             {
                 MountEntry val = dlg.getMountEntry();
                 User usr = main.getUser();
-                main.getDummyGuiServerApi().mountEntry(usr, val);
+                try
+                {
+                    main.getDummyGuiServerApi().mountEntry(usr, val);
+                }
+                catch (Exception e)
+                {
+                    main.Msg().errmOk(VSMCMain.Txt("Der Mount schlug fehl") + ": " + e.getMessage());
+                }
             }
         };
         dlg.setOkClick(ok);

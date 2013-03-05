@@ -145,7 +145,7 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
 
     @Override
-    public StoragePoolWrapper mountVolume( String agentIp, int agentPort, StoragePool pool, Date timestamp, String subPath, User user, String drive )
+    public StoragePoolWrapper mountVolume( String agentIp, int agentPort, StoragePool pool, Date timestamp, String subPath, User user, String drive ) throws IOException
     {
         GuiServerApi api = checkLogin();
         if (api != null)
@@ -155,7 +155,7 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
 
     @Override
-    public StoragePoolWrapper mountVolume( String agentIp, int agentPort, StoragePoolWrapper poolWrapper, String drive )
+    public StoragePoolWrapper mountVolume( String agentIp, int agentPort, StoragePoolWrapper poolWrapper, String drive )  throws IOException
     {
         GuiServerApi api = checkLogin();
         if (api != null)

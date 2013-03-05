@@ -55,6 +55,7 @@ import de.dimm.vsm.vaadin.SelectObjectCallback;
 import de.dimm.vsm.vaadin.VSMCMain;
 import de.dimm.vsm.vaadin.net.DownloadResource;
 import de.dimm.vsm.vaadin.search.TimeIntervalPanel;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -508,8 +509,14 @@ public class ArchiveJobWin extends SidebarPanel
 
         if (!mountedVol && poolWrapper != null)
         {
-            main.getGuiServerApi().mountVolume(mountedIP, mountedPort, poolWrapper, mountedDrive);
-
+            try
+            {
+                main.getGuiServerApi().mountVolume(mountedIP, mountedPort, poolWrapper, mountedDrive);
+            }
+            catch (IOException e)
+            {
+                 main.Msg().errmOk(VSMCMain.Txt("Der Mount schlug fehl") + ": " + e.getMessage());
+            }
             btMountVol.setCaption(umntText);
             mountedVol = true;
             lastMountedPool = main.getStoragePool(poolWrapper.getPoolIdx());
