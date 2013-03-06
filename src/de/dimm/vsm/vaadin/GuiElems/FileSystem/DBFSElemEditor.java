@@ -83,7 +83,7 @@ public class DBFSElemEditor extends HorizontalLayout
         {
             List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
 
-            List<RemoteFSElem> elem_list = list_dir( api, wrapper, elem.getElem());
+            List<RemoteFSElem> elem_list = list_dir( api, wrapper, elem);
 
             for (int i = 0; i < elem_list.size(); i++)
             {
@@ -138,9 +138,25 @@ public class DBFSElemEditor extends HorizontalLayout
         return ret;
     }
 
+    private static List<RemoteFSElem> list_dir( GuiServerApi api, StoragePoolWrapper wrapper, RemoteFSElemTreeElem startPath )
+    {
+        List<RemoteFSElem> ret = new ArrayList<RemoteFSElem>();
+        try
+        {
+            ret = api.listDir(wrapper, RemoteFSElem.createDir(startPath.getAbsolutePath()));
+        }
+        catch (SQLException sQLException)
+        {
+        }
+
+
+        return ret;
+    }
+    
     private static List<RemoteFSElem> list_dir( GuiServerApi api, StoragePoolWrapper wrapper, RemoteFSElem startPath )
     {
         List<RemoteFSElem> ret = new ArrayList<RemoteFSElem>();
+
         try
         {
             ret = api.listDir(wrapper, startPath);
@@ -148,8 +164,6 @@ public class DBFSElemEditor extends HorizontalLayout
         catch (SQLException sQLException)
         {
         }
-
-
         return ret;
     }
 

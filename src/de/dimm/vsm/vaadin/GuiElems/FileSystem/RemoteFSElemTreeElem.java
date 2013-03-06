@@ -176,5 +176,20 @@ public class RemoteFSElemTreeElem
         if (childList != null)
             childList.add(remoteFSElemTreeElem);
     }
+    public String getAbsolutePath()
+    {
+        StringBuilder sb = new StringBuilder();
+        RemoteFSElemTreeElem startPath = this;
+        while (startPath != null)
+        {
+            sb.insert(0, startPath.getName());
+            startPath = startPath.getParent();
+            if (startPath != null && startPath.getParent() != null)
+            {
+                sb.insert(0, "/");
+            }
+        }
+        return sb.toString();
+    }
     
 }

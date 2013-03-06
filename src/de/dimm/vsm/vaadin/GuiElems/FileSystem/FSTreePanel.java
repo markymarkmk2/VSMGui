@@ -84,8 +84,9 @@ public class FSTreePanel extends HorizontalLayout
                 List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
                 try
                 {
+                    RemoteFSElem dir = RemoteFSElem.createDir(elem.getAbsolutePath());
 
-                    List<RemoteFSElem> elem_list = main.getGuiServerApi().listDir(wrapper, elem.getElem());
+                    List<RemoteFSElem> elem_list = main.getGuiServerApi().listDir(wrapper, dir);
                     for (int i = 0; i < elem_list.size(); i++)
                     {
                         RemoteFSElem rfse = elem_list.get(i);
@@ -118,9 +119,10 @@ public class FSTreePanel extends HorizontalLayout
         container.setSkipEmptyDirs(true);
 
 
-        List<RemoteFSElem> poolRootList;
+        List<RemoteFSElem> poolRootList = new ArrayList<RemoteFSElem>();
         RemoteFSElem slash = RemoteFSElem.createDir("/");
-        try
+        poolRootList.add(slash);
+/*        try
         {
             poolRootList = main.getGuiServerApi().listDir(wrapper, slash);
 
@@ -137,6 +139,8 @@ public class FSTreePanel extends HorizontalLayout
             poolRootList = new ArrayList<RemoteFSElem>();
             poolRootList.add(slash);
         }
+ *
+ */
         container.initRootlist(poolRootList);
 
         tree = new FSTree(fields, /*sort*/ false);
