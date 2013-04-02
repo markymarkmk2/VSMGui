@@ -726,7 +726,7 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
     
     @Override
-    public StoragePoolWrapper mountEntry(User user,  MountEntry mountEntry )
+    public StoragePoolWrapper mountEntry(User user,  MountEntry mountEntry ) throws IOException
     {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
