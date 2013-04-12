@@ -54,8 +54,7 @@ public class DownloadResource extends StreamResource
 
 
         DownloadStream stream = new DownloadStream(getStreamSource().getStream(), mt.getMediaType(), filename);
-        stream.setParameter("Content-Disposition", "attachment;filename="
-                + filename);
+        stream.setParameter("Content-Disposition", "attachment;filename=\"" + filename + "\"");
         return stream;
     }
 
