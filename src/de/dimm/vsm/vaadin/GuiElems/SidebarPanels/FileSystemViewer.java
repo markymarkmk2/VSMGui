@@ -15,6 +15,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.auth.UserManager;
+import de.dimm.vsm.hash.StringUtils;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.records.MountEntry;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.ComboBoxDlg;
@@ -287,6 +288,11 @@ public class FileSystemViewer extends SidebarPanel
             {
                 MountEntry val = dlg.getMountEntry();
                 User usr = main.getUser();
+
+                if (!StringUtils.isEmpty(val.getUsername()))
+                {
+                    usr = getUser(val);
+                }
                 try
                 {
                     main.getDummyGuiServerApi().mountEntry(usr, val);
