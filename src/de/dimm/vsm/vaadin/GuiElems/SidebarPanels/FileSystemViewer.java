@@ -130,7 +130,6 @@ public class FileSystemViewer extends SidebarPanel
 
         btViewVol.addListener(listener);
 
-
         HorizontalLayout hl3 = new HorizontalLayout();
         hl3.setSpacing(true);
 
@@ -206,6 +205,22 @@ public class FileSystemViewer extends SidebarPanel
         mountpanel.activate();
     }
 
+    public static void filterUserEntries( User usr, List<MountEntry> mountedEntries)
+    {        
+        if (!usr.isAdmin())
+        {
+            for (int i = 0; i < mountedEntries.size(); i++)
+            {
+                MountEntry mountEntry = mountedEntries.get(i);
+                // No User or other user
+                if (StringUtils.isEmpty(mountEntry.getUsername() ) || !mountEntry.getUsername().equals(usr.getLoginName()) )
+                {
+                    mountedEntries.remove(i);
+                    i--;
+                }
+            }
+        }
+    }
 
     User getUser( MountEntry mountEntry )
     {
@@ -224,6 +239,7 @@ public class FileSystemViewer extends SidebarPanel
         List<MountEntry> allEntries = main.getDummyGuiServerApi().getAllMountEntries();
         List<MountEntry> mountedEntries = main.getDummyGuiServerApi().getMountedMountEntries();
         allEntries.removeAll(mountedEntries);
+        filterUserEntries( main.getGuiUser().getUser(), allEntries);
 
         String userChoiceButtonText = main.getGuiUser().isSuperUser() ?  "Aktuellen User verwenden" : null;
         final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg("Mount", "Auswahl",userChoiceButtonText, allEntries);
@@ -259,6 +275,7 @@ public class FileSystemViewer extends SidebarPanel
     void doUnMount()
     {
         List<MountEntry> mountedEntries = main.getDummyGuiServerApi().getMountedMountEntries();
+        filterUserEntries( main.getGuiUser().getUser(), mountedEntries);
         final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg("Mount", "Auswahl", mountedEntries);
         dlg.setOkActionListener(new Button.ClickListener()
         {
@@ -292,6 +309,11 @@ public class FileSystemViewer extends SidebarPanel
                 if (!StringUtils.isEmpty(val.getUsername()))
                 {
                     usr = getUser(val);
+                    if (usr == null)
+                    {
+                        VSMCMain.notify(btViewVol, "Unbekannter User", "Der User '" + val.getUsername() + "' konnte nicht gefunden werden");
+                        return;
+                    }
                 }
                 try
                 {

@@ -54,7 +54,6 @@ public class NewMountDlg {
         this.okClick = okClick;
     }
 
-
     public MountEntry getMountEntry()
     {
         return mountEntry;
@@ -69,7 +68,7 @@ public class NewMountDlg {
              public void SelectedAction( StoragePool pool )
              {
                  mountEntry.setPool(pool);
-                  openDlg( pool );
+                 openDlg( pool );
              }
         };
         main.SelectObject(StoragePool.class, VSMCMain.Txt("Pool"), VSMCMain.Txt("Weiter"), list, cb);

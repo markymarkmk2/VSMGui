@@ -15,16 +15,15 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.TextField;
+import de.dimm.vsm.auth.User;
+import de.dimm.vsm.hash.StringUtils;
 import de.dimm.vsm.records.MountEntry;
 import de.dimm.vsm.tasks.TaskEntry;
-import de.dimm.vsm.tasks.TaskInterface.TASKSTATE;
-import de.dimm.vsm.vaadin.GuiElems.Dialogs.TaskInfoWindow;
 import de.dimm.vsm.vaadin.GuiElems.Fields.ColumnGeneratorField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAComboField;
@@ -37,27 +36,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import org.vaadin.addons.lazyquerycontainer.CompositeItem;
 
 
 
-//
-//class JobPercentColumnGenerator implements Table.ColumnGenerator
-//{
-//    Label label;
-//    @Override
-//    public Component generateCell( Table source, Object itemId, Object columnId )
-//    {
-//        BeanItem it = (BeanItem) source.getItem(itemId);
-//        JobEntry job = (JobEntry)it.getBean();
-//        label = new Label(Integer.toString(job.getProcessPercent()) + " " + job.getProcessPercentDimension());
-//        return label;
-//    }
-//
-//
-//}
+
 class MountEntryColumnGenerator implements Table.ColumnGenerator
 {
     Label label;
@@ -70,9 +54,6 @@ class MountEntryColumnGenerator implements Table.ColumnGenerator
         return label;
     }
 }
-
-
-
 
 class MountEntryField extends JPATextField implements ColumnGeneratorField
 {
@@ -126,9 +107,9 @@ public class MountEntryViewTable extends Table
     public MountEntryViewTable( VSMCMain main )
     {
         this.main = main;
-        bc = new BeanItemContainer<MountEntry>(MountEntry.class);
+        bc = new BeanItemContainer<>(MountEntry.class);
 
-        ArrayList<JPAField> fl = new ArrayList<JPAField>();
+        ArrayList<JPAField> fl = new ArrayList<>();
         //fl.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
         
         MountEntryField mef = new MountEntryField();
@@ -326,7 +307,7 @@ public class MountEntryViewTable extends Table
             return;
         }
         
-        List<MountEntry> newMap = new ArrayList<MountEntry>();        
+        List<MountEntry> newMap = new ArrayList<>();        
         newMap.addAll( mountedEntries);
 
         synchronized(bc)
@@ -346,6 +327,10 @@ public class MountEntryViewTable extends Table
             }
 
             bc.removeAllItems();
+            User usr = main.getUser();
+            
+            // Remove all entries of other users
+            FileSystemViewer.filterUserEntries( main.getGuiUser().getUser(), mountedEntries);
             bc.addAll( mountedEntries );
         }
     }
@@ -406,19 +391,14 @@ public class MountEntryViewTable extends Table
                     callUnmount(item);
                 }
             };
-            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen Sie diesen Eintrag unmounten?"), ok, null);
-            
-            
-        }
-        
+            main.Msg().errmOkCancel(VSMCMain.Txt("Wollen Sie diesen Eintrag unmounten?"), ok, null);                        
+        }        
     }
+
     public MountEntry getActiveElem()
     {
         return activeElem;
-    }
-
-    
-
+    }   
 
     private void requestStatus()
     {
@@ -458,7 +438,6 @@ public class MountEntryViewTable extends Table
 //        timer.stop();
     }
 
-
     private void callUnmount( MountEntry val )
     {                   
          main.getDummyGuiServerApi().unMountEntry( val );
@@ -467,8 +446,5 @@ public class MountEntryViewTable extends Table
     private void callDisplay( MountEntry item )
     {
         
-    }
-
-   
-
+    }   
 }

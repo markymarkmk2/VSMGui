@@ -299,7 +299,11 @@ public class RoleOptionPreviewPanel extends PreviewPanel<RoleOption>
             @Override
             public boolean isValid( Object value )
             {
-                return checkMapping( value.toString() );
+                boolean ret = checkMapping( value.toString() );
+                if (!ret)
+                    this.setErrorMessage("Fehler in Zeile " + lastParsedLine);
+                
+                return ret;
             }
         };
         
@@ -315,6 +319,7 @@ public class RoleOptionPreviewPanel extends PreviewPanel<RoleOption>
         });
         this.getApplication().getMainWindow().addWindow(dlg);
     }
+    String lastParsedLine = "";
 
     boolean checkMapping( String s )
     {
@@ -327,18 +332,34 @@ public class RoleOptionPreviewPanel extends PreviewPanel<RoleOption>
                 continue;
             if (string.charAt(0) == '#')
                 continue;
-
-            String[] entry = string.split(",");
-            if (entry.length != 2)
-                return false;
-            String v = entry[0].trim();
-            String u = entry[1].trim();
-            if (v.isEmpty())
-                return false;
-            if (u.isEmpty())
-                return false;
-            if (v.charAt(0) != '/')
-                return false;
+            
+            lastParsedLine = string;
+            if (string.startsWith("Exclude"))
+            {
+                String[] entry = string.split(",");
+                if (entry.length < 1)
+                    return false;
+                
+                String mask = entry[0].trim();
+                if (mask.isEmpty())
+                    return false;
+                
+                continue;
+            }
+            else
+            {
+                String[] entry = string.split(",");
+                if (entry.length != 2)
+                    return false;
+                String v = entry[0].trim();
+                String u = entry[1].trim();
+                if (v.isEmpty())
+                    return false;
+                if (u.isEmpty())
+                    return false;
+                if (v.charAt(0) != '/')
+                    return false;
+            }
            
         }
         return true;
