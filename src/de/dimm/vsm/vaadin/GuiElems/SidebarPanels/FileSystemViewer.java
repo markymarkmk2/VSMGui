@@ -276,7 +276,7 @@ public class FileSystemViewer extends SidebarPanel
     {
         List<MountEntry> mountedEntries = main.getDummyGuiServerApi().getMountedMountEntries();
         filterUserEntries( main.getGuiUser().getUser(), mountedEntries);
-        final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg("Mount", "Auswahl", mountedEntries);
+        final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg("UnMount", "Auswahl", mountedEntries);
         dlg.setOkActionListener(new Button.ClickListener()
         {
 

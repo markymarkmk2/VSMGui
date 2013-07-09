@@ -5,8 +5,6 @@
 
 package de.dimm.vsm.vaadin.GuiElems.FileSystem;
 
-import com.vaadin.data.Container;
-import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.ComboBox;
@@ -15,8 +13,8 @@ import com.vaadin.ui.HorizontalLayout;
 import de.dimm.vsm.fsengine.GenericEntityManager;
 import de.dimm.vsm.records.AccountConnector;
 import de.dimm.vsm.records.MountEntry;
+import de.dimm.vsm.records.RoleOption;
 import de.dimm.vsm.records.Snapshot;
-import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAAbstractComboField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAComboField;
@@ -39,7 +37,7 @@ class AccountConnectorJPADBComboField extends JPADBComboField
     @Override
     public List<ComboEntry> getEntries() throws SQLException
     {
-        List<ComboEntry> entries = new ArrayList<ComboEntry>();
+        List<ComboEntry> entries = new ArrayList<>();
 
         List<AccountConnector> list = em.createQuery(qry, clazz);
 
@@ -70,7 +68,7 @@ class JPASnapShotComboField extends JPADBComboField
    @Override
     public List<ComboEntry> getEntries() throws SQLException
     {
-        List<ComboEntry> entries = new ArrayList<ComboEntry>();
+        List<ComboEntry> entries = new ArrayList<>();
 
         List<Snapshot> list = em.createQuery(qry, clazz);
 
@@ -97,19 +95,15 @@ public class PoolQryEditor extends HorizontalLayout
 {
     public static final String DEFAULTWIDTH = "450px";
   
-    //ComboBox cbTyp;
+    
     JPADBComboField cbSnapShot;
-   // DateField dtTimestamp;
-   // AbstractField tfUser;
-
     JPAAbstractComboField cbTyp;
-
     MountEntry node;
-    //Object node;
+    
 
     JPATextField tfUser;
     JPADateField dtTimestamp;
-    static final List<ComboEntry> typeList = new ArrayList<ComboEntry>();
+    static final List<ComboEntry> typeList = new ArrayList<>();
     static
     {
         typeList.add( new ComboEntry(MountEntry.TYP_SNAPSHOT, VSMCMain.Txt("Snapshot")));
@@ -127,13 +121,40 @@ public class PoolQryEditor extends HorizontalLayout
         return "";
     }
     
+    public static ComboEntry getTypeComboEntry( String typ)
+    {
+        for (ComboEntry ce : typeList)
+        {
+            if (ce.isDbEntry( typ))
+                return ce;            
+        }
+        return null;
+    }    
   
     public PoolQryEditor( VSMCMain main, GenericEntityManager em, final MountEntry me, final ValueChangeListener changeListener )
     {
         this.node = me;               
         this.setSpacing(true);
                        
-        cbTyp = new JPAComboField("Art", "typ", typeList);
+        List<ComboEntry> localTypelist = new ArrayList<>(typeList);
+        
+        // Normale User ohne RDWR-RoleOption dürfen nicht selbsttätig RW-Mounts erstellen, nur SU
+        boolean allowRW = false;
+        
+        if (main.getGuiUser().isSuperUser())
+            allowRW = true;
+        
+        if (main.getGuiUser().getUser().hasRoleOption(RoleOption.RL_READ_WRITE))
+            allowRW = true;
+        
+        
+        if (!allowRW)
+        {
+            localTypelist.remove( getTypeComboEntry(MountEntry.TYP_RDWR));
+        }
+           
+        
+        cbTyp = new JPAComboField("Art", "typ", localTypelist);
         cbSnapShot = new JPASnapShotComboField(em, "snapShot");
         tfUser = new JPATextField("Benutzer", "username");
         dtTimestamp = new JPADateField("Timestamp", "ts", DateField.RESOLUTION_MIN);
@@ -158,6 +179,7 @@ public class PoolQryEditor extends HorizontalLayout
         });
         updateVisibility(me);        
     }
+    
     final void updateVisibility( final MountEntry me)
     {
         ComboEntry ce = cbTyp.getSelectedEntry(this);

@@ -32,7 +32,7 @@ class AccountConnectorJPADBComboField extends JPADBComboField
     @Override
     public List<ComboEntry> getEntries() throws SQLException
     {
-        List<ComboEntry> entries = new ArrayList<ComboEntry>();
+        List<ComboEntry> entries = new ArrayList<>();
 
         List<AccountConnector> list = em.createQuery(qry, clazz);
 
@@ -112,15 +112,16 @@ public class RoleTable extends BaseDataEditTable<Role>
 
     public static RoleTable createTable( VSMCMain main,  List<Role> list, ItemClickListener listener)
     {
-        ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
+        ArrayList<JPAField> fieldList = new ArrayList<>();
         fieldList.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
         fieldList.add(new JPATextField(VSMCMain.Txt("Benutzerfilter (Regexp)"), "accountmatch"));
         fieldList.add(new AccountConnectorJPADBComboField( VSMCMain.get_base_util_em() ));
 
-        ArrayList<ComboEntry> roe = new ArrayList<ComboEntry>();
+        ArrayList<ComboEntry> roe = new ArrayList<>();
         roe.add( new ComboEntry(RoleOption.RL_ALLOW_VIEW_PARAM, VSMCMain.Txt("Parameter Client öffnen")));
         roe.add( new ComboEntry(RoleOption.RL_ALLOW_EDIT_PARAM, VSMCMain.Txt("Parameter bearbeiten")));
         roe.add( new ComboEntry(RoleOption.RL_ADMIN, VSMCMain.Txt("Administrator")));
+        roe.add( new ComboEntry(RoleOption.RL_READ_WRITE, VSMCMain.Txt("Schreibrechte")));
         roe.add( new ComboEntry(RoleOption.RL_USERPATH, VSMCMain.Txt("Restorepfad")));
         roe.add( new ComboEntry(RoleOption.RL_FSMAPPINGFILE, VSMCMain.Txt("VSM-Filesystem Mapping")));
 
