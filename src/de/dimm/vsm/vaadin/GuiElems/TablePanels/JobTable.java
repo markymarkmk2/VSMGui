@@ -81,7 +81,7 @@ class JobPercentColumnGenerator implements Table.ColumnGenerator
     {
         BeanItem it = (BeanItem) source.getItem(itemId);
         JobEntry job = (JobEntry)it.getBean();
-        label = new Label(Integer.toString(job.getProcessPercent()) + " " + job.getProcessPercentDimension());
+        label = new Label(job.getProcessPercent() + " " + job.getProcessPercentDimension());
         return label;
     }
 

@@ -104,6 +104,7 @@ public class MountEntryTable extends BaseDataEditTable<MountEntry>
         p.setDisabled(true);
         p.setTyp(MountEntry.TYP_RDONLY);
         p.setPool( pool );
+        p.setSubPath("/127.0.0.1/8082");
 
         
         // CREATE ROOT DIR
@@ -152,6 +153,11 @@ public class MountEntryTable extends BaseDataEditTable<MountEntry>
         {
             VSMCMain.notify(c, VSMCMain.Txt("Parameterfehler"), VSMCMain.Txt("VSM-Pfad fehlt"));
             return false;
+        }
+        
+        if (!me.getSubPath().startsWith(me.getIp() + "/" + me.getPort()))
+        {
+             VSMCMain.notify(c, VSMCMain.Txt("Warnung"), VSMCMain.Txt("Der VSM-Pfad entspricht nicht dem ausgewählten Agenten, Sie könnten dadurch eventuell Daten anderer Agenten überschreiben!"));
         }
 
         return true;
