@@ -5,6 +5,7 @@
 
 package de.dimm.vsm.vaadin.auth;
 
+import de.dimm.vsm.auth.GuiUser;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -68,11 +69,11 @@ public class AppHeader
         actUser = u;
         lbUser.setValue(VSMCMain.Txt("Willkommen") + " <b>" + actUser.toString() + "</b> ");
         String dstr = "-";
-        if (u.lastLogin != null)
+        if (u.getLastLogin() != null)
         {
             String um = VSMCMain.Txt("um");
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy '" + um + "' HH:mm");
-            dstr = sdf.format(u.lastLogin);
+            dstr = sdf.format(u.getLastLogin());
         }
         lbLastLogin.setValue("<small>" + VSMCMain.Txt("Letzter Login") + ": " + dstr + "</small> " );
 

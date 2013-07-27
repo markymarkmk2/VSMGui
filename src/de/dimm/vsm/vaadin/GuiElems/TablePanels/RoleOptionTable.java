@@ -8,6 +8,7 @@ package de.dimm.vsm.vaadin.GuiElems.TablePanels;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.AbstractOrderedLayout;
 import de.dimm.vsm.fsengine.GenericEntityManager;
+import de.dimm.vsm.fsengine.LazyList;
 import de.dimm.vsm.records.Role;
 import de.dimm.vsm.records.RoleOption;
 import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
@@ -81,8 +82,11 @@ public class RoleOptionTable extends BaseDataEditTable<RoleOption>
             gem.check_open_transaction();
             gem.em_persist(p);
 
-            role.getRoleOptions().add(gem, p);
-
+            List<RoleOption> options = role.getRoleOptions();
+            if (options instanceof LazyList)
+                ((LazyList<RoleOption>)options).add(gem, p);
+            else
+                options.add(p);
             
             gem.commit_transaction();
 

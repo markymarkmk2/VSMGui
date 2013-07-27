@@ -5,6 +5,7 @@
 
 package de.dimm.vsm.vaadin.search;
 
+import de.dimm.vsm.auth.GuiUser;
 import de.dimm.vsm.vaadin.auth.*;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;

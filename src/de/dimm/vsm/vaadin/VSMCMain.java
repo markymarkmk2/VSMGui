@@ -46,7 +46,7 @@ import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.LogWin;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.LogoutPanel;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.NotificationWin;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.StartBackupWin;
-import de.dimm.vsm.vaadin.auth.GuiUser;
+import de.dimm.vsm.auth.GuiUser;
 import de.dimm.vsm.vaadin.net.GuiServerProxy;
 import de.dimm.vsm.vaadin.search.SearchClientWin;
 import java.lang.reflect.InvocationTargetException;
@@ -491,7 +491,8 @@ public class VSMCMain extends GenericMain
             return null;
         }
         
-        return guiWrapper.getApi();
+        return (GuiServerApi)VSMCMain.callLogicControl("getGuiServerApi", guiWrapper);
+        //return guiWrapper.getApi();
     }
     @Override
     public GuiLoginApi getGuiLoginApi()

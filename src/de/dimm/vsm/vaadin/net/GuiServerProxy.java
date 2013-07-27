@@ -117,14 +117,16 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
         {
             if (loginApi.isStillValid(wrapper))
             {
-                return wrapper.getApi();
+                return (GuiServerApi)VSMCMain.callLogicControl("getGuiServerApi", wrapper);
+                //return wrapper.getApi();
             }
             else
             {
                 wrapper = loginApi.relogin(wrapper, lastUser, lastPwd);
                 if (wrapper != null)
                 {
-                    return wrapper.getApi();
+                    return (GuiServerApi)VSMCMain.callLogicControl("getGuiServerApi", wrapper);
+                    //return wrapper.getApi();
                 }
             }
         }
@@ -743,6 +745,17 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
 
         return;
     }
+
+    @Override
+    public Properties getProperties()
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.getProperties();
+
+        return null;
+    }
+    
     
 
 }
