@@ -5,6 +5,8 @@
 
 package de.dimm.vsm.vaadin.GuiElems.Fields;
 
+import com.vaadin.data.Property;
+import com.vaadin.data.util.BeanItem;
 import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
@@ -191,5 +193,5 @@ public class JPADBLinkField<T> extends JPAField<T>
         return 250;
     }
     
-
+    
 }

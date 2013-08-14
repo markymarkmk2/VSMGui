@@ -330,7 +330,7 @@ public class MountEntryViewTable extends Table
             User usr = main.getUser();
             
             // Remove all entries of other users
-            FileSystemViewer.filterUserEntries( main.getGuiUser().getUser(), mountedEntries);
+            FileSystemViewer.filterUserEntries( main.getUser(), mountedEntries);
             bc.addAll( mountedEntries );
         }
     }

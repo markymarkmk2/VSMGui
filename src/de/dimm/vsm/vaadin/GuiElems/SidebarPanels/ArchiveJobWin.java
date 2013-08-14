@@ -841,7 +841,7 @@ public class ArchiveJobWin extends SidebarPanel
         ContextMenuItem _remove = null;
         // Generate main level items
         final ContextMenuItem info = menu.addItem(VSMCMain.Txt("Information"));
-        if (main.getGuiUser().isSuperUser())
+        if (main.isSuperUser())
         {
             info.setSeparatorVisible(true);
             _remove = menu.addItem(VSMCMain.Txt("Löschen"));
@@ -870,7 +870,7 @@ public class ArchiveJobWin extends SidebarPanel
                 {
                     handleRestoreTargetDialog(job);
                 }
-                if (clickedItem == remove && main.getGuiUser().isSuperUser())
+                if (clickedItem == remove && main.isSuperUser())
                 {
                     handleRemoveDialog(job);
                 }

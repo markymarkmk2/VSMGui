@@ -10,6 +10,7 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.HorizontalLayout;
+import de.dimm.vsm.auth.GuiUser;
 import de.dimm.vsm.fsengine.GenericEntityManager;
 import de.dimm.vsm.records.AccountConnector;
 import de.dimm.vsm.records.MountEntry;
@@ -139,12 +140,12 @@ public class PoolQryEditor extends HorizontalLayout
         List<ComboEntry> localTypelist = new ArrayList<>(typeList);
         
         // Normale User ohne RDWR-RoleOption dürfen nicht selbsttätig RW-Mounts erstellen, nur SU
-        boolean allowRW = false;
+        boolean allowRW = false;       
         
-        if (main.getGuiUser().isSuperUser())
+        if (main.isSuperUser())
             allowRW = true;
         
-        if (main.getGuiUser().getUser().hasRoleOption(RoleOption.RL_READ_WRITE))
+        if (main.getUser().hasRoleOption(RoleOption.RL_READ_WRITE))
             allowRW = true;
         
         
@@ -160,7 +161,7 @@ public class PoolQryEditor extends HorizontalLayout
         dtTimestamp = new JPADateField("Timestamp", "ts", DateField.RESOLUTION_MIN);
 
         // ONLY ROOT IS ALLOWED TO CHANGE USER
-        if (main.getGuiUser().isSuperUser())
+        if (main.isSuperUser())
         {
             addComponent(tfUser.createGui(me));
         }

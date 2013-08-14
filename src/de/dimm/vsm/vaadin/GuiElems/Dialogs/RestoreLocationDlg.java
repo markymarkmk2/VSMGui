@@ -61,8 +61,8 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
     {
         this.main = main;
         userPathList = new ArrayList<RoleOption>();
-
-        List<RoleOption> roList = main.getGuiUser().getUser().getRole().getRoleOptions();
+        
+        List<RoleOption> roList = main.getUser().getRole().getRoleOptions();
         for (int i = 0; i < roList.size(); i++)
         {
             RoleOption roleOption = roList.get(i);

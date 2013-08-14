@@ -675,6 +675,13 @@ public class VSMCMain extends GenericMain
 
         return null;
     }
+    public boolean isSuperUser()
+    {
+        if (header != null)
+            return header.getUser().isSuperUser();
+
+        return false;
+    }
 
     protected void createHeader()
     {

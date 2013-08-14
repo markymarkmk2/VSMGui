@@ -11,8 +11,8 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.NativeButton;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import de.dimm.vsm.auth.GuiUser;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.auth.UserManager;
 import de.dimm.vsm.hash.StringUtils;
@@ -239,9 +239,9 @@ public class FileSystemViewer extends SidebarPanel
         List<MountEntry> allEntries = main.getDummyGuiServerApi().getAllMountEntries();
         List<MountEntry> mountedEntries = main.getDummyGuiServerApi().getMountedMountEntries();
         allEntries.removeAll(mountedEntries);
-        filterUserEntries( main.getGuiUser().getUser(), allEntries);
+        filterUserEntries( main.getUser(), allEntries);
 
-        String userChoiceButtonText = main.getGuiUser().isSuperUser() ?  "Aktuellen User verwenden" : null;
+        String userChoiceButtonText = main.isSuperUser() ?  "Aktuellen User verwenden" : null;
         final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg("Mount", "Auswahl",userChoiceButtonText, allEntries);
         dlg.setOkActionListener(new Button.ClickListener()
         {
@@ -274,8 +274,8 @@ public class FileSystemViewer extends SidebarPanel
 
     void doUnMount()
     {
-        List<MountEntry> mountedEntries = main.getDummyGuiServerApi().getMountedMountEntries();
-        filterUserEntries( main.getGuiUser().getUser(), mountedEntries);
+        List<MountEntry> mountedEntries = main.getDummyGuiServerApi().getMountedMountEntries();        
+        filterUserEntries( main.getUser(), mountedEntries);
         final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg("UnMount", "Auswahl", mountedEntries);
         dlg.setOkActionListener(new Button.ClickListener()
         {

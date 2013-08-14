@@ -5,6 +5,8 @@
 
 package de.dimm.vsm.vaadin.GuiElems.Fields;
 
+import com.vaadin.data.Property;
+import com.vaadin.data.Property.ReadOnlyException;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.data.util.BeanItem;
@@ -13,6 +15,7 @@ import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.CustomComponent;
+import de.dimm.vsm.vaadin.VSMCMain;
 import java.util.Iterator;
 
 /**
@@ -129,6 +132,10 @@ public abstract class JPAField<T>
             return;
         }
         Object v = oldItem.getItemProperty(property).getValue();
+        if (oldItem.getItemProperty(property).isReadOnly())
+        {            
+            throw new Property.ReadOnlyException("Es fehlt der Setter zu feld  " + property + " -> read only!");           
+        }
         oldItem.getItemProperty(property).setValue(v);
     }
 

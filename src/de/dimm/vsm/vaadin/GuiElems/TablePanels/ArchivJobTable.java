@@ -36,7 +36,7 @@ public class ArchivJobTable  extends BaseDataEditTable<ArchiveJob>
 
     public static ArchivJobTable createTable( VSMCMain main, ArchiveJobWin jobWin,List<ArchiveJob> list, ItemClickListener listener)
     {
-         return createTable(main, jobWin, list, listener, true, /*showDelete*/ main.getGuiUser().isSuperUser());
+         return createTable(main, jobWin, list, listener, true, /*showDelete*/ main.isSuperUser());
     }
     public static ArchivJobTable createTable( VSMCMain main, ArchiveJobWin jobWin,List<ArchiveJob> list, ItemClickListener listener, boolean showEdit, boolean showDelete)
     {

@@ -228,7 +228,7 @@ public class FSTreePanel extends HorizontalLayout
             _info = menu.addItem(VSMCMain.Txt("Information"));
         }
         final ContextMenuItem ver = menu.addItem(VSMCMain.Txt("Versions"));
-        if (oneSelected && main.getGuiUser().isSuperUser() && !wrapper.isReadOnly())
+        if (oneSelected && main.isSuperUser() && !wrapper.isReadOnly())
         {
             _remove = menu.addItem(VSMCMain.Txt("Endgültig aus dem Dateisystem entfernen"));
             _del = menu.addItem(rfstreeelems.get(0).getElem().isDeleted() ? VSMCMain.Txt("Undelete") : VSMCMain.Txt("Delete"));
@@ -268,7 +268,7 @@ public class FSTreePanel extends HorizontalLayout
                     // Do something with the reference
                     event.getComponent().getApplication().getMainWindow().addWindow(win);
                 }
-                if (clickedItem == del && main.getGuiUser().isSuperUser())
+                if (clickedItem == del && main.isSuperUser())
                 {
                     Button.ClickListener ok = new Button.ClickListener()
                     {
@@ -321,7 +321,7 @@ public class FSTreePanel extends HorizontalLayout
                         }
                     }
                 }
-                if (clickedItem == remove && main.getGuiUser().isSuperUser())
+                if (clickedItem == remove && main.isSuperUser())
                 {
                     Button.ClickListener ok = new Button.ClickListener()
                     {
