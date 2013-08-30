@@ -11,13 +11,10 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import de.dimm.vsm.Utilities.SizeStr;
-import de.dimm.vsm.net.SearchWrapper;
-import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.records.ArchiveJob;
 import de.dimm.vsm.records.HotFolder;
 import de.dimm.vsm.vaadin.VSMCMain;
@@ -104,7 +101,7 @@ public class ArchiveJobInfoWindow extends Window
 
         vl.addComponent(new Label(" "));
 
-        Button close = new NativeButton(VSMCMain.Txt("Ok"));
+        Button close = new Button(VSMCMain.Txt("Ok"));
 
         vl.addComponent(close);
         vl.setComponentAlignment(close, Alignment.BOTTOM_RIGHT);

@@ -4,11 +4,11 @@
  */
 package de.dimm.vsm.vaadin.GuiElems.TablePanels;
 
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.BlockStatusDlg;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.CheckObjectDlg;
@@ -65,7 +65,7 @@ public class StoragePoolPreviewPanel extends PreviewPanel<StoragePool>
         HorizontalLayout hl = new HorizontalLayout();
         hl.setSpacing(true);
         
-        NativeButton statusBt = new NativeButton(VSMCMain.Txt("Status_anzeigen"), new ClickListener() {
+        Button statusBt = new Button(VSMCMain.Txt("Status_anzeigen"), new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )
@@ -74,7 +74,7 @@ public class StoragePoolPreviewPanel extends PreviewPanel<StoragePool>
             }
 
         });
-               NativeButton checkPool = new NativeButton(VSMCMain.Txt("Pool prüfen"), new ClickListener() {
+        Button checkPool = new Button(VSMCMain.Txt("Pool prüfen"), new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )
@@ -83,12 +83,19 @@ public class StoragePoolPreviewPanel extends PreviewPanel<StoragePool>
             }
         });
 
-        
+        Button checkBootstrap = new Button(VSMCMain.Txt("Recoverystatus prüfen"), new ClickListener() {
 
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                showCheckBootstrap( node );
+            }
+        });
+       
         hl.addComponent(statusBt);
         hl.addComponent(checkPool);
+        hl.addComponent(checkBootstrap);
         
-
         addComponent(hl);
     }
     
@@ -102,6 +109,12 @@ public class StoragePoolPreviewPanel extends PreviewPanel<StoragePool>
     {
         CheckObjectDlg dlg = new CheckObjectDlg(table.getMain(), pool, "StoragePool");
         table.getApplication().getMainWindow().addWindow(dlg);
+    }
+
+    private void showCheckBootstrap( StoragePool pool )
+    {
+        table.getMain().getGuiServerApi().rebuildBootstraps(table.getMain().getGuiUser().getUser(), pool);
+        VSMCMain.notify(this, VSMCMain.Txt("Job gestartet"), VSMCMain.Txt("Sie können den Fortstritt des Auftrags in der JobAnzeige verfolgen"));
     }
 
 

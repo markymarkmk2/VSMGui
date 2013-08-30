@@ -4,10 +4,10 @@
  */
 package de.dimm.vsm.vaadin.GuiElems.TablePanels;
 
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.NativeButton;
 import de.dimm.vsm.mail.NotificationEntry;
 import de.dimm.vsm.mail.SmtpNotificationServer;
 import de.dimm.vsm.records.MailGroup;
@@ -37,7 +37,7 @@ public class SmtpDataPreviewPanel extends PreviewPanel<SmtpLoginData>
         super.recreateContent( node );
 
 
-        NativeButton bt = new NativeButton( VSMCMain.Txt("Testmail"), new ClickListener() {
+        Button bt = new Button( VSMCMain.Txt("Testmail"), new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )

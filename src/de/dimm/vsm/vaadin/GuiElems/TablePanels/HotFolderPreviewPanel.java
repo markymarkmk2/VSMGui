@@ -13,7 +13,6 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.VerticalLayout;
 import de.dimm.vsm.MMapi.MMAnswer;
 import de.dimm.vsm.MMapi.MMapi;
@@ -119,7 +118,7 @@ public class HotFolderPreviewPanel extends PreviewPanel<HotFolder>
         HorizontalLayout hl = new HorizontalLayout();
         hl.setSpacing(true);
 
-        NativeButton importNode = new NativeButton(VSMCMain.Txt("MediaManager Archiv imortieren"), new ClickListener() {
+        Button importNode = new Button(VSMCMain.Txt("MediaManager Archiv imortieren"), new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )
@@ -171,7 +170,7 @@ public class HotFolderPreviewPanel extends PreviewPanel<HotFolder>
 
         mmvl.addComponent(hl2);
 
-        NativeButton btCheckMMOnline = new NativeButton(VSMCMain.Txt("Test MM-Verbindung") , new ClickListener()
+        Button btCheckMMOnline = new Button(VSMCMain.Txt("Test MM-Verbindung") , new ClickListener()
         {
             @Override
             public void buttonClick( ClickEvent event )

@@ -6,24 +6,13 @@
 package de.dimm.vsm.vaadin.GuiElems.Dialogs;
 
 import com.vaadin.data.Validator;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-import de.dimm.vsm.net.StoragePoolWrapper;
-import de.dimm.vsm.net.interfaces.GuiServerApi;
-import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBFSField;
-import de.dimm.vsm.vaadin.GuiElems.Fields.JPAPoolComboField;
-import de.dimm.vsm.vaadin.GuiElems.Fields.JPARemoteFSField;
-import de.dimm.vsm.vaadin.GuiElems.FileSystem.DBFSElemEditor;
-import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTree;
-import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteFSElemTreeElem;
 import de.dimm.vsm.vaadin.GuiElems.OkAbortPanel;
 import de.dimm.vsm.vaadin.VSMCMain;
 

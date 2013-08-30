@@ -6,8 +6,8 @@
 package de.dimm.vsm.vaadin.GuiElems;
 
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import de.dimm.vsm.vaadin.VSMCMain;
 
 /**
@@ -16,9 +16,9 @@ import de.dimm.vsm.vaadin.VSMCMain;
  */
 public class OkAbortPanel extends HorizontalLayout
 {
-    NativeButton btOk;
-    NativeButton btAbort;
-    NativeButton btRetry;
+    Button btOk;
+    Button btAbort;
+    Button btRetry;
 
     public OkAbortPanel()
     {
@@ -27,9 +27,9 @@ public class OkAbortPanel extends HorizontalLayout
         bt_hl.setSpacing(true);
         //bt_hl.setWidth("100%");
 
-        btOk = new NativeButton(VSMCMain.Txt("Schließen"));
-        btAbort = new NativeButton(VSMCMain.Txt("Abbruch"));
-        btRetry = new NativeButton(VSMCMain.Txt("Wiederholen"));
+        btOk = new Button(VSMCMain.Txt("Schließen"));
+        btAbort = new Button(VSMCMain.Txt("Abbruch"));
+        btRetry = new Button(VSMCMain.Txt("Wiederholen"));
         btRetry.setVisible(false);
         
         bt_hl.addComponent(btRetry);
@@ -50,17 +50,17 @@ public class OkAbortPanel extends HorizontalLayout
         btAbort.setCaption(txt);
     }
 
-    public NativeButton getBtOk()
+    public Button getBtOk()
     {
         return btOk;
     }
 
-    public NativeButton getBtAbort()
+    public Button getBtAbort()
     {
         return btAbort;
     }
 
-    public NativeButton getBtRetry()
+    public Button getBtRetry()
     {
         return btRetry;
     }

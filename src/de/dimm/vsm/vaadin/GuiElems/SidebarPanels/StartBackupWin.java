@@ -5,16 +5,12 @@
 
 package de.dimm.vsm.vaadin.GuiElems.SidebarPanels;
 
-import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractBeanContainer;
-import com.vaadin.data.util.BeanContainer;
 import com.vaadin.ui.AbsoluteLayout;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Table;
 import de.dimm.vsm.net.ScheduleStatusEntry;
 import de.dimm.vsm.net.ScheduleStatusEntry.ValueEntry;
@@ -80,7 +76,7 @@ public class StartBackupWin extends SidebarPanel
         
 
 
-        final Button startBackup = new NativeButton("Start Backup");
+        final Button startBackup = new Button("Start Backup");
         startBackup.addListener( new Button.ClickListener()
         {
 
@@ -110,7 +106,7 @@ public class StartBackupWin extends SidebarPanel
         });
         al.addComponent( startBackup, "top:30px;left:10px" );
 
-        Button stopBackup = new NativeButton("Stop Backup");
+        Button stopBackup = new Button("Stop Backup");
         stopBackup.addListener( new Button.ClickListener()
         {
 

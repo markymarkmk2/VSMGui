@@ -13,7 +13,6 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -52,7 +51,7 @@ public class BusyHandler extends Window  implements Refresher.RefreshListener
         ta.setSizeFull();
      
 
-        abort = new NativeButton();
+        abort = new Button();
         icon = new CssLayout();
         icon.setStyleName("busyIcon");
         icon.setSizeFull();

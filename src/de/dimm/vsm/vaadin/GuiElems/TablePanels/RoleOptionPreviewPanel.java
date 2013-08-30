@@ -13,7 +13,6 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.TextField;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.records.RoleOption;
@@ -126,7 +125,7 @@ public class RoleOptionPreviewPanel extends PreviewPanel<RoleOption>
             if (actIndex != -1)
                 cb.select(cdelist.get(actIndex + 1));
 
-            Button newEntry = new NativeButton("Neu", new ClickListener() {
+            Button newEntry = new Button("Neu", new ClickListener() {
 
                 @Override
                 public void buttonClick( ClickEvent event )
@@ -135,7 +134,7 @@ public class RoleOptionPreviewPanel extends PreviewPanel<RoleOption>
                 }
             });
             this.addComponent(newEntry);
-            Button delEntry = new NativeButton("Löschen", new ClickListener() {
+            Button delEntry = new Button("Löschen", new ClickListener() {
 
                 @Override
                 public void buttonClick( ClickEvent event )
@@ -143,7 +142,7 @@ public class RoleOptionPreviewPanel extends PreviewPanel<RoleOption>
                     delFsmapping();
                 }
             });
-            Button editEntry = new NativeButton("Bearbeiten", new ClickListener() {
+            Button editEntry = new Button("Bearbeiten", new ClickListener() {
 
                 @Override
                 public void buttonClick( ClickEvent event )

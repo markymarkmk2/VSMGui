@@ -20,6 +20,7 @@ import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.GuiLoginApi;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.net.interfaces.IWrapper;
+import de.dimm.vsm.net.interfaces.UIRecoveryApi;
 import de.dimm.vsm.records.AbstractStorageNode;
 import de.dimm.vsm.records.ArchiveJob;
 import de.dimm.vsm.records.FileSystemElemNode;
@@ -742,8 +743,6 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
             guiServerApi.unMountEntry( mountEntry );
-
-        return;
     }
 
     @Override
@@ -755,7 +754,21 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
 
         return null;
     }
+
+    @Override
+    public void scanDatabase(  User user, AbstractStorageNode node )
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            guiServerApi.scanDatabase(user, node);        
+    } 
     
-    
+    @Override
+    public void rebuildBootstraps( User user, StoragePool pool )
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            guiServerApi.rebuildBootstraps( user, pool );
+    }
 
 }

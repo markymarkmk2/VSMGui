@@ -10,7 +10,6 @@ import com.vaadin.ui.AbsoluteLayout;
 import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TreeTable;
@@ -70,7 +69,7 @@ public class DiagnoseWin extends SidebarPanel
         final TextField txt_size = new TextField("MB");
         final TextField txt_bs = new TextField("BS (kB)");
         final TextField txt_agent_port = new TextField("Port");
-        final Button bt_speed = new NativeButton("Speedtest");
+        final Button bt_speed = new Button("Speedtest");
         txt_agent_ip.setValue("192.168.1.145");
         txt_agent_port.setValue("8082");
         txt_size.setValue("250");
@@ -96,7 +95,7 @@ public class DiagnoseWin extends SidebarPanel
 
         });
         
-        final Button bt_busy = new NativeButton("Busytest");
+        final Button bt_busy = new Button("Busytest");
         //al.addComponent( bt_busy, "top:50px;left:10px" );
 
         bt_busy.addListener(new Button.ClickListener() {
@@ -126,7 +125,7 @@ public class DiagnoseWin extends SidebarPanel
                 main.runInBusy("Geht?", r);
             }
         });
-        final Button bt_busy_abort = new NativeButton("Busyaborttest");
+        final Button bt_busy_abort = new Button("Busyaborttest");
         // al.addComponent( bt_busy_abort, "top:50px;left:110px" );
         final Button.ClickListener aboret = new Button.ClickListener() {
 

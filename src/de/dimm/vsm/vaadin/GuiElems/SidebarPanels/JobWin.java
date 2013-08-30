@@ -10,10 +10,9 @@ import de.dimm.vsm.vaadin.GuiElems.TablePanels.JobTable;
 import com.github.wolfie.refresher.Refresher;
 import com.vaadin.data.util.BeanContainer;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import de.dimm.vsm.jobs.JobEntry;
 import de.dimm.vsm.jobs.JobInterface.JOBSTATE;
 import de.dimm.vsm.vaadin.VSMCMain;
@@ -39,7 +38,7 @@ public class JobWin extends SidebarPanel implements Refresher.RefreshListener
 
         tasksPanel = new TasksPanel(main);
 
-        NativeButton bt = new NativeButton(VSMCMain.Txt("Beendete Aufgaben entfernen"), new ClickListener() {
+        Button bt = new Button(VSMCMain.Txt("Beendete Aufgaben entfernen"), new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )

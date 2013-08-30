@@ -9,6 +9,7 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Alignment;
 import com.vaadin.data.util.BeanItem;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
@@ -16,7 +17,6 @@ import com.vaadin.ui.DateField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 import de.dimm.vsm.fsengine.GenericEntityManager;
@@ -421,7 +421,7 @@ public class ScheduleTable extends BaseDataEditTable<Schedule>
             }
         };
 
-        NativeButton initBt = new  NativeButton(VSMCMain.Txt("Initialisieren") + "...", cl);
+        Button initBt = new  Button(VSMCMain.Txt("Initialisieren") + "...", cl);
         head.addComponent(initBt);
         head.setComponentAlignment(initBt, Alignment.MIDDLE_CENTER);
 

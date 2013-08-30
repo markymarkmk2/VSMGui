@@ -8,7 +8,6 @@ package de.dimm.vsm.vaadin.GuiElems.Dialogs;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -104,13 +103,13 @@ public class BlockStatusDlg extends Window
         vl.addComponent(totalDedupRatio);
 
 
-        Button calc = new NativeButton(VSMCMain.Txt("Berechnen (dauert einige Zeit)"));
+        Button calc = new Button(VSMCMain.Txt("Berechnen (dauert einige Zeit)"));
         vl.addComponent(calc);
 
-        Button removeBlocks = new NativeButton(VSMCMain.Txt("Freie Blöcke entfernen"));
+        Button removeBlocks = new Button(VSMCMain.Txt("Freie Blöcke entfernen"));
         vl.addComponent(removeBlocks);
 
-        Button close = new NativeButton(VSMCMain.Txt("Ok"));
+        Button close = new Button(VSMCMain.Txt("Ok"));
 
         vl.addComponent(close);
         vl.setComponentAlignment(close, Alignment.BOTTOM_RIGHT);

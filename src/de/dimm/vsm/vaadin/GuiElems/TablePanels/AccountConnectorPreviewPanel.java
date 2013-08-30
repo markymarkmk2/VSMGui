@@ -8,11 +8,11 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.IntegerValidator;
 import com.vaadin.data.validator.StringLengthValidator;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.TextField;
 import de.dimm.vsm.auth.GenericRealmAuth;
 import de.dimm.vsm.records.AccountConnector;
@@ -149,7 +149,7 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         addComponent(txtLdapgroupIdentifier.createGui(node));
         addComponent(txtNtDomainName.createGui(node));
 
-        NativeButton testAD = new NativeButton( X("Test Connect"));
+        Button testAD = new Button( X("Test Connect"));
         testAD.addListener( new ClickListener() {
 
             @Override

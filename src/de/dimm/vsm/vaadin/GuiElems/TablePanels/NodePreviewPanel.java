@@ -4,11 +4,12 @@
  */
 package de.dimm.vsm.vaadin.GuiElems.TablePanels;
 
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
+import de.dimm.vsm.auth.User;
 import de.dimm.vsm.records.AbstractStorageNode;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.CheckObjectDlg;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBLinkField;
@@ -66,7 +67,7 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
         HorizontalLayout hCheck = new HorizontalLayout();
         hCheck.setSpacing(true); 
         
-        NativeButton deleteNode = new NativeButton(VSMCMain.Txt("Nodeinhalt_leeren"), new ClickListener() {
+        Button deleteNode = new Button(VSMCMain.Txt("Nodeinhalt_leeren"), new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )
@@ -74,7 +75,7 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
                 ((AbstractStorageNodeTable)table).emptyNode( node );
             }
         });
-        NativeButton moveNode = new NativeButton(VSMCMain.Txt("Nodeinhalt_umbewegen"), new ClickListener() {
+        Button moveNode = new Button(VSMCMain.Txt("Nodeinhalt_umbewegen"), new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )
@@ -82,7 +83,7 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
                 ((AbstractStorageNodeTable)table).moveNode( node );
             }
         });
-        NativeButton syncNode = new NativeButton(VSMCMain.Txt("CloneNode synchronisieren"), new ClickListener() {
+        Button syncNode = new Button(VSMCMain.Txt("CloneNode synchronisieren"), new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )
@@ -92,13 +93,22 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
         });
 
 
-        NativeButton checkNode = new NativeButton(VSMCMain.Txt("Node prüfen"), new ClickListener() {
+        Button checkNode = new Button(VSMCMain.Txt("Node prüfen"), new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )
             {
                 showCheckNodeDlg( node );
             }
+        });
+
+        Button scanNode = new Button(VSMCMain.Txt("Node einscannen"), new ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                scanNode( node );
+            }           
         });
 
 
@@ -111,6 +121,7 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
         }
         
         hCheck.addComponent(checkNode);
+        hl.addComponent(scanNode);
 
         addComponent(hl);
         addComponent(hCheck);
@@ -123,6 +134,17 @@ public class NodePreviewPanel extends PreviewPanel<AbstractStorageNode>
         CheckObjectDlg dlg = new CheckObjectDlg(table.getMain(), activeElem, "StorageNode");
         table.getApplication().getMainWindow().addWindow(dlg);
     }
+    
+     private void scanNode( AbstractStorageNode activeElem )
+    {
+        if (!table.getMain().getGuiUser().isSuperUser()) {
+            VSMCMain.notify(this, VSMCMain.Txt("Nicht gestattet"), VSMCMain.Txt("Diese Funktion darf nur von Administratoren ausgeführt werden"));
+            return;
+        }
+        
+        table.getMain().getGuiServerApi().scanDatabase(User.createSystemInternal(), activeElem);
+        VSMCMain.notify(this, VSMCMain.Txt("Job gestartet"), VSMCMain.Txt("Sie können den Fortstritt des Auftrags in der JobAnzeige verfolgen"));        
+    }    
 
 
 

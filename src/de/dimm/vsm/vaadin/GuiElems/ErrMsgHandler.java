@@ -6,14 +6,12 @@
 package de.dimm.vsm.vaadin.GuiElems;
 
 
-import com.sun.org.apache.bcel.internal.generic.LASTORE;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -47,8 +45,8 @@ public class ErrMsgHandler extends Window
         ta.setSizeFull();
      
 
-        ok = new NativeButton();
-        abort = new NativeButton();
+        ok = new Button();
+        abort = new Button();
         icon = new CssLayout();
         icon.setStyleName("errorIcon");
         icon.setSizeFull();

@@ -18,6 +18,7 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.AbstractLayout;
 import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
@@ -993,7 +994,7 @@ public abstract class BaseDataEditTable<T> extends Table
                 bt_hl.setSpacing(true);
                 bt_hl.setWidth("100%");
 
-                final NativeButton bt_ok = new NativeButton(VSMCMain.Txt("Schließen"));
+                final Button bt_ok = new Button(VSMCMain.Txt("Schließen"));
                 bt_hl.addComponent(bt_ok);
                 bt_hl.setComponentAlignment(bt_ok, Alignment.MIDDLE_RIGHT);
                 tableWin.addComponent(bt_hl);

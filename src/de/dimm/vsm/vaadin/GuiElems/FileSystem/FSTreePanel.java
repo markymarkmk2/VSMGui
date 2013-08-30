@@ -424,7 +424,7 @@ public class FSTreePanel extends HorizontalLayout
         for (int i = 0; i < rfstreeelems.size(); i++)
         {
             RemoteFSElemTreeElem remoteFSElemTreeElem = rfstreeelems.get(i);
-            if (!isHotfolderPath(remoteFSElemTreeElem))
+            if (isHotfolderPath(remoteFSElemTreeElem))
             {
                 allowOrig = false;
                 break;

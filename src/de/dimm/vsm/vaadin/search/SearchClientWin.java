@@ -19,7 +19,6 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
@@ -168,7 +167,7 @@ public class SearchClientWin extends SidebarPanel
 
         
 
-        btMountVol = new NativeButton(mntText);
+        btMountVol = new Button(mntText);
         btMountVol.addListener( new Button.ClickListener()
         {
             @Override
@@ -179,7 +178,7 @@ public class SearchClientWin extends SidebarPanel
         });
         btMountVol.setVisible(false);
 
-        final Button btUpdateReadIndex = new NativeButton(VSMCMain.Txt("Index aktualisieren"));
+        final Button btUpdateReadIndex = new Button(VSMCMain.Txt("Index aktualisieren"));
         btUpdateReadIndex.addListener(new Button.ClickListener()
         {
             @Override
@@ -191,7 +190,7 @@ public class SearchClientWin extends SidebarPanel
 
         });
 
-        btStartSearch = new NativeButton(VSMCMain.Txt("Suche starten"));
+        btStartSearch = new Button(VSMCMain.Txt("Suche starten"));
         btStartSearch.addListener(new Button.ClickListener()
         {
             @Override

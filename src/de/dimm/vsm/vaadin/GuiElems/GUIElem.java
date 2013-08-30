@@ -22,7 +22,7 @@ public abstract class GUIElem
 {
     protected GenericMain parentWin;
     //protected GuiElemActionCallback callback;
-    protected NativeButton guiButton;
+    protected Button guiButton;
     protected MenuItem guiMenuItem;
 
     public GUIElem( GenericMain parentWin )

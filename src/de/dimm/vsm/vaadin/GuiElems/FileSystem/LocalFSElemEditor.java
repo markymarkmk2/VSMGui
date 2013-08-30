@@ -16,7 +16,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -121,7 +120,7 @@ public class LocalFSElemEditor extends HorizontalLayout
 
     final void initButton()
     {
-        bt = new NativeButton("...");
+        bt = new Button("...");
         this.setSpacing(true);
         this.addComponent(tf);
         this.setComponentAlignment(tf, Alignment.MIDDLE_LEFT);
@@ -322,7 +321,7 @@ public class LocalFSElemEditor extends HorizontalLayout
         win.setModal(true);
         win.setStyleName("vsm");
 
-        NativeButton createPath = buttonPanel.getBtRetry();
+        Button createPath = buttonPanel.getBtRetry();
         createPath.setCaption(VSMCMain.Txt("Neuer Ordner"));
         createPath.setVisible(true);
 

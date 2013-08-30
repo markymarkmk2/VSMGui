@@ -6,23 +6,21 @@
 package de.dimm.vsm.vaadin.GuiElems.SidebarPanels;
 
 import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.event.FieldEvents.TextChangeEvent;
 import de.dimm.vsm.net.LogQuery;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.LogTable;
 import com.github.wolfie.refresher.Refresher;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.IntegerValidator;
-import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.AbstractLayout;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -205,7 +203,7 @@ public class LogWin extends SidebarPanel implements LoqQueryProvider
         bt_hl.setSpacing(true);
         bt_hl.setSizeFull();
 
-        final NativeButton bt_ok = new NativeButton(VSMCMain.Txt("Schließen"));
+        final Button bt_ok = new Button(VSMCMain.Txt("Schließen"));
         bt_hl.addComponent(bt_ok);
         bt_hl.setComponentAlignment(bt_ok, Alignment.MIDDLE_RIGHT);
         panel.addComponent(bt_hl);

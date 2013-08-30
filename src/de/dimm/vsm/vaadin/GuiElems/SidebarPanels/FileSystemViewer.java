@@ -10,9 +10,7 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.VerticalLayout;
-import de.dimm.vsm.auth.GuiUser;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.auth.UserManager;
 import de.dimm.vsm.hash.StringUtils;
@@ -59,7 +57,7 @@ public class FileSystemViewer extends SidebarPanel
         VerticalLayout vlMountCombo = new VerticalLayout();
         vlMountCombo.setSpacing(true);
 
-        Button btMount = new NativeButton("Mount", new Button.ClickListener()
+        Button btMount = new Button("Mount", new Button.ClickListener()
         {
             @Override
             public void buttonClick( ClickEvent event )
@@ -67,7 +65,7 @@ public class FileSystemViewer extends SidebarPanel
                 doMount();
             }
         });
-        Button btUnMount = new NativeButton("UnMount", new Button.ClickListener()
+        Button btUnMount = new Button("UnMount", new Button.ClickListener()
         {
             @Override
             public void buttonClick( ClickEvent event )
@@ -75,7 +73,7 @@ public class FileSystemViewer extends SidebarPanel
                 doUnMount();
             }
         });
-        Button btNewMount = new NativeButton("Neuer Mount", new Button.ClickListener()
+        Button btNewMount = new Button("Neuer Mount", new Button.ClickListener()
         {
             @Override
             public void buttonClick( ClickEvent event )
@@ -116,7 +114,7 @@ public class FileSystemViewer extends SidebarPanel
 
         vl.addComponent(hlMount);
 
-        btViewVol = new NativeButton(VSMCMain.Txt("Dateisystem anzeigen"));
+        btViewVol = new Button(VSMCMain.Txt("Dateisystem anzeigen"));
         
         Button.ClickListener listener = new Button.ClickListener()
         {

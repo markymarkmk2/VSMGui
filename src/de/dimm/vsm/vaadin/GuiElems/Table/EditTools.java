@@ -1,10 +1,10 @@
 package de.dimm.vsm.vaadin.GuiElems.Table;
 
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
 import de.dimm.vsm.vaadin.VSMCMain;
 
 
@@ -14,10 +14,10 @@ public class EditTools extends HorizontalLayout
     TableEditor editor;
     boolean readOnly = true;
 
-    NativeButton bt_new = new NativeButton(VSMCMain.Txt("New"));
-    NativeButton bt_del = new NativeButton(VSMCMain.Txt("Delete"));
-    NativeButton bt_save = new NativeButton(VSMCMain.Txt("Save"));
-    NativeButton cb_edit = new NativeButton(VSMCMain.Txt("Edit"));
+    Button bt_new = new Button(VSMCMain.Txt("New"));
+    Button bt_del = new Button(VSMCMain.Txt("Delete"));
+    Button bt_save = new Button(VSMCMain.Txt("Save"));
+    Button cb_edit = new Button(VSMCMain.Txt("Edit"));
 
     @Override
     public boolean isReadOnly()

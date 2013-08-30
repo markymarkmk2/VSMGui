@@ -12,14 +12,12 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import de.dimm.vsm.MMapi.JobError;
-import de.dimm.vsm.jobs.JobEntry;
 import de.dimm.vsm.jobs.JobInterface;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.util.List;
@@ -110,7 +108,7 @@ public class JobInfoWindow extends Window
 
         vl.addComponent(new Label(" "));
 
-        Button close = new NativeButton(VSMCMain.Txt("Ok"));
+        Button close = new Button(VSMCMain.Txt("Ok"));
 
         vl.addComponent(close);
         vl.setComponentAlignment(close, Alignment.BOTTOM_RIGHT);

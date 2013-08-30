@@ -10,7 +10,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import de.dimm.vsm.fsengine.checks.ICheck;
@@ -44,7 +43,7 @@ public class CheckObjectDlg extends Window
     void addChecks( VerticalLayout vl, List<String> niceTexts) {
         for (int i = 0; i < niceTexts.size(); i++) {
             String niceText = niceTexts.get(i);
-            Button check = new NativeButton(niceText);
+            Button check = new Button(niceText);
             vl.addComponent(check);
             check.addListener( new Button.ClickListener() {
 
@@ -81,7 +80,7 @@ public class CheckObjectDlg extends Window
       
         addChecks( vl, main.getGuiServerApi().getCheckNames(object.getClass()));
              
-        Button close = new NativeButton(VSMCMain.Txt("Zurück"));
+        Button close = new Button(VSMCMain.Txt("Zurück"));
 
         vl.addComponent(close);
         vl.setComponentAlignment(close, Alignment.BOTTOM_RIGHT);

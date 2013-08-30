@@ -17,7 +17,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.HorizontalSplitPanel;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.VerticalSplitPanel;
 import de.dimm.vsm.records.MailGroup;
@@ -97,7 +96,7 @@ public class NotificationWin extends SidebarPanel
         HorizontalLayout bthl = new HorizontalLayout();        
         bthl.setMargin(true, true, true, true);
 
-        Button btrebuild = new NativeButton("Benachrichtigungsdienst aktualisieren", new ClickListener() {
+        Button btrebuild = new Button("Benachrichtigungsdienst aktualisieren", new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )

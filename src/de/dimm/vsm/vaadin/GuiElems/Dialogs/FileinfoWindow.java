@@ -16,7 +16,6 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -28,7 +27,6 @@ import de.dimm.vsm.net.AttributeContainer;
 import de.dimm.vsm.net.AttributeList;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.SearchWrapper;
-import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.net.interfaces.IWrapper;
 import de.dimm.vsm.records.ArchiveJob;
@@ -265,7 +263,7 @@ public class FileinfoWindow extends Window
         vl.addComponent(hl);
         vl.addComponent(new Label(" "));
 
-        Button close = new NativeButton(VSMCMain.Txt("Ok"));
+        Button close = new Button(VSMCMain.Txt("Ok"));
 
         vl.addComponent(close);
         vl.setComponentAlignment(close, Alignment.BOTTOM_RIGHT);
