@@ -35,5 +35,11 @@ public class ComboPoolGetter implements IActPoolGetter{
         StoragePool pool = main.resolveStoragePool( idx );
         return pool;
     }
+
+    public void setPanel( AbstractOrderedLayout panel )
+    {
+        this.panel = panel;
+    }
+    
     
 }

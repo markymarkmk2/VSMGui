@@ -139,5 +139,9 @@ public class JPADBFSField extends JPAField
     public void setActualEditPanel( PreviewPanel panel )
     {
         this.panel = panel;
+        if (poolGetter instanceof ComboPoolGetter)
+        {
+            ((ComboPoolGetter)poolGetter).setPanel(panel);
+        }
     }
 }
