@@ -57,7 +57,7 @@ public class HotFolderTable extends BaseDataEditTable<HotFolder>
 
         JPAPoolComboField poolCombo = new JPAPoolComboField( main, "poolIdx");
         fieldList.add(poolCombo);
-        fieldList.add(new JPARemoteFSField(VSMCMain.Txt("Überwachter Ordner"), "mountPath", "ip", "port" ));
+        fieldList.add(new JPARemoteFSField(VSMCMain.Txt("Überwachter Ordner"), "mountPath", "ip", "port", null ));
 
         fieldList.add(new JPADBFSField(VSMCMain.Txt("VSM-Pfad"), "basePath", main, poolCombo ));
 

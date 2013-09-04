@@ -43,6 +43,7 @@ public class LocalFSElemEditor extends HorizontalLayout
 {
     public static final int ONLY_DIRS = 0x0001;
     public static final int MOUNT_POINT_MODE = 0x0002;
+    public static final int STAY_LOCAL_MODE = 0x0004;
     public static final String DEFAULTWIDTH = "250px";
 
 

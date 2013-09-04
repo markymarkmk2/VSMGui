@@ -7,6 +7,7 @@ package de.dimm.vsm.vaadin.GuiElems.FileSystem;
 
 import com.vaadin.data.util.MethodProperty;
 import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.TextField;
@@ -16,6 +17,7 @@ import de.dimm.vsm.net.RemoteCallFactory;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.AgentApi;
+import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -37,18 +39,21 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
     int port;
     String ipField;
     String portField;
+    String stayLocalField;
 
     AbstractField tfIp;
     TextField tfPort;
+    JPACheckBox cbStayLocal;
 
     List<String> filter;
 
 
-    public RemoteFSElemEditor(String caption, String val, AbstractField ip, TextField port, int options)
+    public RemoteFSElemEditor(String caption, String val, AbstractField ip, TextField port, JPACheckBox cbStayLocal, int options)
     {
         super(caption, val, options);
         this.tfIp = ip;
         this.tfPort = port;
+        this.cbStayLocal = cbStayLocal;
         this.port = -1;
     }
 
@@ -72,23 +77,37 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
         // MUST INIT AGAIN, TF HAS CHANGED
         initButton();
     }
-    public RemoteFSElemEditor( String caption, MethodProperty p, String ip, int port, int options)
+    public RemoteFSElemEditor( String caption, MethodProperty p, String ip, int port, JPACheckBox cbStayLocal,  int options)
     {
         super(caption, p, options);
         this.ip = ip;
         this.port = port;
-
-        
+        this.cbStayLocal = cbStayLocal;
     }
-    public RemoteFSElemEditor( String caption, MethodProperty p, Object node, String ipField, String portField, int options)
+    public RemoteFSElemEditor( String caption, MethodProperty p, Object node, String ipField, String portField, JPACheckBox cbStayLocal,  int options)
     {
         super( caption, p, node, options);
         this.node = node;
         this.ipField = ipField;
         this.portField = portField;
+        this.cbStayLocal = cbStayLocal;
         this.port = -1;      
     }
 
+    boolean isStayLocal()
+    {
+        if (stayLocalField != null)
+        {
+            final MethodProperty p = new MethodProperty(node,stayLocalField);
+            if (p.getValue() != null)
+                return p.getValue().toString().equals(Boolean.toString(true));
+        }
+        if (cbStayLocal != null && this.getParent() instanceof AbstractOrderedLayout)
+            return cbStayLocal.getBooleanValue((AbstractOrderedLayout)this.getParent());
+        
+        return (options & STAY_LOCAL_MODE) != 0;
+    }
+    
     String getActIP()
     {
         if (ip!= null)
@@ -163,21 +182,28 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
                     if (idx > 0)
                         pathfilter = pathfilter.substring(0, idx);
                     
-                    List<RemoteFSElem> l = api.list_dir( RemoteFSElem.createDir(pathfilter),/*withAcl*/ true);
+                    List<RemoteFSElem> l;
+                    if ((options &  LocalFSElemEditor.STAY_LOCAL_MODE) != 0)
+                        l = api.list_dir_local( RemoteFSElem.createDir(pathfilter),/*withAcl*/ true);
+                    else
+                        l = api.list_dir( RemoteFSElem.createDir(pathfilter),/*withAcl*/ true);
                     for (int j = 0; j < l.size(); j++)
                     {
                         RemoteFSElem remoteFSElem = l.get(j);
                         if (remoteFSElem.isDirectory())
                             root_list.add(remoteFSElem);
-                    }
-                    
+                    }                    
                 }
             }
         }
         else
         {
             root_list = new ArrayList<RemoteFSElem>();
-            List<RemoteFSElem> l = api.list_dir(startPath,/*withAcl*/ true);
+            List<RemoteFSElem> l;            
+            if ((options &  LocalFSElemEditor.STAY_LOCAL_MODE) != 0)
+                l = api.list_dir_local(startPath,/*withAcl*/ true);
+            else
+                l = api.list_dir(startPath,/*withAcl*/ true);            
             for (int j = 0; j < l.size(); j++)
             {
                 RemoteFSElem remoteFSElem = l.get(j);
@@ -199,7 +225,17 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
             {
                 List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
 
-                ArrayList<RemoteFSElem> elem_list = api.list_dir(elem.getElem(),/*withAcl*/ true);
+               // ArrayList<RemoteFSElem> elem_list = api.list_dir(elem.getElem(),/*withAcl*/ true);
+                List<RemoteFSElem> elem_list;
+                if ((options & LocalFSElemEditor.STAY_LOCAL_MODE) != 0)
+                {
+                    elem_list = api.list_dir_local(elem.getElem(),/*withAcl*/ true);
+                }
+                else
+                {
+                    elem_list = api.list_dir(elem.getElem(),/*withAcl*/ true);
+                }
+                
 
                 for (int i = 0; i < elem_list.size(); i++)
                 {
@@ -272,8 +308,11 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
             tf.getWindow().showNotification(VSMCMain.Txt("Der_Agent_kann_nicht_kontaktiert_werden"), cause, Notification.TYPE_WARNING_MESSAGE);
             return null;
         }
+        int _options = options;
+        if (isStayLocal())
+            _options |= STAY_LOCAL_MODE;
 
-        final FSTree treePanel = createClientPathTree( wrapper, main, api, tf, /*startPath*/ null, filter, options, false, null, null);
+        final FSTree treePanel = createClientPathTree( wrapper, main, api, tf, /*startPath*/ null, filter, _options, false, null, null);
 
         return treePanel;
     }

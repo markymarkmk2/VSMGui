@@ -279,7 +279,8 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
                     useFilter = true;
             }
 
-            editor = new RemoteFSElemEditor(  VSMCMain.Txt("Zielpfad"), path, tfIP, tfPort, RemoteFSElemEditor.ONLY_DIRS);
+            int options = RemoteFSElemEditor.ONLY_DIRS;            
+            editor = new RemoteFSElemEditor(  VSMCMain.Txt("Zielpfad"), path, tfIP, tfPort, null, options );
                 editor.setFilter( l );
             editor.setVisible(false);
 
@@ -306,7 +307,7 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
         }
         else
         {
-            editor = new RemoteFSElemEditor(  VSMCMain.Txt("Zielpfad"), path, tfIP, tfPort, RemoteFSElemEditor.ONLY_DIRS);
+            editor = new RemoteFSElemEditor(  VSMCMain.Txt("Zielpfad"), path, tfIP, tfPort, null, RemoteFSElemEditor.ONLY_DIRS);
             targetVl.addComponent(editor);
         }
         buttonVl.addComponent(select);

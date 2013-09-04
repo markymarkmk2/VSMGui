@@ -37,11 +37,13 @@ public class ClientVolumeTable extends BaseDataEditTable<ClientVolume>
     public static ClientVolumeTable createTable( VSMCMain main, ClientInfo clientInfo, List<ClientVolume> list, ItemClickListener listener)
     {
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
-        fieldList.add(new JPARemoteFSField(VSMCMain.Txt("Pfad"), "volumePath", clientInfo.getIp(), clientInfo.getPort()));
+        
+        JPACheckBox cbStayLocal = new JPACheckBox(VSMCMain.Txt("StayLocal"), "staylocal");
+        fieldList.add(new JPARemoteFSField(VSMCMain.Txt("Pfad"), "volumePath", clientInfo.getIp(), clientInfo.getPort(), cbStayLocal));
         fieldList.add(new JPACheckBox(VSMCMain.Txt("Gesperrt"), "disabled"));
         fieldList.add(new JPACheckBox(VSMCMain.Txt("CDP"), "cdp"));
         fieldList.add(new JPACheckBox(VSMCMain.Txt("Snapshot"), "snapshot"));
-        fieldList.add(new JPACheckBox(VSMCMain.Txt("StayLocal"), "staylocal"));
+        fieldList.add(cbStayLocal);
 
         return new ClientVolumeTable( main, clientInfo, list, fieldList, listener);
     }

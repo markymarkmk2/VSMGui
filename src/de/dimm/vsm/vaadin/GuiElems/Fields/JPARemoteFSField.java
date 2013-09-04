@@ -22,22 +22,26 @@ public class JPARemoteFSField extends JPAField
 {
     String ip;
     int port;
+    JPACheckBox cbStayLocal;
     String ipField;
     String portField;
     boolean onlyDirs = true;
     boolean mountPointMode = false;
+    String  stayLocalField;
 
-    public JPARemoteFSField(String caption, String fieldName, String ip, int port)
+    public JPARemoteFSField(String caption, String fieldName, String ip, int port, JPACheckBox cbStayLocal )
     {
         super( caption, fieldName );
         this.ip = ip;
         this.port = port;
+        this.cbStayLocal = cbStayLocal;
     }
-    public JPARemoteFSField(String caption, String fieldName, String ipField, String portField)
+    public JPARemoteFSField(String caption, String fieldName, String ipField, String portField, String  stayLocalField)
     {
         super( caption, fieldName );
         this.ipField = ipField;
         this.portField = portField;
+        this.stayLocalField = stayLocalField;
     }
 
     public void setOnlyDirs( boolean onlyDirs )
@@ -50,6 +54,7 @@ public class JPARemoteFSField extends JPAField
         this.mountPointMode = mountPointMode;
     }
 
+   
 
 
     @Override
@@ -76,11 +81,12 @@ public class JPARemoteFSField extends JPAField
             options |= RemoteFSElemEditor.ONLY_DIRS;
         if (mountPointMode)
             options |= RemoteFSElemEditor.MOUNT_POINT_MODE;
-
+       
+        
         if (ipField != null)
-            tf = new RemoteFSElemEditor(caption, p, node, ipField, portField, options);
+            tf = new RemoteFSElemEditor(caption, p, node, ipField, portField, cbStayLocal, options);
         else
-            tf = new RemoteFSElemEditor(caption, p, ip, port, options);
+            tf = new RemoteFSElemEditor(caption, p, ip, port, cbStayLocal, options);
 
         if (toolTip != null)
             tf.setDescription(toolTip);

@@ -57,7 +57,7 @@ public class MountEntryTable extends BaseDataEditTable<MountEntry>
         fieldList.add(poolQryField);
         fieldList.add(new JPACheckBox(VSMCMain.Txt("Gelöschte Dateien anzeigen"), "showDeleted"));
 
-        JPARemoteFSField remMountPath = new JPARemoteFSField(VSMCMain.Txt("Ziel-Pfad"), "mountPath", "ip", "port" );
+        JPARemoteFSField remMountPath = new JPARemoteFSField(VSMCMain.Txt("Ziel-Pfad"), "mountPath", "ip", "port", null );
         remMountPath.setMountPointMode(true);
         fieldList.add(remMountPath);
         JPADBFSField subPath = new JPADBFSField(VSMCMain.Txt("VSM-Pfad"), "subPath", main, pool);

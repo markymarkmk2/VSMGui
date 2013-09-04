@@ -36,7 +36,7 @@ public class HotFolderErrorTable extends BaseDataEditTable<HotFolderError>
     public static HotFolderErrorTable createTable( VSMCMain main, HotFolder clientInfo, List<HotFolderError> list, ItemClickListener listener)
     {
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
-        fieldList.add(new JPARemoteFSField(VSMCMain.Txt("Pfad"), "elem", "ip", "port" ));
+        fieldList.add(new JPARemoteFSField(VSMCMain.Txt("Pfad"), "elem", "ip", "port", null ));
         fieldList.add(new JPATextField(VSMCMain.Txt("Fehler"), "errtext"));
         
 

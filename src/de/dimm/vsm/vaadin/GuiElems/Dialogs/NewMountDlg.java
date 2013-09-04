@@ -110,7 +110,7 @@ public class NewMountDlg {
         vl.addComponent(qryEd);
 
 
-        JPARemoteFSField remMountPath = new JPARemoteFSField(VSMCMain.Txt("Ziel-Pfad"), "mountPath", "ip", "port" );
+        JPARemoteFSField remMountPath = new JPARemoteFSField(VSMCMain.Txt("Ziel-Pfad"), "mountPath", "ip", "port", null );
         remMountPath.setMountPointMode(true);
         vl.addComponent(remMountPath.createGui(mountEntry));
 
