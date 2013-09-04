@@ -164,6 +164,24 @@ public class HotFolderTable extends BaseDataEditTable<HotFolder>
 
     }
 
+    @Override
+    public void checkPlausibility( AbstractOrderedLayout editPanel, HotFolder t, Runnable okListener, Runnable nokListener )
+    {
+        if (t.getPoolIdx() == 0)
+        {
+            VSMCMain.notify(this, "Parameterfehler", "Bitte wählen Sie einen StoragePool aus");
+            if (nokListener != null)
+            {
+                nokListener.run();
+            }
+        }
+        else
+        {
+            super.checkPlausibility(editPanel, t, okListener, nokListener); //To change body of generated methods, choose Tools | Templates.
+        }
+    }
+    
+
 
 
     void importMMArchiv( HotFolder node, long fromIdx, long tillIdx, boolean withOldJobs) throws Exception
