@@ -16,9 +16,11 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TreeTable;
+import de.dimm.vsm.Utilities.SizeStr;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.auth.UserManager;
 import de.dimm.vsm.net.RemoteFSElem;
+import de.dimm.vsm.net.StoragePoolQry;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.AgentApi;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
@@ -30,8 +32,10 @@ import de.dimm.vsm.vaadin.GuiElems.Dialogs.RestoreLocationDlg;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.FileSystemViewer;
 import de.dimm.vsm.vaadin.VSMCMain;
 import de.dimm.vsm.vaadin.net.DownloadResource;
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -189,19 +193,17 @@ public class FSTreePanel extends HorizontalLayout
     ContextMenu lastMenu = null;
 
     public static ContextMenu create_fs_popup( final VSMCMain main, final IWrapper wrapper, final TreeTable tree,
-            final FSTreeContainer container, ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems,
-            final IContextMenuCallback callback )
+            final FSTreeContainer container, final ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems,
+            final IContextMenuCallback callback, String header )
     {
-        ContextMenu menu = new ContextMenu();
+        ContextMenu contextMenu = new ContextMenu();
         ContextMenuItem dl = null;
         ContextMenuItem _remove = null;
         ContextMenuItem _del = null;
         ContextMenuItem _info = null;
-
-
+        ContextMenuItem _versions = null;
 
         boolean hasFile = false;
-        boolean _hasDir = false;
         boolean oneSelected = false;
         for (int i = 0; i < rfstreeelems.size(); i++)
         {
@@ -209,70 +211,66 @@ public class FSTreePanel extends HorizontalLayout
             if (remoteFSElemTreeElem.getElem().isFile())
             {
                 hasFile = true;
-            }
-            if (remoteFSElemTreeElem.getElem().isDirectory())
-            {
-                _hasDir = true;
-            }
+            }            
         }
         if (rfstreeelems.size() == 1)
         {
             oneSelected = true;
         }
-        final boolean hasDir = _hasDir;
-
 
         // Generate main level items
         if (oneSelected)
         {
-            _info = menu.addItem(VSMCMain.Txt("Information"));
-        }
-        final ContextMenuItem ver = menu.addItem(VSMCMain.Txt("Versions"));
-        if (oneSelected && main.isSuperUser() && !wrapper.isReadOnly())
-        {
-            _remove = menu.addItem(VSMCMain.Txt("Endgültig aus dem Dateisystem entfernen"));
-            _del = menu.addItem(rfstreeelems.get(0).getElem().isDeleted() ? VSMCMain.Txt("Undelete") : VSMCMain.Txt("Delete"));
+            if (header != null)
+            {
+                contextMenu.addItem(header);
+            }
+            _info = contextMenu.addItem(VSMCMain.Txt("Information"));
+            
+            if (wrapper.getQry().isShowVersions())
+                _versions = contextMenu.addItem(VSMCMain.Txt("Versions"));
+        
+            if (main.isSuperUser() && !wrapper.isReadOnly())
+            {
+                _remove = contextMenu.addItem(VSMCMain.Txt("Endgültig aus dem Dateisystem entfernen"));
+                _del = contextMenu.addItem(rfstreeelems.get(0).getElem().isDeleted() ? VSMCMain.Txt("Undelete") : VSMCMain.Txt("Delete"));
+            }
         }
 
-        final ContextMenuItem restore = menu.addItem(VSMCMain.Txt("Restore"));
+        final ContextMenuItem restore = contextMenu.addItem(VSMCMain.Txt("Restore"));
         if (oneSelected && hasFile)
         {
-            dl = menu.addItem(VSMCMain.Txt("Download"));
+            dl = contextMenu.addItem(VSMCMain.Txt("Download"));
         }
-
 
         final ContextMenuItem download = dl;
         final ContextMenuItem del = _del;
         final ContextMenuItem remove = _remove;
         final ContextMenuItem info = _info;
+        final ContextMenuItem versions = _versions;
 
         // Enable separator line under this item
-        ver.setSeparatorVisible(true);
+        if (versions != null)
+            versions.setSeparatorVisible(true);
 
         // Show notification when menu items are clicked
-        menu.addListener(new ContextMenu.ClickListener()
+        contextMenu.addListener(new ContextMenu.ClickListener()
         {
-
             @Override
-            public void contextItemClick( ContextMenu.ClickEvent event )
+            public void contextItemClick( ContextMenu.ClickEvent ctxEvent )
             {
-                // Get reference to clicked item
-
                 // INFO, DEL AND REMOVE WORK ONLY WITH SINGLE SELECTION
                 final RemoteFSElemTreeElem singleRfstreeelem = rfstreeelems.get(0);
-                ContextMenuItem clickedItem = event.getClickedItem();
+                ContextMenuItem clickedItem = ctxEvent.getClickedItem();
                 if (clickedItem == info)
                 {
                     FileinfoWindow win = new FileinfoWindow(main, wrapper, singleRfstreeelem.getElem());
-
-                    // Do something with the reference
-                    event.getComponent().getApplication().getMainWindow().addWindow(win);
+                    ctxEvent.getComponent().getApplication().getMainWindow().addWindow(win);
                 }
                 if (clickedItem == del && main.isSuperUser())
                 {
                     Button.ClickListener ok = new Button.ClickListener()
                     {
-
                         @Override
                         public void buttonClick( ClickEvent event )
                         {
@@ -286,11 +284,9 @@ public class FSTreePanel extends HorizontalLayout
                                 {
                                     main.getGuiServerApi().deleteFSElem(wrapper, singleRfstreeelem.getElem());
                                 }
-
                                 tree.setCollapsed(singleRfstreeelem.getParent(), true);
                                 tree.setCollapsed(singleRfstreeelem.getParent(), false);
                                 tree.requestRepaint();
-
                             }
                             catch (Exception ex)
                             {
@@ -325,20 +321,16 @@ public class FSTreePanel extends HorizontalLayout
                 {
                     Button.ClickListener ok = new Button.ClickListener()
                     {
-
                         @Override
                         public void buttonClick( ClickEvent event )
                         {
-
                             try
                             {
                                 main.getGuiServerApi().removeFSElem(wrapper, singleRfstreeelem.getElem());
                                 container.removeItem(singleRfstreeelem);
-
                                 tree.setCollapsed(singleRfstreeelem.getParent(), true);
                                 tree.setCollapsed(singleRfstreeelem.getParent(), false);
                                 tree.requestRepaint();
-
                             }
                             catch (Exception ex)
                             {
@@ -364,20 +356,99 @@ public class FSTreePanel extends HorizontalLayout
                 {
                     callback.handleDownload(singleRfstreeelem);
                 }
+                if (clickedItem == versions)
+                {                    
+                    openVersionCtxMenu(main, wrapper, tree, container, event, singleRfstreeelem);
+                }
             }
+
+            
         }); // Open Context Menu to mouse coordinates when user right clicks layout
 
 
         // HAS TO BE IN VAADIN VIEW
-        tree.getApplication().getMainWindow().addComponent(menu);
+        tree.getApplication().getMainWindow().addComponent(contextMenu);
 
 
-        menu.show(event.getClientX(), event.getClientY());
+        contextMenu.show(event.getClientX(), event.getClientY());
 
-        return menu;
-
+        return contextMenu;
     }
+    
+    static SimpleDateFormat verFmt = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    static private String genVerText( RemoteFSElem elem )
+    {        
+        String txt = elem.getName() + " vom " + verFmt.format(elem.getMtime()) + " " + SizeStr.format(elem.getDataSize());
+        return txt;
+    }
+    static void openVersionCtxMenu(final VSMCMain main, final IWrapper wrapper, final TreeTable tree,
+            final FSTreeContainer container, final ItemClickEvent event, final RemoteFSElemTreeElem singleRfstreeelem
+            )
+    {
+        final List<RemoteFSElem> versions;
+        try
+        {
+            versions = main.getGuiServerApi().listVersions(wrapper, singleRfstreeelem.getElem());
+        }
+        catch (SQLException | IOException ex)
+        {
+            main.Msg().errmOkCancel(VSMCMain.Txt("Fehler beim Ermitteln der Versionen"), "", null, null);
+            return;
+        }
+        final List<ContextMenuItem>versionItems = new ArrayList<>();
 
+        ContextMenu versionsMenu = new ContextMenu();
+        // for
+
+        for (int i = 0; i < versions.size(); i++)
+        {
+            RemoteFSElem rfs = versions.get(i);
+            String verText = genVerText(rfs);
+            versionItems.add( versionsMenu.addItem(verText) );                        
+        }
+        
+        final IContextMenuCallback callback = new IContextMenuCallback()
+        {
+            @Override
+            public void handleRestoreTargetDialog( List<RemoteFSElemTreeElem> rfstreeelems )
+            {
+                RestoreLocationDlg dlg = createRestoreTargetDialog(main, wrapper, rfstreeelems, /*versioned*/ true);
+                tree.getApplication().getMainWindow().addWindow(dlg);
+            }
+            @Override
+            public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
+            {
+                DownloadResource downloadResource = createDownloadResource(main, tree.getApplication(), wrapper, singleRfstreeelem);
+                tree.getWindow().open(downloadResource);
+            }           
+        };        
+
+        versionsMenu.addListener(new ContextMenu.ClickListener()
+        {
+            @Override
+            public void contextItemClick( ContextMenu.ClickEvent versionsEvent )
+            {
+                // Get reference to clicked item
+                ContextMenuItem clickedItem = versionsEvent.getClickedItem();
+                for (int vIdx = 0; vIdx < versionItems.size(); vIdx++)
+                {
+                    ContextMenuItem contextMenuItem = versionItems.get(vIdx);
+                    if (clickedItem == contextMenuItem)
+                    {
+                        final List<RemoteFSElemTreeElem> versionItemList = new ArrayList<>();
+                        versionItemList.add( new RemoteFSElemTreeElem(null, versions.get(vIdx), singleRfstreeelem) );
+                        String header = clickedItem.getName();
+                        ContextMenu versionContextMenu = create_fs_popup(main, wrapper, tree, container, event, versionItemList, callback, header);
+                        tree.getApplication().getMainWindow().addComponent(versionContextMenu);
+                        versionContextMenu.show(event.getClientX(), event.getClientY());
+                    }
+                }
+            }
+        });
+        tree.getApplication().getMainWindow().addComponent(versionsMenu);
+        versionsMenu.show(event.getClientX(), event.getClientY());        
+    }
+    
     void create_fs_popup( ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems )
     {
         if (lastMenu != null)
@@ -387,23 +458,21 @@ public class FSTreePanel extends HorizontalLayout
 
         IContextMenuCallback callback = new IContextMenuCallback()
         {
-
             @Override
             public void handleRestoreTargetDialog( List<RemoteFSElemTreeElem> rfstreeelems )
             {
-                RestoreLocationDlg dlg = createRestoreTargetDialog(main, viewWrapper, rfstreeelems);
+                RestoreLocationDlg dlg = createRestoreTargetDialog(main, viewWrapper, rfstreeelems, /*versioned*/ false);
                 getApplication().getMainWindow().addWindow(dlg);
             }
-
             @Override
             public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
             {
                 DownloadResource downloadResource = createDownloadResource(main, getApplication(), viewWrapper, singleRfstreeelem);
                 getWindow().open(downloadResource);
             }
+           
         };
-
-        lastMenu = create_fs_popup(main, viewWrapper, tree, container, event, rfstreeelems, callback);
+        lastMenu = create_fs_popup(main, viewWrapper, tree, container, event, rfstreeelems, callback, /*ctxMenuHeader*/null);
     }
 
     public static DownloadResource createDownloadResource( final VSMCMain main, Application app, final IWrapper wrapper, final RemoteFSElemTreeElem rfstreeelem )
@@ -416,8 +485,16 @@ public class FSTreePanel extends HorizontalLayout
 
         return downloadResource;
     }
-
     public static RestoreLocationDlg createRestoreTargetDialog( final VSMCMain main, final IWrapper wrapper, final List<RemoteFSElemTreeElem> rfstreeelems )
+    {
+        return createRestoreTargetDialog(main, wrapper, rfstreeelems, false);
+    }
+    public static RestoreLocationDlg createVersionedRestoreTargetDialog( final VSMCMain main, final IWrapper wrapper, final List<RemoteFSElemTreeElem> rfstreeelems )
+    {
+        return createRestoreTargetDialog(main, wrapper, rfstreeelems, true);
+    }
+
+    private static RestoreLocationDlg createRestoreTargetDialog( final VSMCMain main, final IWrapper wrapper, final List<RemoteFSElemTreeElem> rfstreeelems, final boolean versioned )
     {
         boolean allowOrig = true;
 
@@ -438,7 +515,7 @@ public class FSTreePanel extends HorizontalLayout
             @Override
             public void buttonClick( ClickEvent event )
             {
-                handleRestoreOkayDialog(main, wrapper, dlg, rfstreeelems);
+                handleRestoreOkayDialog(main, wrapper, dlg, rfstreeelems, versioned);
             }
         };
         dlg.setOkListener(okListener);
@@ -446,7 +523,7 @@ public class FSTreePanel extends HorizontalLayout
         return dlg;
     }
 
-    public static void handleRestoreOkayDialog( final VSMCMain main, final IWrapper wrapper, final RestoreLocationDlg dlg, final List<RemoteFSElemTreeElem> rfstreeelems )
+    public static void handleRestoreOkayDialog( final VSMCMain main, final IWrapper wrapper, final RestoreLocationDlg dlg, final List<RemoteFSElemTreeElem> rfstreeelems, final boolean versioned )
     {
         Button.ClickListener ok = new Button.ClickListener()
         {
@@ -507,11 +584,20 @@ public class FSTreePanel extends HorizontalLayout
                         {
                             if (!restoreList.isEmpty())
                             {
-                                if (!main.getGuiServerApi().restoreFSElems(wrapper, restoreList, lastIp, lastPort, lastPath, lastRflags, main.getUser()))
+                                if (versioned)
                                 {
-                                    rret = false;
+                                    if (!main.getGuiServerApi().restoreVersionedFSElems(wrapper, restoreList, lastIp, lastPort, lastPath, lastRflags, main.getUser()))
+                                    {
+                                        rret = false;
+                                    }
                                 }
-
+                                else
+                                {
+                                    if (!main.getGuiServerApi().restoreFSElems(wrapper, restoreList, lastIp, lastPort, lastPath, lastRflags, main.getUser()))
+                                    {
+                                        rret = false;
+                                    }
+                                }                                    
                                 restoreList.clear();
                             }
                         }
@@ -525,11 +611,21 @@ public class FSTreePanel extends HorizontalLayout
                     // RESTORE EVERYTHING GATHERED UNTIL NOW
                     if (!restoreList.isEmpty())
                     {
-                        if (!main.getGuiServerApi().restoreFSElems(wrapper, restoreList, lastIp, lastPort, lastPath, lastRflags, main.getUser()))
+                        if (versioned)
                         {
-                            rret = false;
+                            if (!main.getGuiServerApi().restoreVersionedFSElems(wrapper, restoreList, lastIp, lastPort, lastPath, lastRflags, main.getUser()))
+                            {
+                                rret = false;
+                            }
                         }
-
+                        else
+                        {
+                            if (!main.getGuiServerApi().restoreFSElems(wrapper, restoreList, lastIp, lastPort, lastPath, lastRflags, main.getUser()))
+                            {
+                                rret = false;
+                            }
+                        }                                    
+                        
                         restoreList.clear();
                     }
 
@@ -708,29 +804,13 @@ public class FSTreePanel extends HorizontalLayout
 
         User usr = getUser(me);
 
-        if (me.getTyp().equals(MountEntry.TYP_RDONLY))
-        {
-            viewWrapper = main.getGuiServerApi().openPoolView(me.getPool(), me.isReadOnly(), me.isShowDeleted(), "", usr);
-        }
-        else if (me.getTyp().equals(MountEntry.TYP_RDWR))
-        {
-            viewWrapper = main.getGuiServerApi().openPoolView(me.getPool(), me.isReadOnly(), me.isShowDeleted(), "", usr);
-        }
-        else if (me.getTyp().equals(MountEntry.TYP_SNAPSHOT))
-        {
-            Date timestamp = me.getSnapShot().getCreation();
-            viewWrapper = main.getGuiServerApi().openPoolView(me.getPool(), timestamp, "", usr);
-        }
-        else if (me.getTyp().equals(MountEntry.TYP_TIMESTAMP))
-        {
-            Date timestamp = me.getTs();
-            viewWrapper = main.getGuiServerApi().openPoolView(me.getPool(), timestamp, "", usr);
-        }
-
-
+        StoragePoolQry qry = StoragePoolQry.createMountEntryStoragePoolQry( usr, me);
+        viewWrapper = main.getGuiServerApi().openPoolView(me.getPool(),qry, "");
+        
         Component c = initFsTree(viewWrapper);
         c.setSizeFull();
         addComponent(tree);
+        this.setExpandRatio(tree, 1.0f);
 
         mounted = true;
     }

@@ -49,7 +49,9 @@ public class FileSystemViewer extends SidebarPanel
         VerticalLayout vl = new VerticalLayout();
 
         this.addComponent(vl);
+        this.setExpandRatio(vl, 1.0f);
         vl.setSpacing(true);
+        vl.setSizeFull();
         HorizontalLayout hlMount = new HorizontalLayout();
         hlMount.setSpacing(true);
         hlMount.setWidth("100%");
@@ -142,6 +144,7 @@ public class FileSystemViewer extends SidebarPanel
         treePanel.setSizeFull();
 
         vl.addComponent(treePanel);
+        vl.setExpandRatio(treePanel, 1.0f);
 
         refresher.addListener(new Refresher.RefreshListener()
         {

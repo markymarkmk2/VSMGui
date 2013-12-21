@@ -22,6 +22,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.net.RemoteFSElem;
+import de.dimm.vsm.net.StoragePoolQry;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.records.FileSystemElemNode;
@@ -379,7 +380,8 @@ public class DBFSElemEditor extends HorizontalLayout
         if (pool == null)
             return;
         
-        final StoragePoolWrapper wrapper = api.openPoolView(pool, false, "/", main.getGuiWrapper().getUser());
+        StoragePoolQry qry = StoragePoolQry.createActualRdWrStoragePoolQry(main.getGuiWrapper().getUser(), /*del*/false);
+        final StoragePoolWrapper wrapper = api.openPoolView(pool, qry, "/");
         final FSTree treePanel = createClientPathTree(api, wrapper, main.getUser());
 
         if (treePanel == null)

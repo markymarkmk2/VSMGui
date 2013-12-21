@@ -68,27 +68,21 @@ public class RemoteFSElemTreeElem
     {
        if (m.equals("icon"))
        {
-           String icon;
+           String icon = "images/";
+           
            if (elem.isDirectory())
-           {
-               if (elem.isDeleted())
-                   icon = "images/dir_closed_deleted.png";
-               else
-                   icon = "images/dir_closed.png";
-/*               if (collapsed)
-                   icon = "images/dir_closed.png";
-               else
-                   icon = "images/dir_open.png";*/
-           }
+               icon += "dir_closed";
            else
-           {
-               if (elem.isDeleted())
-                   icon = "images/file_deleted.png";
-               else
-                   icon = "images/file.png";
-           }
+               icon += "file";
+           
+           if (elem.isDeleted())
+               icon += "_deleted";
+           
+           if (elem.isMultVersions())
+               icon += "_multi";
 
-
+           icon += ".png";
+           
            return new ObjectProperty( new ThemeResource(icon), ThemeResource.class );
           
        }

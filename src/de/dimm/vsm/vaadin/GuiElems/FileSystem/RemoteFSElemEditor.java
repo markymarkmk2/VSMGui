@@ -21,6 +21,8 @@ import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -174,7 +176,7 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
             }
             else
             {                
-                root_list = new ArrayList<RemoteFSElem>();
+                root_list = new ArrayList<>();
                 for (int i = 0; i < filter.size(); i++)
                 {
                     String pathfilter = filter.get(i);
@@ -198,7 +200,7 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
         }
         else
         {
-            root_list = new ArrayList<RemoteFSElem>();
+            root_list = new ArrayList<>();
             List<RemoteFSElem> l;            
             if ((options &  LocalFSElemEditor.STAY_LOCAL_MODE) != 0)
                 l = api.list_dir_local(startPath,/*withAcl*/ true);
@@ -223,7 +225,7 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
             @Override
             public List<RemoteFSElemTreeElem> getChildren(RemoteFSElemTreeElem elem)
             {
-                List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
+                List<RemoteFSElemTreeElem> childList = new ArrayList<>();
 
                // ArrayList<RemoteFSElem> elem_list = api.list_dir(elem.getElem(),/*withAcl*/ true);
                 List<RemoteFSElem> elem_list;
@@ -288,7 +290,7 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
     }
     protected FSTree createClientPathTree(StoragePoolWrapper wrapper, VSMCMain main)
     {
-        RemoteCallFactory _factory = null;
+        RemoteCallFactory _factory;
         try
         {
             InetAddress addr = InetAddress.getByName(getActIP());

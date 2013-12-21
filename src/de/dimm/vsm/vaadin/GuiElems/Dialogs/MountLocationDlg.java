@@ -28,8 +28,8 @@ import java.util.Date;
  */
 public class MountLocationDlg extends Window
 {
-     static ArrayList<String> ipList = new ArrayList<String>();
-     static ArrayList<String> pathList = new ArrayList<String>();
+     static ArrayList<String> ipList = new ArrayList<>();
+     static ArrayList<String> pathList = new ArrayList<>();
 
      VerticalLayout vl = new VerticalLayout();
      

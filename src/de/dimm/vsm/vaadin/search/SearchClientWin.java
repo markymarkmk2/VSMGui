@@ -648,7 +648,7 @@ public class SearchClientWin extends SidebarPanel
             }
         };
 
-        lastMenu = FSTreePanel.create_fs_popup(main, searchWrapper, tree, container, event, rfstreeelems, callback);
+        lastMenu = FSTreePanel.create_fs_popup(main, searchWrapper, tree, container, event, rfstreeelems, callback, null);
     }
 
 }

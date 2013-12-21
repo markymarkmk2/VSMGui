@@ -110,6 +110,7 @@ public class PoolQryEditor extends HorizontalLayout
         typeList.add( new ComboEntry(MountEntry.TYP_SNAPSHOT, VSMCMain.Txt("Snapshot")));
         typeList.add( new ComboEntry(MountEntry.TYP_TIMESTAMP, VSMCMain.Txt("Timestamp")));
         typeList.add( new ComboEntry(MountEntry.TYP_RDONLY, VSMCMain.Txt("Aktuell nur lesen")));
+        typeList.add( new ComboEntry(MountEntry.TYP_RDONLYMULTI, VSMCMain.Txt("Versionen nur lesen")));
         typeList.add( new ComboEntry(MountEntry.TYP_RDWR, VSMCMain.Txt("Aktuell lesen/schreiben")));
     }
     public static String getTypeText( String typ)

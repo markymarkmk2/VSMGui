@@ -16,11 +16,11 @@ import de.dimm.vsm.net.ScheduleStatusEntry;
 import de.dimm.vsm.net.SearchEntry;
 import de.dimm.vsm.net.SearchStatus;
 import de.dimm.vsm.net.SearchWrapper;
+import de.dimm.vsm.net.StoragePoolQry;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.GuiLoginApi;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.net.interfaces.IWrapper;
-import de.dimm.vsm.net.interfaces.UIRecoveryApi;
 import de.dimm.vsm.records.AbstractStorageNode;
 import de.dimm.vsm.records.ArchiveJob;
 import de.dimm.vsm.records.FileSystemElemNode;
@@ -207,36 +207,6 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
             return api.remountVolume(wrapper);
 
         return false;
-    }
-
-    @Override
-    public StoragePoolWrapper openPoolView( StoragePool pool, Date timestamp, String subPath, User user )
-    {
-        GuiServerApi guiServerApi = checkLogin();
-        if (guiServerApi != null)
-            return guiServerApi.openPoolView(pool, timestamp, subPath, user);
-
-        return null;
-    }
-
-    @Override
-    public StoragePoolWrapper openPoolView( StoragePool pool, boolean rdonly, String subPath, User user )
-    {
-        GuiServerApi guiServerApi = checkLogin();
-        if (guiServerApi != null)
-            return guiServerApi.openPoolView(pool, rdonly, subPath, user);
-
-        return null;
-    }
-
-    @Override
-    public StoragePoolWrapper openPoolView( StoragePool pool, boolean rdonly, FileSystemElemNode node, User user )
-    {
-        GuiServerApi guiServerApi = checkLogin();
-        if (guiServerApi != null)
-            return guiServerApi.openPoolView(pool, rdonly, node, user);
-
-        return null;
     }
 
     @Override
@@ -621,25 +591,24 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
             guiServerApi.updateReadIndex(pool);
 
     }
-
     @Override
-    public StoragePoolWrapper openPoolView( StoragePool pool, boolean rdonly, boolean showDeleted, String subPath, User user )
+    public StoragePoolWrapper openPoolView( StoragePool pool, StoragePoolQry qry, String subPath )
     {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
-            return guiServerApi.openPoolView(pool, rdonly, showDeleted, subPath, user);
+            return guiServerApi.openPoolView(pool, qry, subPath);
         return null;
     }
 
     @Override
-    public StoragePoolWrapper openPoolView( StoragePool pool, boolean rdonly, boolean showDeleted, FileSystemElemNode node, User user )
+    public StoragePoolWrapper openPoolView( StoragePool pool, StoragePoolQry qry, FileSystemElemNode node )
     {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
-            return guiServerApi.openPoolView(pool, rdonly, showDeleted, node, user);
+            return guiServerApi.openPoolView(pool, qry, node);
 
         return null;
-    }
+    }    
 
     @Override
     public boolean undeleteFSElem( IWrapper wrapper, RemoteFSElem path ) throws SQLException, PoolReadOnlyException
@@ -770,5 +739,34 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
         if (guiServerApi != null)
             guiServerApi.rebuildBootstraps( user, pool );
     }
+    @Override
+    public List<RemoteFSElem> listVersions( IWrapper wrapper, RemoteFSElem path ) throws SQLException, IOException
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.listVersions(wrapper, path);
+
+        return null;
+    }
+
+    @Override
+    public boolean restoreVersionedFSElem( IWrapper wrapper, RemoteFSElem path, String targetIP, int targetPort, String targetPath, int flags, User user ) throws SQLException, PoolReadOnlyException, IOException
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.restoreVersionedFSElem(wrapper, path, targetIP, targetPort, targetPath, flags, user);
+
+        return false;
+    }
+    @Override
+    public boolean restoreVersionedFSElems( IWrapper wrapper, List<RemoteFSElem> paths, String targetIP, int targetPort, String targetPath, int flags, User user ) throws SQLException, PoolReadOnlyException, IOException
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.restoreVersionedFSElems(wrapper, paths, targetIP, targetPort, targetPath, flags, user);
+
+        return false;
+    }
+    
 
 }

@@ -28,9 +28,11 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.VerticalLayout;
+import de.dimm.vsm.Exceptions.PoolReadOnlyException;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.SearchEntry;
 import de.dimm.vsm.net.SearchWrapper;
+import de.dimm.vsm.net.StoragePoolQry;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.records.ArchiveJob;
@@ -56,6 +58,7 @@ import de.dimm.vsm.vaadin.net.DownloadResource;
 import de.dimm.vsm.vaadin.search.TimeIntervalPanel;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -147,7 +150,7 @@ public class ArchiveJobWin extends SidebarPanel
 
         txt_status.setReadOnly(true);
 
-        List<ComboEntry> entries = new ArrayList<ComboEntry>();
+        List<ComboEntry> entries = new ArrayList<>();
         for (int i = 0; i < niceTyp.length; i++)
         {
             entries.add( new ComboEntry( typ[i],  niceTyp[i]) );
@@ -157,7 +160,7 @@ public class ArchiveJobWin extends SidebarPanel
         cb_type.setNullSelectionAllowed(false);
         cb_type.select(entries.get(2));
 
-        entries = new ArrayList<ComboEntry>();
+        entries = new ArrayList<>();
         for (int i = 0; i < niceDf.length; i++)
         {
             entries.add( new ComboEntry( df[i],  niceDf[i]) );
@@ -177,7 +180,7 @@ public class ArchiveJobWin extends SidebarPanel
             }
         });
 
-        entries = new ArrayList<ComboEntry>();
+        entries = new ArrayList<>();
 
         entries.add( new ComboEntry( new Integer(1),  "1") );
         entries.add( new ComboEntry( new Integer(20),  "20") );
@@ -389,7 +392,7 @@ public class ArchiveJobWin extends SidebarPanel
             @Override
             public void SelectedAction( StoragePool pool )
             {
-                ArrayList<SearchEntry> slist = new ArrayList<SearchEntry>();
+                ArrayList<SearchEntry> slist = new ArrayList<>();
 
                 boolean ci = true;
 
@@ -518,7 +521,7 @@ public class ArchiveJobWin extends SidebarPanel
             }
             btMountVol.setCaption(umntText);
             mountedVol = true;
-            lastMountedPool = main.getStoragePool(poolWrapper.getPoolIdx());
+            lastMountedPool = VSMCMain.getStoragePool(poolWrapper.getPoolIdx());
         }
     }
 
@@ -621,7 +624,7 @@ public class ArchiveJobWin extends SidebarPanel
         }
 
         
-        ArrayList<FSTreeColumn> fields = new ArrayList<FSTreeColumn>();
+        ArrayList<FSTreeColumn> fields = new ArrayList<>();
         fields.add(new FSTreeColumn("name", VSMCMain.Txt("Name"), -1, 1.0f, Table.ALIGN_LEFT, String.class));
         fields.add(new FSTreeColumn("date", VSMCMain.Txt("Datum"), 100, -1, Table.ALIGN_LEFT, String.class));
         fields.add(new FSTreeColumn("size", VSMCMain.Txt("Größe"), 80, -1, Table.ALIGN_RIGHT, String.class));
@@ -639,7 +642,7 @@ public class ArchiveJobWin extends SidebarPanel
             @Override
             public List<RemoteFSElemTreeElem> getChildren( RemoteFSElemTreeElem elem )
             {
-                List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
+                List<RemoteFSElemTreeElem> childList = new ArrayList<>();
                 try
                 {
                     
@@ -679,14 +682,14 @@ public class ArchiveJobWin extends SidebarPanel
 
         StoragePool pool = main.resolveStoragePool(searchWrapper.getPoolIdx());
 
-
-        poolWrapper = main.getGuiServerApi().openPoolView(pool, true, job.getDirectory(), main.getGuiWrapper().getUser());
+        StoragePoolQry qry = StoragePoolQry.createActualRdOnlyStoragePoolQry(main.getGuiWrapper().getUser(), /*del*/ false);
+        poolWrapper = main.getGuiServerApi().openPoolView(pool, qry, job.getDirectory());
         // DO NOT MAP ARCHIVE PATHS 
         poolWrapper.getQry().setUseMappingFilter(false);
 
         RemoteFSElem root = new RemoteFSElem(job.getDirectory(), job.getDirectory().getAttributes());
         root.setIdx(job.getDirectory().getIdx());
-        List<RemoteFSElem> root_list = null;
+        List<RemoteFSElem> root_list;
 
         try
         {
@@ -722,12 +725,12 @@ public class ArchiveJobWin extends SidebarPanel
                     if (sel instanceof Set<?> && ((Set<?>)sel).size() > 1)
                     {
                         Set<RemoteFSElemTreeElem> set = (Set<RemoteFSElemTreeElem>)sel;
-                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>(set);
+                        List<RemoteFSElemTreeElem> list = new ArrayList<>(set);
                         create_fs_popup(event, list);
                     }
                     else
                     {
-                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>();
+                        List<RemoteFSElemTreeElem> list = new ArrayList<>();
                         list.add(clickedItem);
                         create_fs_popup(event, list);
                     }
@@ -767,9 +770,10 @@ public class ArchiveJobWin extends SidebarPanel
                 DownloadResource downloadResource = FSTreePanel.createDownloadResource( main, getApplication(), searchWrapper, singleRfstreeelem);
                 getWindow().open(downloadResource);
             }
+            
         };
 
-        lastMenu = FSTreePanel.create_fs_popup(main, searchWrapper, tree, container, event, rfstreeelems, callback);
+        lastMenu = FSTreePanel.create_fs_popup(main, searchWrapper, tree, container, event, rfstreeelems, callback, null);
     }
 
 //    void create_fs_popup( ItemClickEvent event, final RemoteFSElemTreeElem rfstreeelem )
@@ -973,9 +977,9 @@ public class ArchiveJobWin extends SidebarPanel
             }
 
         }
-        catch (Exception exc)
+        catch (SQLException | PoolReadOnlyException exc)
         {
-            exc.printStackTrace();
+            //exc.printStackTrace();
             VSMCMain.notify(treePanel, VSMCMain.Txt("Das Löschen des Jobs schlug fehl"), exc.getMessage());
         }
     }
@@ -1096,7 +1100,7 @@ public class ArchiveJobWin extends SidebarPanel
                         main.Msg().info(VSMCMain.Txt("Der_Restore_wurde_gestartet"), null);
                     }
                 }
-                catch (Exception ex)
+                catch (SQLException | PoolReadOnlyException | IOException ex)
                 {
                     main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_abgebrochen"));
                 }
