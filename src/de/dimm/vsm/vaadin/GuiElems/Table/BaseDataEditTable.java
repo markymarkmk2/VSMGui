@@ -454,6 +454,19 @@ public abstract class BaseDataEditTable<T> extends Table
 
     }
 
+    public void setNext()
+    {
+        if (activeElem == null)
+            return;
+        
+        int idx = parentObjlist.indexOf(activeElem);
+        if (idx < parentObjlist.size() - 1)
+        {
+            activeElem = parentObjlist.get(idx + 1);
+            this.requestRepaint();
+        }        
+    }
+    
 
     public void callTableClick( ItemClickEvent event, T item )
     {
@@ -1052,7 +1065,7 @@ public abstract class BaseDataEditTable<T> extends Table
     }
     protected String getHeaderText(JPAField dbl)
     {
-        String s = VSMCMain.Txt("Liste der" + " " + dbl.getCaption());
+        String s = VSMCMain.Txt("Liste der") + " " + dbl.getCaption();
         return s;
     }
     public String getTablenameText()
@@ -1085,6 +1098,7 @@ public abstract class BaseDataEditTable<T> extends Table
     {
         return true;
     }
+
 
 
 

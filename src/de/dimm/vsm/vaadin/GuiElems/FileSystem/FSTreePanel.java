@@ -88,7 +88,8 @@ public class FSTreePanel extends HorizontalLayout
                 List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
                 try
                 {
-                    RemoteFSElem dir = RemoteFSElem.createDir(elem.getAbsolutePath());
+                    RemoteFSElem dir = new RemoteFSElem(elem.getElem());
+                    dir.setPath(elem.getAbsolutePath());
 
                     List<RemoteFSElem> elem_list = main.getGuiServerApi().listDir(wrapper, dir);
                     for (int i = 0; i < elem_list.size(); i++)

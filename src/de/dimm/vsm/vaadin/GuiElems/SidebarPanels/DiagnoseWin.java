@@ -6,30 +6,28 @@
 package de.dimm.vsm.vaadin.GuiElems.SidebarPanels;
 
 
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.terminal.Sizeable;
 import com.vaadin.ui.AbsoluteLayout;
-import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
+import com.vaadin.ui.AbstractLayout;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Table;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
-import com.vaadin.ui.TreeTable;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.VerticalSplitPanel;
+import de.dimm.vsm.fsengine.JDBCEntityManager;
 import de.dimm.vsm.net.RemoteCallFactory;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.AgentApi;
-import de.dimm.vsm.records.FileSystemElemNode;
-import de.dimm.vsm.vaadin.GuiElems.BootstrapFSTreeContainer;
+import de.dimm.vsm.records.TextBase;
 import de.dimm.vsm.vaadin.GuiElems.Charts;
-import de.dimm.vsm.vaadin.GuiElems.FileSystem.BootstrapFSElemTreeElem;
-import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTree;
-import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeColumn;
-import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreeContainer;
-import de.dimm.vsm.vaadin.GuiElems.FileSystem.LocalItemDescriptionGenerator;
-import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteFSElemTreeElem;
-import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteProvider;
+import de.dimm.vsm.vaadin.GuiElems.TablePanels.TextBaseEntryTable;
 import de.dimm.vsm.vaadin.VSMCMain;
-import java.io.File;
 import java.net.InetAddress;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -172,77 +170,149 @@ public class DiagnoseWin extends SidebarPanel
             RemoteFSElem root = new RemoteFSElem(file1.getPath(), file1.isDirectory(), file1.lastModified(), 0, 0, file1.length(), file1.length());
             root_list.add(root);
         }*/
-        File file1 = new File("z:\\storage");
-        String typ = file1.isDirectory() ? FileSystemElemNode.FT_DIR : FileSystemElemNode.FT_FILE;
-        RemoteFSElem root = new RemoteFSElem(file1.getPath(), typ, file1.lastModified(), 0, 0, file1.length(), file1.length());
-        root_list.add(root);
+//        File file1 = new File("z:\\storage");
+//        String typ = file1.isDirectory() ? FileSystemElemNode.FT_DIR : FileSystemElemNode.FT_FILE;
+//        RemoteFSElem root = new RemoteFSElem(file1.getPath(), typ, file1.lastModified(), 0, 0, file1.length(), file1.length());
+//        root_list.add(root);
+//
+//
+//        ArrayList<FSTreeColumn> fields = new ArrayList<FSTreeColumn>();
+//        fields.add( new FSTreeColumn("name", VSMCMain.Txt("Name"), -1, 1.0f, Table.ALIGN_LEFT, String.class));
+//        fields.add( new FSTreeColumn("date", VSMCMain.Txt("Datum"), 100, -1, Table.ALIGN_LEFT, String.class));
+//        fields.add( new FSTreeColumn("size", VSMCMain.Txt("Größe"), 80, -1, Table.ALIGN_RIGHT, String.class));
+//        fields.add( new FSTreeColumn("atttribute", VSMCMain.Txt("Attribute"), 80, -1, Table.ALIGN_LEFT, String.class));
+//
+//
+//        RemoteProvider provider = new RemoteProvider()
+//        {
+//
+//            @Override
+//            public RemoteFSElemTreeElem createNode( RemoteProvider provider, RemoteFSElem elem, RemoteFSElemTreeElem parent)
+//            {
+//                return new BootstrapFSElemTreeElem(provider, elem, parent);
+//            }
+//
+//            @Override
+//            public List<RemoteFSElemTreeElem> getChildren(RemoteFSElemTreeElem elem)
+//            {
+//                List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
+//
+//                File f = new File(elem.getElem().getPath());
+//                File[] l = f.listFiles();
+//                if (l == null)
+//                    return childList;
+//
+//                for (int i = 0; i < l.length; i++)
+//                {
+//                    File file = l[i];
+//                    String typ = file.isDirectory() ? FileSystemElemNode.FT_DIR : FileSystemElemNode.FT_FILE;
+//                    RemoteFSElem rfse = new RemoteFSElem(file.getPath(), typ, file.lastModified(), 0, 0, file.length(), file.length());
+//
+//                    RemoteFSElemTreeElem e = new BootstrapFSElemTreeElem(this, rfse, elem);
+//                    childList.add(e );
+//                }
+//                return childList;
+//            }
+//
+//            @Override
+//            public boolean createDir( RemoteFSElemTreeElem elem )
+//            {
+//                throw new UnsupportedOperationException("Not supported yet.");
+//            }
+//            @Override
+//            public ItemDescriptionGenerator getItemDescriptionGenerator()
+//            {
+//                return new LocalItemDescriptionGenerator();
+//            }
+//
+//
+//        };
+//
+//        FSTreeContainer cs = new BootstrapFSTreeContainer( provider, fields);
+//        cs.initRootlist(root_list);
+//
+//        TreeTable tr = new FSTree(fields, /*sort*/ false);
+//        tr.setContainerDataSource(cs);
+//        tr.setItemDescriptionGenerator(provider.getItemDescriptionGenerator());
+//
+//        // reserve excess space for the "treecolumn"
+//        tr.setWidth("100%");
+        
+         hotFolderSplitter = new VerticalSplitPanel();
+        hotFolderSplitter.setSizeFull();
+        hotFolderSplitter.setSplitPosition(35, Sizeable.UNITS_PERCENTAGE);
 
-
-        ArrayList<FSTreeColumn> fields = new ArrayList<FSTreeColumn>();
-        fields.add( new FSTreeColumn("name", VSMCMain.Txt("Name"), -1, 1.0f, Table.ALIGN_LEFT, String.class));
-        fields.add( new FSTreeColumn("date", VSMCMain.Txt("Datum"), 100, -1, Table.ALIGN_LEFT, String.class));
-        fields.add( new FSTreeColumn("size", VSMCMain.Txt("Größe"), 80, -1, Table.ALIGN_RIGHT, String.class));
-        fields.add( new FSTreeColumn("atttribute", VSMCMain.Txt("Attribute"), 80, -1, Table.ALIGN_LEFT, String.class));
-
-
-        RemoteProvider provider = new RemoteProvider()
-        {
-
-            @Override
-            public RemoteFSElemTreeElem createNode( RemoteProvider provider, RemoteFSElem elem, RemoteFSElemTreeElem parent)
-            {
-                return new BootstrapFSElemTreeElem(provider, elem, parent);
-            }
-
-            @Override
-            public List<RemoteFSElemTreeElem> getChildren(RemoteFSElemTreeElem elem)
-            {
-                List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
-
-                File f = new File(elem.getElem().getPath());
-                File[] l = f.listFiles();
-                if (l == null)
-                    return childList;
-
-                for (int i = 0; i < l.length; i++)
-                {
-                    File file = l[i];
-                    String typ = file.isDirectory() ? FileSystemElemNode.FT_DIR : FileSystemElemNode.FT_FILE;
-                    RemoteFSElem rfse = new RemoteFSElem(file.getPath(), typ, file.lastModified(), 0, 0, file.length(), file.length());
-
-                    RemoteFSElemTreeElem e = new BootstrapFSElemTreeElem(this, rfse, elem);
-                    childList.add(e );
-                }
-                return childList;
-            }
-
-            @Override
-            public boolean createDir( RemoteFSElemTreeElem elem )
-            {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-            @Override
-            public ItemDescriptionGenerator getItemDescriptionGenerator()
-            {
-                return new LocalItemDescriptionGenerator();
-            }
-
-
-        };
-
-        FSTreeContainer cs = new BootstrapFSTreeContainer( provider, fields);
-        cs.initRootlist(root_list);
-
-        TreeTable tr = new FSTree(fields, /*sort*/ false);
-        tr.setContainerDataSource(cs);
-        tr.setItemDescriptionGenerator(provider.getItemDescriptionGenerator());
-
-        // reserve excess space for the "treecolumn"
-        tr.setWidth("100%");
-
-        al.addComponent( tr, "top:100px;left:10px");
+        
+                
+        activate();
+        
+        al.addComponent(hotFolderSplitter, "top:100px;left:10px");
 
     }
+    VerticalSplitPanel hotFolderSplitter;
+    
+    TextBaseEntryTable table;
+    final Component createTextBasePanel()
+    {        
+        ItemClickEvent.ItemClickListener l = new ItemClickEvent.ItemClickListener()
+        {
+            @Override
+            public void itemClick( ItemClickEvent event )
+            {
+                setActiveTextBase();
+            }
+        };
+        List<TextBase> list = null;
+        try
+        {            
+            list = VSMCMain.get_txt_em().createQuery("select p from TextBase p", TextBase.class);
+        }
+        catch (SQLException sQLException)
+        {
+            VSMCMain.notify(this, "Fehler beim Erzeugen der Hotfolder-Tabelle", sQLException.getMessage());
+            return new VerticalLayout();
+        }
+
+        table = TextBaseEntryTable.createTable(main, list, l);
+
+        final VerticalLayout tableWin  = new VerticalLayout();
+        tableWin.setSizeFull();
+        tableWin.setSpacing(true);
+
+        Component head = table.createHeader(VSMCMain.Txt("Liste der Hotfolder:"));
+
+        tableWin.addComponent(head);
+        tableWin.addComponent(table);
+        tableWin.setExpandRatio(table, 1.0f);
+        return tableWin;
+    }    
+    
+
+    @Override
+    public void activate()
+    {
+        Component tableWin = createTextBasePanel();
+        hotFolderSplitter.setFirstComponent(tableWin);
+        hotFolderSplitter.setSecondComponent(new Label(""));
+
+        if (hotFolderSplitter.getSecondComponent() != null)
+            hotFolderSplitter.removeComponent(hotFolderSplitter.getSecondComponent());
+       
+    }
+
+
+    private void setActiveTextBase()
+    {
+        AbstractLayout panel = table.createLocalPreviewPanel();
+        panel.setSizeUndefined();
+        panel.setWidth("100%");
+
+        hotFolderSplitter.setSecondComponent(panel);
+
+        // RELOAD
+        VSMCMain.get_base_util_em().em_refresh(table.getActiveElem());// find(HotFolder.class, hotFolderTable.getActiveElem().getIdx());        
+    }    
+    
 
     private void speed_test( int mb, int sb, String ip, int port )
     {

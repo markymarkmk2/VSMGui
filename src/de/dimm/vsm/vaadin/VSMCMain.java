@@ -47,6 +47,8 @@ import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.LogoutPanel;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.NotificationWin;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.StartBackupWin;
 import de.dimm.vsm.auth.GuiUser;
+import de.dimm.vsm.text.MissingTextException;
+import de.dimm.vsm.vaadin.GuiElems.Dialogs.TextBaseInputWin;
 import de.dimm.vsm.vaadin.net.GuiServerProxy;
 import de.dimm.vsm.vaadin.search.SearchClientWin;
 import java.lang.reflect.InvocationTargetException;
@@ -68,7 +70,7 @@ public class VSMCMain extends GenericMain
     protected String host;
     protected String args;
 
-    private final static String version = "0.8.4 trunk";
+    private final static String version = "0.8.5 trunk";
 
     public static String getVersion()
     {
@@ -134,6 +136,17 @@ public class VSMCMain extends GenericMain
 
         throw new UnsupportedOperationException("Not yet implemented");
     }
+    
+    public static GenericEntityManager get_txt_em()
+    {
+        Object o = callLogicControl("get_txt_em");
+        if (o != null && o instanceof GenericEntityManager)
+        {
+            return (GenericEntityManager) o;
+        }
+
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
     public static GenericEntityManager get_util_em(StoragePool pool)
     {
         Object o = callLogicControl("get_util_em", pool);
@@ -169,6 +182,8 @@ public class VSMCMain extends GenericMain
     }
 
 
+    public static boolean insideTextBaseEdit;
+    public static List<MissingTextException> missingKeys = new ArrayList<>();
     public static String Txt( String k )
     {
         try
@@ -183,13 +198,31 @@ public class VSMCMain extends GenericMain
                 k
             };
 
-            Method mtxt = cl.getMethod("Txt", cl_args);
+            Method mtxt = cl.getMethod("GuiTxt", cl_args);
             Object txt = mtxt.invoke(null, ob_args);
             return txt.toString();
         }
-        catch (Exception classNotFoundException)
+       
+        catch (Exception exc)
         {
-            System.out.println("Error in reflection call Txt:" + classNotFoundException.getMessage());
+            if (exc.getCause() instanceof MissingTextException)
+            {                
+                MissingTextException mexc = (MissingTextException)exc.getCause();
+                
+                if (!missingKeys.contains(mexc)) {
+                    missingKeys.add(mexc);
+                    if (VSMCMain.me != null && VSMCMain.me.getRootWin() != null && !insideTextBaseEdit)
+                    {
+                        insideTextBaseEdit = true;
+                        TextBaseInputWin win = new TextBaseInputWin(VSMCMain.me);
+                        VSMCMain.me.getRootWin().addWindow(win);            
+                    }
+                }
+            }
+            else
+            {
+                System.out.println("Error in reflection call Txt:" + exc.getMessage());
+            }
         }
         return k;
 

@@ -89,10 +89,10 @@ public class ScheduleJobPreviewPanel extends PreviewPanel<Job>
     {
         removeAllComponents();
 
-        disabled = new JPACheckBox(X("Gesperrt"), "disabled");
+        disabled = new JPACheckBox(Txt("Gesperrt"), "disabled");
         
         day_number_list = new BeanItemContainer(String.class);
-        day_number = new ComboBox(X("Tag"));
+        day_number = new ComboBox(Txt("Tag"));
         day_number.setContainerDataSource(day_number_list);
         day_number.setNullSelectionAllowed(false);
 
@@ -162,7 +162,7 @@ public class ScheduleJobPreviewPanel extends PreviewPanel<Job>
         
     }
 
-    private static String X(String key )
+    private static String Txt(String key )
     {
         return VSMCMain.Txt(key);
     }
@@ -182,13 +182,13 @@ public class ScheduleJobPreviewPanel extends PreviewPanel<Job>
     {
         // 1 == SUNDAY ... 7 == SATURDAY
         ArrayList<String> days = new ArrayList<String>();
-        days.add(X("Sonntag"));
-        days.add(X("Montag"));
-        days.add(X("Dienstag"));
-        days.add(X("Mittwoch"));
-        days.add(X("Donnerstag"));
-        days.add(X("Freitag"));
-        days.add(X("Samstag"));
+        days.add(Txt("Sonntag"));
+        days.add(Txt("Montag"));
+        days.add(Txt("Dienstag"));
+        days.add(Txt("Mittwoch"));
+        days.add(Txt("Donnerstag"));
+        days.add(Txt("Freitag"));
+        days.add(Txt("Samstag"));
 
         return days.get(get - 1);
     }

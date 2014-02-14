@@ -142,20 +142,20 @@ public class RetentionTable extends BaseDataEditTable<Retention>
 
     static
     {
-        retentionDurationDim.add( new ComboEntry("m", X("Minuten(n)")) );
-        retentionDurationDim.add( new ComboEntry("h", X("Stunde(n)")) );
-        retentionDurationDim.add( new ComboEntry("d", X("Tag(e)")) );
-        retentionDurationDim.add( new ComboEntry("w", X("Wochen(n)")) );
-        retentionDurationDim.add( new ComboEntry("y", X("Jahr(e)")) );
+        retentionDurationDim.add( new ComboEntry("m", Txt("Minuten(n)")) );
+        retentionDurationDim.add( new ComboEntry("h", Txt("Stunde(n)")) );
+        retentionDurationDim.add( new ComboEntry("d", Txt("Tag(e)")) );
+        retentionDurationDim.add( new ComboEntry("w", Txt("Wochen(n)")) );
+        retentionDurationDim.add( new ComboEntry("y", Txt("Jahr(e)")) );
 
-        argFieldList.add( new ComboEntry(Retention.ARG_TS, X("Zeitpunkt der Sicherung")) );
-        argFieldList.add( new ComboEntry(Retention.ARG_NAME, X("Name")) );
-        argFieldList.add( new ComboEntry(Retention.ARG_SIZE, X("Größe")) );
-        argFieldList.add( new ComboEntry(Retention.ARG_CDATE, X("Erstellungsdatum")) );
-        argFieldList.add( new ComboEntry(Retention.ARG_MDATE, X("Änderungsdatum")) );
-        argFieldList.add( new ComboEntry(Retention.ARG_ADATE, X("Letztes Zugriffsdatum")) );
-        argFieldList.add( new ComboEntry(Retention.ARG_UID, X("Benutzer ID")) );
-        argFieldList.add( new ComboEntry(Retention.ARG_GID, X("Gruppen ID")) );
+        argFieldList.add( new ComboEntry(Retention.ARG_TS, Txt("Zeitpunkt der Sicherung")) );
+        argFieldList.add( new ComboEntry(Retention.ARG_NAME, Txt("Name")) );
+        argFieldList.add( new ComboEntry(Retention.ARG_SIZE, Txt("Größe")) );
+        argFieldList.add( new ComboEntry(Retention.ARG_CDATE, Txt("Erstellungsdatum")) );
+        argFieldList.add( new ComboEntry(Retention.ARG_MDATE, Txt("Änderungsdatum")) );
+        argFieldList.add( new ComboEntry(Retention.ARG_ADATE, Txt("Letztes Zugriffsdatum")) );
+        argFieldList.add( new ComboEntry(Retention.ARG_UID, Txt("Benutzer ID")) );
+        argFieldList.add( new ComboEntry(Retention.ARG_GID, Txt("Gruppen ID")) );
     }
 
     static String getNiceOpString( String argType, String op )
@@ -163,11 +163,11 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         if (Retention.isDateField(argType) || Retention.isRelTSField(argType) )
         {
             if (op.equals(Retention.OP_LT))
-                return X("älter als");
+                return Txt("älter als");
             if (op.equals(Retention.OP_GT))
-                return X("jünger als");
+                return Txt("jünger als");
         }
-        return X(Retention.getSqlOpString(op));
+        return Txt(Retention.getSqlOpString(op));
     }
 
     static String getNiceValString( Retention r )
@@ -228,7 +228,7 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         return argtype;
     }
 
-    private static String X(String key )
+    private static String Txt(String key )
     {
         return VSMCMain.Txt(key);
     }
@@ -241,9 +241,9 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
 
         List<ComboEntry> modeList = new ArrayList<ComboEntry>();
-        modeList.add( new ComboEntry(Retention.MD_BACKUP, X("Backup")));
-        modeList.add( new ComboEntry(Retention.MD_ARCHIVE, X("Archiv")));
-        fieldList.add( new JPAComboField(X("Modus"), "mode", modeList, X("Backup: Mindestens eine Version bleibt nach Ablauf der Gültigkeit erhalten"
+        modeList.add( new ComboEntry(Retention.MD_BACKUP, Txt("Backup")));
+        modeList.add( new ComboEntry(Retention.MD_ARCHIVE, Txt("Archiv")));
+        fieldList.add( new JPAComboField(Txt("Modus"), "mode", modeList, Txt("Backup: Mindestens eine Version bleibt nach Ablauf der Gültigkeit erhalten"
                 + "\nArchiv: Dateien werden nach Ablauf der Gültigkeit gelöscht") ) );
         
         fieldList.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
@@ -252,10 +252,10 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         fieldList.add(new JPARetentionField());
 
         List<ComboEntry> actionList = new ArrayList<ComboEntry>();
-        actionList.add( new ComboEntry(Retention.AC_DELETE, X("Löschen")));
-        actionList.add( new ComboEntry(Retention.AC_MOVE, X("Verschieben")));
-        actionList.add( new ComboEntry(Retention.AC_SCRIPT, X("Script starten")));
-        fieldList.add( new JPAComboField(X("Aktion"), "followAction", actionList ) );
+        actionList.add( new ComboEntry(Retention.AC_DELETE, Txt("Löschen")));
+        actionList.add( new ComboEntry(Retention.AC_MOVE, Txt("Verschieben")));
+        actionList.add( new ComboEntry(Retention.AC_SCRIPT, Txt("Script starten")));
+        fieldList.add( new JPAComboField(Txt("Aktion"), "followAction", actionList ) );
 
 
         return new RetentionTable( main, pool, list, fieldList, listener);

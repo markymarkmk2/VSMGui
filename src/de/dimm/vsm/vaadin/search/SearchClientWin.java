@@ -74,8 +74,8 @@ public class SearchClientWin extends SidebarPanel
 
     final TextField txt_status = new TextField(VSMCMain.Txt("Status"));
     //final Button btViewVol = new NativeButton(VSMCMain.Txt("View file system"));
-    final String mntText = VSMCMain.Txt(VSMCMain.Txt("Suchergebnisse_als_Dateisystem_laden"));
-    final String umntText = VSMCMain.Txt(VSMCMain.Txt("Dateisystem_entfernen"));
+    final String mntText = VSMCMain.Txt("Suchergebnisse_als_Dateisystem_laden");
+    final String umntText = VSMCMain.Txt("Dateisystem_entfernen");
 
     final Button btMountVol;
     final Button btStartSearch;

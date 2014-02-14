@@ -106,7 +106,7 @@ class MessageField extends JPATextField implements ColumnGeneratorField
     MessageColumnGenerator colgen;
     public MessageField()
     {
-        super("Message", "messageId");
+        super(VSMCMain.Txt("Message"), "messageId");
     }
 
     @Override
@@ -114,7 +114,7 @@ class MessageField extends JPATextField implements ColumnGeneratorField
     {
         node = _node;
 
-        TextField tf = new TextField("Message");
+        TextField tf = new TextField(VSMCMain.Txt("Message"));
         tf.setValue( VSMCMain.Txt(((MessageLog)node).getMessageId()));
 
         tf.setData(this);
@@ -158,7 +158,7 @@ class ExceptionField extends JPATextField implements ColumnGeneratorField
     EmptyColumnGenerator colgen;
     public ExceptionField()
     {
-        super("Exception", "exceptionName");
+        super(VSMCMain.Txt("Exception"), "exceptionName");
     }
 
     @Override
@@ -167,7 +167,7 @@ class ExceptionField extends JPATextField implements ColumnGeneratorField
         node = _node;
         MessageLog job = (MessageLog)node;
 
-        TextField tf = new TextField("Exception");
+        TextField tf = new TextField(VSMCMain.Txt("Exception"));
         if (job.getExceptionName() != null)
             tf.setValue( job.getExceptionName() );
 

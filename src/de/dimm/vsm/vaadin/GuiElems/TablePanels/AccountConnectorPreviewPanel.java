@@ -47,6 +47,7 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
     JPATextField txtLdapFilter;
     JPATextField txtLdapUserAttribute;
     JPATextField txtLdapgroupIdentifier;
+    JPATextField txtLdapDomain;
 
     JPATextField txtNtDomainName;
 
@@ -55,12 +56,12 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
     public AccountConnectorPreviewPanel( AccountConnectorTable j, boolean readOnly )
     {
         super(j, readOnly);
-        typeList.add( new ComboEntry("dbs", X("Database")) );
-        typeList.add( new ComboEntry("ldap", X("LDAP")) );
-        typeList.add( new ComboEntry("ad", X("ActiveDirectory")) );
-        typeList.add( new ComboEntry("smtp", X("SMTP")) );
-        typeList.add( new ComboEntry("imap", X("IMAP")) );
-        typeList.add( new ComboEntry( "pop", X("POP3")) );
+        typeList.add( new ComboEntry("dbs", Txt("Database")) );
+        typeList.add( new ComboEntry("ldap", Txt("LDAP")) );
+        typeList.add( new ComboEntry("ad", Txt("ActiveDirectory")) );
+        typeList.add( new ComboEntry("smtp", Txt("SMTP")) );
+        typeList.add( new ComboEntry("imap", Txt("IMAP")) );
+        typeList.add( new ComboEntry( "pop", Txt("POP3")) );
     }
 
 
@@ -70,8 +71,8 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         removeAllComponents();
 
 
-        checkBoxDisabled = new CheckBox(X("Gesperrt"));
-        checkBoxSSL = new CheckBox(X("SSL"));
+        checkBoxDisabled = new CheckBox(Txt("Gesperrt"));
+        checkBoxSSL = new CheckBox(Txt("SSL"));
         checkBoxSSL.addListener(new ClickListener() {
 
             @Override
@@ -81,9 +82,9 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
             }
 
         });
-        checkBoxEmptyPwd = new CheckBox(X("Leere Passworte erlaubt"));
+        checkBoxEmptyPwd = new CheckBox(Txt("Leere Passworte erlaubt"));
 
-        comboAuthType = new ComboBox(X("Authentifizierung"), typeList);
+        comboAuthType = new ComboBox(Txt("Authentifizierung"), typeList);
         comboAuthType.setNullSelectionAllowed(false);
         comboAuthType.addListener( new ValueChangeListener() {
 
@@ -99,11 +100,11 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         addComponent(checkBoxDisabled);
         addComponent(comboAuthType);
 
-        txtIp = new JPATextField(X("Server"), "ip");
-        txtPort = new JPATextField(X("Port"), "port");
-        txtUser = new JPATextField(X("User"), "username");
+        txtIp = new JPATextField(Txt("Server"), "ip");
+        txtPort = new JPATextField(Txt("Port"), "port");
+        txtUser = new JPATextField(Txt("User"), "username");
         txtUser.setExpandRatio(1.0f);
-        txtPwd = new JPAPasswordField(X("Password"), "pwd");
+        txtPwd = new JPAPasswordField(Txt("Password"), "pwd");
 
         
         // ADD TO LAYOUT
@@ -115,8 +116,8 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         addComponent(txtPwd.createGui(node));
 
         // HAS TO BE AFTER createGui
-        txtIp.addValidator( this, new StringLengthValidator(X("Bitte geben Sie eine IP oder einen DNS-Namen ein"), 1, 512, false));
-        txtPort.addValidator( this, new IntegerValidator(X("Bitte geben Sie eine gültige Portnummer ein")));
+        txtIp.addValidator( this, new StringLengthValidator(Txt("Bitte geben Sie eine IP oder einen DNS-Namen ein"), 1, 512, false));
+        txtPort.addValidator( this, new IntegerValidator(Txt("Bitte geben Sie eine gültige Portnummer ein")));
         //txtPwd.addValidator( new StringLengthValidator(X("Bitte geben Sie das Passwort ein"), 1, 512, false));
 
 
@@ -133,13 +134,14 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         comboAuthType.setImmediate(true);
         comboAuthType.addListener( vc);
  
-        txtSearchBase = new JPATextField(X("Searchbase"), "searchbase");
+        txtSearchBase = new JPATextField(Txt("Searchbase"), "searchbase");
         txtSearchBase.setExpandRatio(1.0f);
         //txtLdapDomain = new JPATextField(X("LDAP-Domain"), "ldapdomain");
-        txtLdapUserAttribute = new JPATextField(X("LDAP-Userattribute"), "searchattribute");
-        txtLdapFilter = new JPATextField(X("LDAP-Filter"), "ldapfilter");
-        txtLdapgroupIdentifier = new JPATextField(X("Gruppenkennung"), "groupIdentifier");
-        txtNtDomainName = new JPATextField(X("NT-Domain"), "ntDomainName");
+        txtLdapUserAttribute = new JPATextField(Txt("LDAP-Userattribute"), "searchattribute");
+        txtLdapFilter = new JPATextField(Txt("LDAP-Filter"), "ldapfilter");
+        txtLdapgroupIdentifier = new JPATextField(Txt("Gruppenkennung"), "groupIdentifier");
+        txtNtDomainName = new JPATextField(Txt("NT-Domain"), "ntDomainName");
+        txtLdapDomain = new JPATextField(Txt("Login-Domain"), "ldapdomain");
 
         // ADD TO LAYOUT
         addComponent(txtSearchBase.createGui(node));
@@ -148,8 +150,9 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         addComponent(txtLdapFilter.createGui(node));
         addComponent(txtLdapgroupIdentifier.createGui(node));
         addComponent(txtNtDomainName.createGui(node));
+        addComponent(txtLdapDomain.createGui(node));
 
-        Button testAD = new Button( X("Test Connect"));
+        Button testAD = new Button( Txt("Test Connect"));
         testAD.addListener( new ClickListener() {
 
             @Override
@@ -169,7 +172,7 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
 
         if (auth.connect())
         {            
-            VSMCMain.notify(this, X("Verbindung okay"), "");
+            VSMCMain.notify(this, Txt("Verbindung okay"), "");
 
 //            try
 //            {
@@ -185,7 +188,7 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         }
         else
         {
-            VSMCMain.notify(this, X("Verbindung ist fehlgeschlagen"), auth.get_error_txt());
+            VSMCMain.notify(this, Txt("Verbindung ist fehlgeschlagen"), auth.get_error_txt());
         }
     }
 
@@ -213,12 +216,13 @@ public class AccountConnectorPreviewPanel extends PreviewPanel<AccountConnector>
         getGui(txtLdapgroupIdentifier).setVisible(isLdap);
 
         getGui(txtNtDomainName).setVisible(isAd);
+        getGui(txtLdapDomain).setVisible(isAd || isLdap);
 
 
 
     }
 
-    private static String X(String key )
+    private static String Txt(String key )
     {
         return VSMCMain.Txt(key);
     }

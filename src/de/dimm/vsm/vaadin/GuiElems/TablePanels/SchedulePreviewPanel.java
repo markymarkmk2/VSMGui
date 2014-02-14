@@ -41,7 +41,7 @@ public class SchedulePreviewPanel extends PreviewPanel<Schedule>
         super(tb, readOnly);
     }
 
-    private static String X(String key )
+    private static String Txt(String key )
     {
         return VSMCMain.Txt(key);
     }
@@ -90,14 +90,14 @@ public class SchedulePreviewPanel extends PreviewPanel<Schedule>
 
 
         // ADD NECESSARY
-        cycle_len = new TextField(X("Zyklusdauer"));
-        cycle_len.addValidator( new IntegerValidator(X("Bitte geben Sie eine gültige Zahl ein")));
+        cycle_len = new TextField(Txt("Zyklusdauer"));
+        cycle_len.addValidator( new IntegerValidator(Txt("Bitte geben Sie eine gültige Zahl ein")));
 
         List<String> dim = new ArrayList<String>();
-        dim.add(X("Stunde(n)"));
-        dim.add(X("Tag(e)"));
-        dim.add(X("Woche(n)"));
-        cycle_dim = new ComboBox(X("Einheit"), dim);
+        dim.add(Txt("Stunde(n)"));
+        dim.add(Txt("Tag(e)"));
+        dim.add(Txt("Woche(n)"));
+        cycle_dim = new ComboBox(Txt("Einheit"), dim);
         cycle_dim.setNullSelectionAllowed(false);
         cycle_panel = new HorizontalLayout();
         cycle_panel.setSpacing(true);

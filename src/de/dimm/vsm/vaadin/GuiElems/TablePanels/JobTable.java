@@ -442,7 +442,7 @@ public class JobTable extends Table
         if (property.getType() == Boolean.class && property.getValue() != null)
         {
             Boolean b = (Boolean) property.getValue();
-            return b.booleanValue() ? "Ja" : "Nein" ;
+            return b.booleanValue() ? VSMCMain.Txt("Ja") : VSMCMain.Txt("Nein") ;
         }
 
         return super.formatPropertyValue(rowId, colId, property);
@@ -557,7 +557,7 @@ public class JobTable extends Table
     
     Window createUserSelect( final CheckJobInterface cjob, String caption, final List<String> userSelect )
     {
-        final Window win = new Window("Auswahl treffen");
+        final Window win = new Window(VSMCMain.Txt("Auswahl treffen"));
         win.setModal(true);
         win.setStyleName("vsm");
         win.setWidth("400px");
@@ -585,7 +585,7 @@ public class JobTable extends Table
         OkAbortPanel panel = new OkAbortPanel();
         vl.addComponent(panel);
 
-        panel.setOkText("Start");
+        panel.setOkText(VSMCMain.Txt("Start"));
         panel.getBtOk().addListener( new Button.ClickListener() {
 
             @Override

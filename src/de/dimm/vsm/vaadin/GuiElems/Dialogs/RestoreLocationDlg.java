@@ -356,10 +356,13 @@ public class RestoreLocationDlg extends Window implements Property.ValueChangeLi
             @Override
             public void buttonClick( ClickEvent event )
             {
-                if (getPath() == null  || getPath().isEmpty())
+                if (select.getValue().equals(VSMCMain.Txt("Auswahl")))
                 {
-                    VSMCMain.notify(vl, VSMCMain.Txt("Bitte geben Sie einen gültigen Pfad an"), "");
-                    return;
+                    if (getPath() == null  || getPath().isEmpty())
+                    {
+                        VSMCMain.notify(vl, VSMCMain.Txt("Bitte geben Sie einen gültigen Pfad an"), "");
+                        return;
+                    }
                 }
                 event.getButton().getApplication().getMainWindow().removeWindow(w);
                 String ip = getIP();

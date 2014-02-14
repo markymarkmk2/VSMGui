@@ -98,24 +98,24 @@ public class RetentionPreviewPanel extends PreviewPanel<Retention>
         comboSizeDim.setImmediate(true);
 
 
-        checkBoxDisabled = new CheckBox(X("Gesperrt"));
-        checkBoxNeg = new CheckBox(X("Negiert"));
+        checkBoxDisabled = new CheckBox(Txt("Gesperrt"));
+        checkBoxNeg = new CheckBox(Txt("Negiert"));
 
 
 
-        date = new DateField(X("Datum"));
+        date = new DateField(Txt("Datum"));
         date.setDateFormat( "dd.MM.yyyy HH.mm");
-        retentionDuration = new TextField(X("Wert"));
+        retentionDuration = new TextField(Txt("Wert"));
         retentionDuration.setWidth("50px");
-        retentionSize = new TextField(X("Größe"));
+        retentionSize = new TextField(Txt("Größe"));
         retentionSize.setWidth("50px");
-        retentionName = new TextField(X("name"));
+        retentionName = new TextField(Txt("name"));
 
-        comboRetentionDim = new ComboBox(X("Dimension"), RetentionTable.retentionDurationDim);
+        comboRetentionDim = new ComboBox(Txt("Dimension"), RetentionTable.retentionDurationDim);
         comboRetentionDim.setNullSelectionAllowed(false);
         comboRetentionDim.setWidth("100px");
 
-        comboArgField = new ComboBox(X("Argument"), RetentionTable.argFieldList);
+        comboArgField = new ComboBox(Txt("Argument"), RetentionTable.argFieldList);
         comboArgField.setNullSelectionAllowed(false);
         comboArgField.setWidth("200px");
         comboArgField.addListener(new ValueChangeListener()
@@ -161,9 +161,9 @@ public class RetentionPreviewPanel extends PreviewPanel<Retention>
 
         // HAS TO BE AFTER createGui
         //JPAField.addValidator(this, new StringLengthValidator(X("Bitte geben Sie eine Bezeichnung ein"), 1, 255, false));
-        retentionDuration.addValidator(new PositiveIntegerValidator(X("Bitte geben Sie gültige Zahl ein")));
-        retentionSize.addValidator(new PositiveIntegerValidator(X("Bitte geben Sie gültige Zahl ein")));
-        retentionName.addValidator(new StringLengthValidator(X("Bitte geben Sie eine Bezeichnung ein"), 1, 255, false));
+        retentionDuration.addValidator(new PositiveIntegerValidator(Txt("Bitte geben Sie gültige Zahl ein")));
+        retentionSize.addValidator(new PositiveIntegerValidator(Txt("Bitte geben Sie gültige Zahl ein")));
+        retentionName.addValidator(new StringLengthValidator(Txt("Bitte geben Sie eine Bezeichnung ein"), 1, 255, false));
 
 
         //txtPwd.addValidator( new StringLengthValidator(X("Bitte geben Sie das Passwort ein"), 1, 512, false));
@@ -192,7 +192,7 @@ public class RetentionPreviewPanel extends PreviewPanel<Retention>
         if (argType == null)
             return;
 
-        comboOperators = new ComboBox(X("Operator"), opList);
+        comboOperators = new ComboBox(Txt("Operator"), opList);
         comboOperators.setNullSelectionAllowed(false);
         comboOperators.setWidth("80px");
         comboOperators.setImmediate(true);
@@ -237,7 +237,7 @@ public class RetentionPreviewPanel extends PreviewPanel<Retention>
         setValues(node);
     }
 
-    private static String X( String key )
+    private static String Txt( String key )
     {
         return VSMCMain.Txt(key);
     }
