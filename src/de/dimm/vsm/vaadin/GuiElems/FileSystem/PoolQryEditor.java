@@ -156,10 +156,10 @@ public class PoolQryEditor extends HorizontalLayout
         }
            
         
-        cbTyp = new JPAComboField("Art", "typ", localTypelist);
+        cbTyp = new JPAComboField(VSMCMain.Txt("Art"), "typ", localTypelist);
         cbSnapShot = new JPASnapShotComboField(em, "snapShot");
-        tfUser = new JPATextField("Benutzer", "username");
-        dtTimestamp = new JPADateField("Timestamp", "ts", DateField.RESOLUTION_MIN);
+        tfUser = new JPATextField(VSMCMain.Txt("Benutzer/Rolle"), "username");
+        dtTimestamp = new JPADateField(VSMCMain.Txt("Timestamp"), "ts", DateField.RESOLUTION_MIN);
 
         // ONLY ROOT IS ALLOWED TO CHANGE USER
         if (main.isSuperUser())

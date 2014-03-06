@@ -57,6 +57,7 @@ public class ComboBoxDlg<T> extends Window
 
         //this.setSizeFull();
         this.setWidth("400px");
+        this.center();
 
         vl.setSpacing(true);
         vl.setSizeFull();

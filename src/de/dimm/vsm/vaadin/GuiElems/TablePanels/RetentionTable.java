@@ -243,8 +243,8 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         List<ComboEntry> modeList = new ArrayList<ComboEntry>();
         modeList.add( new ComboEntry(Retention.MD_BACKUP, Txt("Backup")));
         modeList.add( new ComboEntry(Retention.MD_ARCHIVE, Txt("Archiv")));
-        fieldList.add( new JPAComboField(Txt("Modus"), "mode", modeList, Txt("Backup: Mindestens eine Version bleibt nach Ablauf der Gültigkeit erhalten"
-                + "\nArchiv: Dateien werden nach Ablauf der Gültigkeit gelöscht") ) );
+        fieldList.add( new JPAComboField(Txt("Modus"), "mode", modeList, 
+                Txt("Backup: Mindestens eine Version bleibt nach Ablauf der Gültigkeit erhalten\nArchiv: Dateien werden nach Ablauf der Gültigkeit gelöscht") ) );
         
         fieldList.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
         fieldList.add(new JPACheckBox(VSMCMain.Txt("Gesperrt"), "disabled"));

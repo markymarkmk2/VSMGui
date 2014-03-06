@@ -96,13 +96,13 @@ public class NotificationWin extends SidebarPanel
         HorizontalLayout bthl = new HorizontalLayout();        
         bthl.setMargin(true, true, true, true);
 
-        Button btrebuild = new Button("Benachrichtigungsdienst aktualisieren", new ClickListener() {
+        Button btrebuild = new Button(VSMCMain.Txt("Benachrichtigungsdienst aktualisieren"), new ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )
             {
                 VSMCMain.callLogicControl("reloadNotificationSettings");
-                VSMCMain.notify(mainPanel, "", "Der Benachrichtigungsdienste wurde aktualisiert");
+                VSMCMain.notify(mainPanel, "", VSMCMain.Txt("Der Benachrichtigungsdienste wurde aktualisiert"));
             }
         });
         bthl.addComponent(btrebuild);
@@ -209,7 +209,7 @@ public class NotificationWin extends SidebarPanel
         }
         catch (SQLException sQLException)
         {
-            VSMCMain.notify(this, "Fehler beim Erzeugen der MailGruppen-Tabelle", sQLException.getMessage());
+            VSMCMain.notify(this, VSMCMain.Txt("Fehler beim Erzeugen der MailGruppen-Tabelle"), sQLException.getMessage());
             return;
         }
 

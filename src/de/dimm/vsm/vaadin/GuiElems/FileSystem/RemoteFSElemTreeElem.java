@@ -174,15 +174,19 @@ public class RemoteFSElemTreeElem
     {
         StringBuilder sb = new StringBuilder();
         RemoteFSElemTreeElem startPath = this;
+        // Sind wir schon absolut?
+        if (this.getElem().getPath().startsWith( "/"))
+            return this.getElem().getPath();
         while (startPath != null)
-        {
+        {            
             sb.insert(0, startPath.getName());
             startPath = startPath.getParent();
             if (startPath != null && startPath.getParent() != null)
             {
                 sb.insert(0, "/");
             }
-        }
+            
+        }        
         return sb.toString();
     }
     

@@ -70,7 +70,7 @@ public class VSMCMain extends GenericMain
     protected String host;
     protected String args;
 
-    private final static String version = "0.8.5 trunk";
+    private final static String version = "0.8.6 trunk";
 
     public static String getVersion()
     {
@@ -829,6 +829,7 @@ public class VSMCMain extends GenericMain
 
         final Window win = new Window(Txt("Auswahl") + " " + caption);
         win.setWidth("350px");
+        win.center();
 
         ok.addListener(new ClickListener()
         {

@@ -98,7 +98,7 @@ public class CheckObjectDlg extends Window
 
     Window createUserSelect(  final ICheck check, String caption, final List<String> userSelect )
     {
-        final Window win = new Window("Auswahl treffen");
+        final Window win = new Window(VSMCMain.Txt("Auswahl"));
         win.setModal(true);
         win.setStyleName("vsm");
         win.setWidth("400px");
@@ -114,7 +114,7 @@ public class CheckObjectDlg extends Window
         Label lb = new Label(caption);
         mainVl.addComponent(lb);
 
-        final ComboBox cbSelect  = new ComboBox("Was tun", userSelect);
+        final ComboBox cbSelect  = new ComboBox(VSMCMain.Txt("Action"), userSelect);
         cbSelect.setNullSelectionAllowed(false);
         cbSelect.setNewItemsAllowed(false);
         cbSelect.setValue(userSelect.get(0));

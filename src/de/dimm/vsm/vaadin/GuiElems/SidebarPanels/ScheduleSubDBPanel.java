@@ -22,7 +22,7 @@ public class ScheduleSubDBPanel extends PoolSubDBPanel<Schedule> {
 
     ScheduleSubDBPanel(PoolEditorWin win, VSMCMain main)
     {
-        super(win, main, "Sicherungspläne", "images/schedule.png");
+        super(win, main, VSMCMain.Txt("Sicherungspläne"), "images/schedule.png");
         
     }
     
@@ -44,7 +44,7 @@ public class ScheduleSubDBPanel extends PoolSubDBPanel<Schedule> {
         }
         catch (SQLException sQLException)
         {
-            VSMCMain.notify(win, "Fehler beim Erzeugen der Liste", sQLException.getMessage());
+            VSMCMain.notify(win, VSMCMain.Txt("Fehler beim Erzeugen der Liste"), sQLException.getMessage());
         }
         //List<Schedule> list = tq.getResultList();
 

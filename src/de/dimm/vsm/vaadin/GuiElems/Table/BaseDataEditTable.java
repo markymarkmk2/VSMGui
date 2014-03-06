@@ -631,7 +631,7 @@ public abstract class BaseDataEditTable<T> extends Table
                 if (!checkValidators(editPanel))
                 {
                     editFallbackRunner.run();
-                    VSMCMain.notify(myw, VSMCMain.Txt("Bitte prüfen Sie Ihre Eingaben" ), VSMCMain.Txt("Feld:") + " " + invalidCaption);
+                    VSMCMain.notify(myw, VSMCMain.Txt("Bitte prüfen Sie Ihre Eingaben" ), VSMCMain.Txt("Feld") + ": " + invalidCaption);
                     return;
                 }
 

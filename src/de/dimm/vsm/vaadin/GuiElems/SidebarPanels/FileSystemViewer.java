@@ -214,7 +214,9 @@ public class FileSystemViewer extends SidebarPanel
             {
                 MountEntry mountEntry = mountedEntries.get(i);
                 // No User or other user
-                if (StringUtils.isEmpty(mountEntry.getUsername() ) || !mountEntry.getUsername().equals(usr.getLoginName()) )
+                if (StringUtils.isEmpty(mountEntry.getUsername() ) || 
+                        (!mountEntry.getUsername().equals(usr.getLoginName())
+                           && !mountEntry.getUsername().equals(usr.getRole().getName()) ))
                 {
                     mountedEntries.remove(i);
                     i--;
@@ -225,7 +227,14 @@ public class FileSystemViewer extends SidebarPanel
 
     User getUser( MountEntry mountEntry )
     {
-        if (mountEntry.getUsername() == null || mountEntry.getUsername().isEmpty())
+        if (main.getGuiWrapper().getUser().isAdmin())
+        {
+            return main.getGuiWrapper().getUser();
+        }
+        
+        if (mountEntry.getUsername() == null 
+                || mountEntry.getUsername().isEmpty() 
+                || mountEntry.getUsername().equals( main.getGuiWrapper().getUser().getRole().getName()) )
         {
             return main.getGuiWrapper().getUser();
         }
@@ -242,8 +251,10 @@ public class FileSystemViewer extends SidebarPanel
         allEntries.removeAll(mountedEntries);
         filterUserEntries( main.getUser(), allEntries);
 
-        String userChoiceButtonText = main.isSuperUser() ?  "Aktuellen User verwenden" : null;
-        final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg("Mount", "Auswahl",userChoiceButtonText, allEntries);
+        String userChoiceButtonText = main.isSuperUser() ?  VSMCMain.Txt("Aktuellen User verwenden") : null;
+        final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg("Mount", VSMCMain.Txt("Auswahl"),userChoiceButtonText, allEntries);
+        
+        
         dlg.setOkActionListener(new Button.ClickListener()
         {
             @Override
@@ -258,6 +269,12 @@ public class FileSystemViewer extends SidebarPanel
                 if (!dlg.isButton())
                 {
                     usr = getUser(val);
+                    if (usr == null && !val.getUsername().isEmpty())
+                    {
+                        // Keine Rechte
+                        main.Msg().errmOk(VSMCMain.Txt("Sie haben keine Rechte für diesen Mount"));
+                    }
+                    
                 }
 
                 try
@@ -277,7 +294,7 @@ public class FileSystemViewer extends SidebarPanel
     {
         List<MountEntry> mountedEntries = main.getDummyGuiServerApi().getMountedMountEntries();        
         filterUserEntries( main.getUser(), mountedEntries);
-        final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg("UnMount", "Auswahl", mountedEntries);
+        final ComboBoxDlg<MountEntry> dlg = new ComboBoxDlg("UnMount", VSMCMain.Txt("Auswahl"), mountedEntries);
         dlg.setOkActionListener(new Button.ClickListener()
         {
 
@@ -312,7 +329,7 @@ public class FileSystemViewer extends SidebarPanel
                     usr = getUser(val);
                     if (usr == null)
                     {
-                        VSMCMain.notify(btViewVol, "Unbekannter User", "Der User '" + val.getUsername() + "' konnte nicht gefunden werden");
+                        VSMCMain.notify(btViewVol, VSMCMain.Txt("Unbekannter User"), val.getUsername() + " " + VSMCMain.Txt("konnte nicht gefunden werden"));
                         return;
                     }
                 }

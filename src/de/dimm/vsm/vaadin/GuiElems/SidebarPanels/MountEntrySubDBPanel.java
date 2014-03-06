@@ -22,7 +22,7 @@ public class MountEntrySubDBPanel extends PoolSubDBPanel<MountEntry> {
 
     MountEntrySubDBPanel(PoolEditorWin win, VSMCMain main)
     {
-        super(win, main, "Mounteinträge", "images/retention.png");
+        super(win, main, VSMCMain.Txt("Mounteinträge"), "images/retention.png");
         
     }
     
@@ -44,7 +44,7 @@ public class MountEntrySubDBPanel extends PoolSubDBPanel<MountEntry> {
         }
         catch (SQLException sQLException)
         {
-            VSMCMain.notify(win, "Fehler beim Erzeugen der Liste", sQLException.getMessage());
+            VSMCMain.notify(win, VSMCMain.Txt("Fehler beim Erzeugen der Liste"), sQLException.getMessage());
         }
 
 
@@ -54,7 +54,7 @@ public class MountEntrySubDBPanel extends PoolSubDBPanel<MountEntry> {
         }
         catch (Exception sQLException)
         {
-            VSMCMain.notify(win, "Fehler beim Erzeugen der Mountentry-Tabelle", sQLException.getMessage());
+            VSMCMain.notify(win, VSMCMain.Txt("Fehler beim Erzeugen der Mountentry-Tabelle"), sQLException.getMessage());
             return new VerticalLayout();
         }
         

@@ -376,7 +376,7 @@ public class LocalFSElemEditor extends HorizontalLayout
                     
 
                     final TextFieldDlg dlg = new TextFieldDlg(VSMCMain.Txt("Neuer Ordner"), VSMCMain.Txt("Verzeichnisname"), VSMCMain.Txt("Neuer Ordner"),
-                            new StringLengthValidator(VSMCMain.Txt("Bitte gebgen Sie einen gültigen Pfad an"), 1, 256, false));
+                            new StringLengthValidator(VSMCMain.Txt("Bitte geben Sie einen gültigen Pfad an"), 1, 256, false));
 
                     dlg.setOkActionListener( new Button.ClickListener()
                     {

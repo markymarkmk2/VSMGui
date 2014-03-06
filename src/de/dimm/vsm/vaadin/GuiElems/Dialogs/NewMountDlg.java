@@ -84,6 +84,7 @@ public class NewMountDlg {
     {
         final Window win = new Window(VSMCMain.Txt("Neuer Mounteintrag"));
         win.setWidth("550px");
+        win.center();
         GenericEntityManager em = VSMCMain.get_util_em(pool);
         ValueChangeListener vcl = new ValueChangeListener() {
 

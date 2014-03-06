@@ -20,7 +20,7 @@ public class RetentionSubDBPanel extends PoolSubDBPanel<Retention> {
 
     RetentionSubDBPanel(PoolEditorWin win, VSMCMain main)
     {
-        super(win, main, "Gültigkeitspläne", "images/retention.png");
+        super(win, main, VSMCMain.Txt("Gültigkeitspläne"), "images/retention.png");
         
     }
     
@@ -44,7 +44,7 @@ public class RetentionSubDBPanel extends PoolSubDBPanel<Retention> {
         }
         catch (Exception sQLException)
         {
-            VSMCMain.notify(win, "Fehler beim Erzeugen der Retention-Tabelle", sQLException.getMessage());
+            VSMCMain.notify(win, VSMCMain.Txt("Fehler beim Erzeugen der Retention-Tabelle"), sQLException.getMessage());
             return new VerticalLayout();
         }
         

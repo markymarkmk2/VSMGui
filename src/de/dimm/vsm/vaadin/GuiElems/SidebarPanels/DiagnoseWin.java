@@ -279,7 +279,7 @@ public class DiagnoseWin extends SidebarPanel
         tableWin.setSizeFull();
         tableWin.setSpacing(true);
 
-        Component head = table.createHeader(VSMCMain.Txt("Liste der Hotfolder:"));
+        Component head = table.createHeader(VSMCMain.Txt("Liste der Texteinträge:"));
 
         tableWin.addComponent(head);
         tableWin.addComponent(table);

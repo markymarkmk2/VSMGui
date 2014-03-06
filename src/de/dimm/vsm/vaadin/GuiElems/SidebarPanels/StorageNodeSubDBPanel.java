@@ -20,7 +20,7 @@ public class StorageNodeSubDBPanel extends PoolSubDBPanel<AbstractStorageNode> {
 
     StorageNodeSubDBPanel(PoolEditorWin win, VSMCMain main)
     {
-        super(win, main, "Speicherorte", "images/storagenode.png");
+        super(win, main, VSMCMain.Txt("Speicherorte"), "images/storagenode.png");
         
     }
     

@@ -163,7 +163,7 @@ public class BackupResult extends SidebarPanel
         tableWin.setSizeFull();
         tableWin.setSpacing(true);
 
-        Component head = table.createHeader(VSMCMain.Txt("Backupjob-Ergebisse:"));
+        Component head = table.createHeader(VSMCMain.Txt("Backupjob-Ergebnisse:"));
 
         tableWin.addComponent(head);
         tableWin.addComponent(table);

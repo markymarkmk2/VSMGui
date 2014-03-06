@@ -211,7 +211,7 @@ public class SearchClientWin extends SidebarPanel
         hl_main.setSizeFull();
 
         Panel pn_search = new Panel();
-        pn_search.setCaption("Suchbegriff");
+        pn_search.setCaption(VSMCMain.Txt("Suchbegriff"));
         pn_search.setSizeFull();
         
         VerticalLayout pn_search_layout = (VerticalLayout) pn_search.getContent();
@@ -227,7 +227,7 @@ public class SearchClientWin extends SidebarPanel
 
 
         Panel pn_options = new Panel();
-        pn_options.setCaption("Optionen");
+        pn_options.setCaption(VSMCMain.Txt("Optionen"));
         pn_options.setSizeFull();
         
 

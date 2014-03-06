@@ -131,7 +131,7 @@ public class MailNotificationTable extends BaseDataEditTable<MailNotifications>
 
         fieldList.add(new JPAMailGroupComboField( main ) );
         fieldList.add(new JPANotificationEntryComboField( main ) );
-        fieldList.add(new JPACheckBox( "Deaktiviert", "disabled" ) );
+        fieldList.add(new JPACheckBox( VSMCMain.Txt("Deaktiviert"), "disabled" ) );
 
         setTableFieldWidth(fieldList, "keyString", 400);
         setTableColumnWidth(fieldList, "keyString", 200);
@@ -164,7 +164,7 @@ public class MailNotificationTable extends BaseDataEditTable<MailNotifications>
             list = VSMCMain.get_base_util_em().createQuery("select p from MailGroup p order by T1.idx desc", MailGroup.class);
             if (list.isEmpty())
             {
-                VSMCMain.notify(this, "Bitte legen Sie zuerst MailGruppen an", "");
+                VSMCMain.notify(this, VSMCMain.Txt("Bitte legen Sie zuerst MailGruppen an"), "");
                 return null;
             }
             p.setGroup(list.get(0));
