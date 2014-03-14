@@ -66,11 +66,12 @@ import org.vaadin.jouni.animator.AnimatorProxy;
  */
 public class VSMCMain extends GenericMain
 {
+    private static boolean enableTextInputWin = false;
     protected String ip;
     protected String host;
     protected String args;
 
-    private final static String version = "0.8.6 trunk";
+    private final static String version = "0.8.8 trunk";
 
     public static String getVersion()
     {
@@ -206,16 +207,19 @@ public class VSMCMain extends GenericMain
         catch (Exception exc)
         {
             if (exc.getCause() instanceof MissingTextException)
-            {                
-                MissingTextException mexc = (MissingTextException)exc.getCause();
-                
-                if (!missingKeys.contains(mexc)) {
-                    missingKeys.add(mexc);
-                    if (VSMCMain.me != null && VSMCMain.me.getRootWin() != null && !insideTextBaseEdit)
-                    {
-                        insideTextBaseEdit = true;
-                        TextBaseInputWin win = new TextBaseInputWin(VSMCMain.me);
-                        VSMCMain.me.getRootWin().addWindow(win);            
+            {   
+                if (enableTextInputWin)
+                {
+                    MissingTextException mexc = (MissingTextException)exc.getCause();
+
+                    if (!missingKeys.contains(mexc)) {
+                        missingKeys.add(mexc);
+                        if (VSMCMain.me != null && VSMCMain.me.getRootWin() != null && !insideTextBaseEdit)
+                        {
+                            insideTextBaseEdit = true;
+                            TextBaseInputWin win = new TextBaseInputWin(VSMCMain.me);
+                            VSMCMain.me.getRootWin().addWindow(win);            
+                        }
                     }
                 }
             }
