@@ -141,6 +141,15 @@ public class RoleTable extends BaseDataEditTable<Role>
         return VSMCMain.get_base_util_em();
     }
 
+    @Override
+    public void setValueChanged()
+    {
+        super.setValueChanged(); //To change body of generated methods, choose Tools | Templates.
+        setNewList();
+    }
+    
+    
+
     public void setNewList()
     {   
         List<Role> list = null;

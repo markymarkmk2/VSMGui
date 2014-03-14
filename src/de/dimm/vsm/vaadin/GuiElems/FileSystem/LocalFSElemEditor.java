@@ -14,6 +14,7 @@ import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
@@ -128,7 +129,7 @@ public class LocalFSElemEditor extends HorizontalLayout
         this.addComponent(bt);
         this.setComponentAlignment(bt, Alignment.BOTTOM_LEFT);
 
-        bt.addListener( new Button.ClickListener()
+        bt.addListener( new ClickListener()
         {
             @Override
             public void buttonClick( ClickEvent event )
@@ -411,6 +412,7 @@ public class LocalFSElemEditor extends HorizontalLayout
     {
         tf.setReadOnly(readOnly);
         bt.setReadOnly(readOnly);
+        bt.setVisible(false);
     }
 
 }
