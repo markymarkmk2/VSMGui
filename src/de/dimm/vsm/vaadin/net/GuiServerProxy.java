@@ -767,6 +767,16 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
 
         return false;
     }
+
+    @Override
+    public boolean isWrapperValid( IWrapper wrapper )
+    {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null)
+            return guiServerApi.isWrapperValid(wrapper);
+        return false;
+    }
+    
     
 
 }

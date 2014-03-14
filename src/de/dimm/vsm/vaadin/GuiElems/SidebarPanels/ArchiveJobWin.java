@@ -645,6 +645,8 @@ public class ArchiveJobWin extends SidebarPanel
                 List<RemoteFSElemTreeElem> childList = new ArrayList<>();
                 try
                 {
+                    if (!checkWrapperValid())
+                        return childList; 
                     
                     List<RemoteFSElem> elem_list = main.getGuiServerApi().listSearchDir(searchWrapper, elem.getElem());
                     for (int i = 0; i < elem_list.size(); i++)
@@ -719,6 +721,8 @@ public class ArchiveJobWin extends SidebarPanel
                 if (event.getItemId() instanceof RemoteFSElemTreeElem
                         && (event.getButton() & com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT) == com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT)
                 {
+                    if (!checkWrapperValid())
+                        return; 
                     RemoteFSElemTreeElem clickedItem = (RemoteFSElemTreeElem)event.getItemId();
                     Object sel = tree.getValue();
 
@@ -737,6 +741,9 @@ public class ArchiveJobWin extends SidebarPanel
                 }
                 if (event.getItemId() instanceof RemoteFSElemTreeElem && event.isDoubleClick())
                 {
+                    if (!checkWrapperValid())
+                        return; 
+                    
                     RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
                     handleDownload(rfstreeelem);
                 }
@@ -747,9 +754,23 @@ public class ArchiveJobWin extends SidebarPanel
         tree.setSizeFull();
         return tree;
     }
+    
+    boolean checkWrapperValid( )
+    {
+        if (!main.getGuiServerApi().isWrapperValid(searchWrapper))
+        {
+            main.Msg().errmOk(VSMCMain.Txt("Die Ergebnisse stehen nicht mehr zur Verfügung"));
+            return false;                    
+        }   
+        return true;        
+    }
+    
     ContextMenu lastMenu = null;
     void create_fs_popup( ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems )
     {
+        if (!checkWrapperValid())
+            return; 
+        
         if (lastMenu != null)
         {
             treePanel.removeComponent(lastMenu);
@@ -760,6 +781,8 @@ public class ArchiveJobWin extends SidebarPanel
             @Override
             public void handleRestoreTargetDialog( List<RemoteFSElemTreeElem> rfstreeelems )
             {
+                if (!checkWrapperValid())
+                    return; 
                  RestoreLocationDlg dlg = FSTreePanel.createRestoreTargetDialog(main, searchWrapper, rfstreeelems );
                  treePanel.getApplication().getMainWindow().addWindow( dlg );
             }
@@ -767,6 +790,8 @@ public class ArchiveJobWin extends SidebarPanel
             @Override
             public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
             {
+                if (!checkWrapperValid())
+                    return; 
                 DownloadResource downloadResource = FSTreePanel.createDownloadResource( main, getApplication(), searchWrapper, singleRfstreeelem);
                 getWindow().open(downloadResource);
             }

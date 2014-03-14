@@ -38,7 +38,7 @@ public class AuthentificationWin extends SidebarPanel
     VerticalSplitPanel acctSplitter;
 
     BaseDataEditTable<AccountConnector> acctTable;
-    BaseDataEditTable<Role> rolelTable;
+    RoleTable rolelTable;
     
     HorizontalSplitPanel mainPanel;
 
@@ -54,6 +54,11 @@ public class AuthentificationWin extends SidebarPanel
     {
         super.activate();
         build_gui();
+        
+        if (rolelTable != null)
+        {
+            rolelTable.setNewList();
+        }
     }
 
     void build_gui()
@@ -91,7 +96,7 @@ public class AuthentificationWin extends SidebarPanel
         List<Role> list = null;
         try
         {
-            list = VSMCMain.get_base_util_em().createQuery("select p from Role p", Role.class);
+            list = VSMCMain.get_base_util_em().createQuery(RoleTable.ROLE_QRY, Role.class);
         }
         catch (SQLException sQLException)
         {
@@ -114,7 +119,7 @@ public class AuthentificationWin extends SidebarPanel
         tableWin.setSizeFull();
         tableWin.setSpacing(true);
 
-        Component head = rolelTable.createHeader(VSMCMain.Txt("Liste der Rollen:"));
+        Component head = rolelTable.createHeader(VSMCMain.Txt("Liste der Rollen in Reihenfolge der Abarbeitung:"));
 
         tableWin.addComponent(head);
         tableWin.addComponent(rolelTable);

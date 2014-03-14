@@ -163,6 +163,9 @@ public class FSTreePanel extends HorizontalLayout
                 if (event.getItemId() instanceof RemoteFSElemTreeElem
                         && (event.getButton() & com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT) == com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT)
                 {
+                    if (!checkWrapperValid())
+                        return;
+                    
                     RemoteFSElemTreeElem clickedItem = (RemoteFSElemTreeElem) event.getItemId();
                     Object sel = tree.getValue();
 
@@ -181,6 +184,8 @@ public class FSTreePanel extends HorizontalLayout
                 }
                 if (event.getItemId() instanceof RemoteFSElemTreeElem && event.isDoubleClick())
                 {
+                    if (!checkWrapperValid())
+                        return;
                     RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
                     DownloadResource downloadResource = createDownloadResource(main, getApplication(), viewWrapper, rfstreeelem);
                     getWindow().open(downloadResource);
@@ -191,12 +196,30 @@ public class FSTreePanel extends HorizontalLayout
 
         return tree;
     }
+    
+    boolean checkWrapperValid( )
+    {
+        if (!main.getGuiServerApi().isWrapperValid(viewWrapper))
+        {
+            main.Msg().errmOk(VSMCMain.Txt("Die Ergebnisse stehen nicht mehr zur Verfügung"));
+            return false;                    
+        }   
+        return true;        
+    }    
+    
     ContextMenu lastMenu = null;
 
     public static ContextMenu create_fs_popup( final VSMCMain main, final IWrapper wrapper, final TreeTable tree,
             final FSTreeContainer container, final ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems,
             final IContextMenuCallback callback, String header )
     {
+
+       if (!main.getGuiServerApi().isWrapperValid(wrapper))
+        {
+            main.Msg().errmOk(VSMCMain.Txt("Die Ergebnisse stehen nicht mehr zur Verfügung"));
+            return null;                    
+        }  
+        
         ContextMenu contextMenu = new ContextMenu();
         ContextMenuItem dl = null;
         ContextMenuItem _remove = null;
@@ -260,6 +283,11 @@ public class FSTreePanel extends HorizontalLayout
             @Override
             public void contextItemClick( ContextMenu.ClickEvent ctxEvent )
             {
+                if (!main.getGuiServerApi().isWrapperValid(wrapper))
+                {
+                    main.Msg().errmOk(VSMCMain.Txt("Die Ergebnisse stehen nicht mehr zur Verfügung"));
+                    return;                    
+                }
                 // INFO, DEL AND REMOVE WORK ONLY WITH SINGLE SELECTION
                 final RemoteFSElemTreeElem singleRfstreeelem = rfstreeelems.get(0);
                 ContextMenuItem clickedItem = ctxEvent.getClickedItem();
@@ -386,6 +414,12 @@ public class FSTreePanel extends HorizontalLayout
             final FSTreeContainer container, final ItemClickEvent event, final RemoteFSElemTreeElem singleRfstreeelem
             )
     {
+       if (!main.getGuiServerApi().isWrapperValid(wrapper))
+        {
+            main.Msg().errmOk(VSMCMain.Txt("Die Ergebnisse stehen nicht mehr zur Verfügung"));
+            return;                    
+        }  
+        
         final List<RemoteFSElem> versions;
         try
         {
@@ -481,6 +515,8 @@ public class FSTreePanel extends HorizontalLayout
         RemoteFSElem fs = rfstreeelem.getElem();
 
         InputStream is = main.getGuiServerApi().openStream(wrapper, fs);
+        if (is == null)
+            return null;
 
         DownloadResource downloadResource = new DownloadResource(is, fs.getName(), app);
 

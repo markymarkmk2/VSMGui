@@ -472,10 +472,17 @@ public class SearchClientWin extends SidebarPanel
                  main.getGuiServerApi().unmountVolume(wrapper);
             }
             wrapper = main.getGuiServerApi().mountVolume(mountedIP, mountedPort, searchWrapper,  null, mountedDrive);
+            if (wrapper != null)
+            {
 
-            btMountVol.setCaption(umntText);
-            mountedVol = true;
-            VSMCMain.notify(txt_search_name,  VSMCMain.Txt("Die Ergebnisse wurden bereitgestellt auf"), mountedIP + "->" + mountedDrive);
+                btMountVol.setCaption(umntText);
+                mountedVol = true;
+                VSMCMain.notify(txt_search_name,  VSMCMain.Txt("Die Ergebnisse wurden bereitgestellt auf"), mountedIP + "->" + mountedDrive);
+            }
+            else
+            {
+               main.Msg().errmOk(VSMCMain.Txt("Das Mounten des Volumes schlug fehl"));
+            }
         }
     }
 
@@ -517,6 +524,16 @@ public class SearchClientWin extends SidebarPanel
         _tree.setSizeFull();
         treePanel.addComponent(_tree);
     }
+    
+    boolean checkWrapperValid( )
+    {
+        if (!main.getGuiServerApi().isWrapperValid(searchWrapper))
+        {
+            main.Msg().errmOk(VSMCMain.Txt("Die Ergebnisse stehen nicht mehr zur Verfügung"));
+            return false;                    
+        }   
+        return true;        
+    }
 
 
     Component initFsTree( List<RemoteFSElem> root_list )
@@ -542,6 +559,8 @@ public class SearchClientWin extends SidebarPanel
                 List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
                 try
                 {
+                    if (!checkWrapperValid())
+                        return childList;                    
                     
                     List<RemoteFSElem> elem_list = main.getGuiServerApi().listSearchDir(searchWrapper, elem.getElem());
                     for (int i = 0; i < elem_list.size(); i++)
@@ -594,6 +613,9 @@ public class SearchClientWin extends SidebarPanel
                 if (event.getItemId() instanceof RemoteFSElemTreeElem
                         && (event.getButton() & com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT) == com.vaadin.event.MouseEvents.ClickEvent.BUTTON_RIGHT)
                 {
+                    if (!checkWrapperValid())
+                        return;                    
+                    
                     RemoteFSElemTreeElem clickedItem = (RemoteFSElemTreeElem)event.getItemId();
                     Object sel = tree.getValue();
 
@@ -612,6 +634,9 @@ public class SearchClientWin extends SidebarPanel
                 }
                 if (event.getItemId() instanceof RemoteFSElemTreeElem && event.isDoubleClick())
                 {
+                    if (!checkWrapperValid())
+                        return;                    
+                    
                     RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
                     DownloadResource downloadResource = FSTreePanel.createDownloadResource( main, getApplication(), searchWrapper, rfstreeelem);
                     getWindow().open(downloadResource);
@@ -626,6 +651,9 @@ public class SearchClientWin extends SidebarPanel
 
     void create_fs_popup( ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems )
     {
+        if (!checkWrapperValid())
+            return;                    
+                
         if (lastMenu != null)
         {
             treePanel.removeComponent(lastMenu);
@@ -643,7 +671,14 @@ public class SearchClientWin extends SidebarPanel
             @Override
             public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
             {
+                if (!checkWrapperValid())
+                    return;                    
+                
                 DownloadResource downloadResource = FSTreePanel.createDownloadResource( main, getApplication(), searchWrapper, singleRfstreeelem);
+                if (downloadResource == null)
+                {
+                    VSMCMain.notify(txt_search_name,  VSMCMain.Txt("Auf die Ergebnisse kann nicht mehr zugegriffen werden"), mountedIP + "->" + mountedDrive);
+                }
                 getWindow().open(downloadResource);
             }
         };

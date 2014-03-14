@@ -811,6 +811,15 @@ public abstract class BaseDataEditTable<T> extends Table
         setValueChanged();
 
     }
+    public void setNewList(List<T> newList)
+    {
+        parentObjlist = newList;
+        bc.removeAllItems();
+        for (int i = 0; i < parentObjlist.size(); i++)
+        {
+            bc.addBean( parentObjlist.get(i) );
+        }        
+    }
 
     public Component createNewButton()
     {

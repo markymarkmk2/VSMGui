@@ -101,6 +101,8 @@ class RoleOptionDBLinkField extends JPADBLinkField<RoleOption>
  */
 public class RoleTable extends BaseDataEditTable<Role>
 {
+    public static final String ROLE_QRY = "select * from Role T1 order by name asc";
+    
     ArrayList<ComboEntry> roleOptionEntries;
 
     private RoleTable( VSMCMain main, List<Role> list, ArrayList<JPAField> _fieldList, ItemClickListener listener,  ArrayList<ComboEntry> roleOptionEntries)
@@ -124,6 +126,7 @@ public class RoleTable extends BaseDataEditTable<Role>
         roe.add( new ComboEntry(RoleOption.RL_READ_WRITE, VSMCMain.Txt("Schreibrechte")));
         roe.add( new ComboEntry(RoleOption.RL_USERPATH, VSMCMain.Txt("Restorepfad")));
         roe.add( new ComboEntry(RoleOption.RL_FSMAPPINGFILE, VSMCMain.Txt("VSM-Filesystem Mapping")));
+        roe.add( new ComboEntry(RoleOption.RL_GROUP, VSMCMain.Txt("Gruppenzugehörigkeit")));
 
         setTooltipText( fieldList, "accountmatch", VSMCMain.Txt("Wildcards mit .* (z.B.) user123.*" ) );
 
@@ -138,6 +141,19 @@ public class RoleTable extends BaseDataEditTable<Role>
         return VSMCMain.get_base_util_em();
     }
 
+    public void setNewList()
+    {   
+        List<Role> list = null;
+        try
+        {
+            list = VSMCMain.get_base_util_em().createQuery(ROLE_QRY, Role.class);
+            setNewList(list);
+        } 
+        catch (SQLException sQLException)
+        {
+            VSMCMain.notify(this, "Fehler beim Erzeugen der Role-Tabelle", sQLException.getMessage());
+        }       
+    }
 
     @Override
     protected Role createNewObject()
