@@ -319,7 +319,7 @@ public class DiagnoseWin extends SidebarPanel
         try
         {
             InetAddress addr = InetAddress.getByName(ip);
-            RemoteCallFactory factory = new RemoteCallFactory(addr, port, "net", false,/*tcp*/ true);
+            RemoteCallFactory factory = new RemoteCallFactory(addr, port, "net", false,/*tcp*/ true, 2000, 5000);
 
             final AgentApi api = (AgentApi) factory.create(AgentApi.class);
 

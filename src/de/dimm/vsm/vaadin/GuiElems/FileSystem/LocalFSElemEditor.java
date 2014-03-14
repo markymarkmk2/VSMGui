@@ -412,7 +412,7 @@ public class LocalFSElemEditor extends HorizontalLayout
     {
         tf.setReadOnly(readOnly);
         bt.setReadOnly(readOnly);
-        bt.setVisible(false);
+        bt.setVisible(!readOnly);
     }
 
 }

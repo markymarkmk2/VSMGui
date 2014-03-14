@@ -294,8 +294,7 @@ public class RemoteFSElemEditor extends LocalFSElemEditor
         try
         {
             InetAddress addr = InetAddress.getByName(getActIP());
-            _factory = new RemoteCallFactory(addr, getActPort(), "net", /*ssl*/ false,/*tcp*/ true);
-
+            _factory = new RemoteCallFactory(addr, getActPort(), "net", /*ssl*/ false,/*tcp*/ true, 5000, 10000);            
             api = (AgentApi) _factory.create(AgentApi.class);
             api.get_properties();
         }
