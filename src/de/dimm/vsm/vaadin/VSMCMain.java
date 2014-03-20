@@ -71,7 +71,7 @@ public class VSMCMain extends GenericMain
     protected String host;
     protected String args;
 
-    private final static String version = "0.8.8 trunk";
+    private final static String version = "0.8.9a trunk";
 
     public static String getVersion()
     {
@@ -972,33 +972,67 @@ public class VSMCMain extends GenericMain
     private static List<StoragePool> filterPoolForRoleOptions(List<StoragePool> poolList)
     {
         List<StoragePool> list = new ArrayList<>();
-        List<RoleOption> roleOptions = me.getGuiUser().getUser().getRole().getRoleOptions();
-        for (int i = 0; i < poolList.size(); i++)
+        
+        try
         {
-            StoragePool storagePool = poolList.get(i);
-            boolean skipPool = false;
-            for (int j = 0; j < roleOptions.size(); j++)
+            if (me.getGuiUser().getUser().getRole() != null && 
+                me.getGuiUser().getUser().getRole().getRoleOptions() != null)
             {
-                RoleOption roleOption = roleOptions.get(j);
-                if (roleOption.getToken().equals(RoleOption.RL_VALID_POOLS))
+                List<RoleOption> roleOptions = me.getGuiUser().getUser().getRole().getRoleOptions();
+                for (int i = 0; i < poolList.size(); i++)
                 {
-                    skipPool = true;
-                    String[] pools = roleOption.getOptionStr().split(",");
-                    for (int k = 0; k < pools.length; k++)
+                    StoragePool storagePool = poolList.get(i);
+                    boolean skipPool = false;
+                    for (int j = 0; j < roleOptions.size(); j++)
                     {
-                        String poolName = pools[k].trim();
-                        if (storagePool.getName().equals(poolName))
+                        RoleOption roleOption = roleOptions.get(j);
+                        if (roleOption.getToken().equals(RoleOption.RL_VALID_POOLS))
                         {
-                            skipPool = false;
-                            break;
-                        }                        
-                    }                    
-                }                
+                            skipPool = true;
+                            String[] pools = roleOption.getOptionStr().split(",");
+                            for (int k = 0; k < pools.length; k++)
+                            {
+                                String poolName = pools[k].trim();
+                                if (storagePool.getName().equals(poolName))
+                                {
+                                    skipPool = false;
+                                    break;
+                                }                        
+                            }                    
+                        }                
+                    }
+                    if (!skipPool)
+                        list.add(storagePool);
+                }
+                return list;
             }
-            if (!skipPool)
-                list.add(storagePool);
+            else
+            {
+                return poolList;
+            }
         }
-        return list;
+        catch (Exception exc)
+        {
+            String txt = "Me: "  + me;
+            if (me != null)
+            {
+                txt += " me.getGuiUser():" + me.getGuiUser();
+                if (me.getGuiUser() != null)
+                {
+                    txt +=" User:" + me.getGuiUser().getUser();
+                    if (me.getGuiUser().getUser() != null)
+                    {
+                        txt += " Role:" + me.getGuiUser().getUser().getRole();
+                        if (me.getGuiUser().getUser().getRole() != null)
+                        {
+                            txt += " Role:" + me.getGuiUser().getUser().getRole().getRoleOptions();
+                        }
+                    }
+                }
+            }
+            notify(me.getRootWin(), "Abbruch beim filterPoolForRoleOptions", txt );
+        }
+        return poolList;
     }
 
     static List<StoragePool> _getStoragePoolList()
