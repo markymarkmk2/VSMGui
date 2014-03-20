@@ -969,13 +969,45 @@ public class VSMCMain extends GenericMain
         return slctPool;
     }
 
+    private static List<StoragePool> filterPoolForRoleOptions(List<StoragePool> poolList)
+    {
+        List<StoragePool> list = new ArrayList<>();
+        List<RoleOption> roleOptions = me.getGuiUser().getUser().getRole().getRoleOptions();
+        for (int i = 0; i < poolList.size(); i++)
+        {
+            StoragePool storagePool = poolList.get(i);
+            boolean skipPool = false;
+            for (int j = 0; j < roleOptions.size(); j++)
+            {
+                RoleOption roleOption = roleOptions.get(j);
+                if (roleOption.getToken().equals(RoleOption.RL_VALID_POOLS))
+                {
+                    skipPool = true;
+                    String[] pools = roleOption.getOptionStr().split(",");
+                    for (int k = 0; k < pools.length; k++)
+                    {
+                        String poolName = pools[k].trim();
+                        if (storagePool.getName().equals(poolName))
+                        {
+                            skipPool = false;
+                            break;
+                        }                        
+                    }                    
+                }                
+            }
+            if (!skipPool)
+                list.add(storagePool);
+        }
+        return list;
+    }
 
     static List<StoragePool> _getStoragePoolList()
     {
         Object o = callLogicControl("getStoragePoolList");
         if (o != null && o instanceof List)
-        {
-            return (List<StoragePool>) o;
+        {            
+            List<StoragePool> list = filterPoolForRoleOptions((List<StoragePool>) o);
+            return list;
         }
 
         throw new UnsupportedOperationException("Not yet implemented");

@@ -281,7 +281,7 @@ public class FsMappingUi extends VerticalLayout
             else
             {
                 String[] entry = string.split(",");
-                if (entry.length != 2)
+                if (entry.length < 2)
                     return false;
                 String v = entry[0].trim();
                 String u = entry[1].trim();
