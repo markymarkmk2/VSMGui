@@ -27,7 +27,6 @@ public class AppHeader
     Label lbUser;
     Label lbLastLogin;
     Label lbUserMode;
-    //Label lbEmpty = new Label("");
     VerticalLayout gui;
     Button btLogin;
 

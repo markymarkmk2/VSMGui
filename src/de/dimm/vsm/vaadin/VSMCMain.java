@@ -70,15 +70,35 @@ public class VSMCMain extends GenericMain
     protected String ip;
     protected String host;
     protected String args;
+    
 
-    private final static String version = "0.8.9a trunk";
+    MenuItem menuItem;
+    Application app;
+    AppHeader header;
+    LoginElem loginElem;
+    boolean loggedIn;
+    Component poolEditor;
+    Component backupEditor;
+
+    SidebarButton btstatus;
+    ErrMsgHandler errMsgHandler;
+    BusyHandler busyHandler;
+    GuiServerProxy guiServerProxy;
+    LogoutPanel logoutPanel;
+    LogWin logWin;    
+    Sidebar sidebar;
+    GuiWrapper guiWrapper;
+
+    protected String lastUser = null;
+    protected String lastPwd= null;
+    
+
+    private final static String version = "0.9.1 trunk";
 
     public static String getVersion()
     {
         return version;
     }
-
-
 
     public static boolean isFTPStorageLicensed()
     {
@@ -110,6 +130,20 @@ public class VSMCMain extends GenericMain
         }
         throw new UnsupportedOperationException("Not yet implemented");
     }
+    
+    public static void setTrace(boolean trace )
+    {
+        callLogicControl("setTrace", Boolean.valueOf(trace));
+    }    
+    public static Boolean getTrace( )
+    {
+        Object o = callLogicControl("getTrace");
+        if (o != null && o instanceof Boolean)
+        {
+            return (Boolean)o;
+        }
+        throw new UnsupportedOperationException("Not yet implemented");
+    }    
 
     public static void notifyUnimplemented(Component c)
     {
@@ -214,11 +248,11 @@ public class VSMCMain extends GenericMain
 
                     if (!missingKeys.contains(mexc)) {
                         missingKeys.add(mexc);
-                        if (VSMCMain.me != null && VSMCMain.me.getRootWin() != null && !insideTextBaseEdit)
+                        if (VSMCMain.getMe() != null && VSMCMain.getMe().getRootWin() != null && !insideTextBaseEdit)
                         {
                             insideTextBaseEdit = true;
-                            TextBaseInputWin win = new TextBaseInputWin(VSMCMain.me);
-                            VSMCMain.me.getRootWin().addWindow(win);            
+                            TextBaseInputWin win = new TextBaseInputWin(VSMCMain.getMe());
+                            VSMCMain.getMe().getRootWin().addWindow(win);            
                         }
                     }
                 }
@@ -268,7 +302,7 @@ public class VSMCMain extends GenericMain
             if (exc instanceof InvocationTargetException)
             {
                 InvocationTargetException ite = (InvocationTargetException)exc;
-                notify(VSMCMain.me.root, ite.getTargetException().getMessage(), "");
+                notify(VSMCMain.getMe().root, ite.getTargetException().getMessage(), "");
                 return null;
             }
             System.out.println("Error in reflection call " + func + ":" + exc.getMessage());
@@ -315,7 +349,7 @@ public class VSMCMain extends GenericMain
             if (exc instanceof InvocationTargetException)
             {
                 InvocationTargetException ite = (InvocationTargetException)exc;
-                notify(VSMCMain.me.root, ite.getTargetException().getMessage(), "");
+                notify(VSMCMain.getMe().root, ite.getTargetException().getMessage(), "");
                 return null;
             }
             System.out.println("Error in reflection call " + func + ":" + exc.getMessage());
@@ -360,7 +394,7 @@ public class VSMCMain extends GenericMain
             if (exc instanceof InvocationTargetException)
             {
                 InvocationTargetException ite = (InvocationTargetException)exc;
-                notify(VSMCMain.me.root, ite.getTargetException().getMessage(), "");
+                notify(VSMCMain.getMe().root, ite.getTargetException().getMessage(), "");
                 return null;
             }
             System.out.println("Error in reflection call " + func + ":" + exc.getMessage());
@@ -428,27 +462,6 @@ public class VSMCMain extends GenericMain
 
 
     
-    MenuItem menuItem;
-    Application app;
-    AppHeader header;
-    LoginElem loginElem;
-    boolean loggedIn;
-    Component poolEditor;
-    Component backupEditor;
-
-    SidebarButton btstatus;
-    ErrMsgHandler errMsgHandler;
-    BusyHandler busyHandler;
-    GuiServerProxy guiServerProxy;
-    LogoutPanel logoutPanel;
-    LogWin logWin;
-    static VSMCMain me;
-    Sidebar sidebar;
-    GuiWrapper guiWrapper;
-
-    protected String lastUser = null;
-    protected String lastPwd= null;
-
 
     public GuiWrapper getGuiWrapper()
     {
@@ -457,17 +470,29 @@ public class VSMCMain extends GenericMain
 
     
 
-    public static MountLocationDlg mountDlg = new MountLocationDlg("127.0.0.1", 8082, "/mnt");
+    public MountLocationDlg mountDlg = new MountLocationDlg("127.0.0.1", 8082, "/mnt");
+    
+    private static final ThreadLocal<VSMCMain> appThreadLocal = new ThreadLocal<VSMCMain>();
+    
+    static VSMCMain getMe()
+    {
+        return appThreadLocal.get();
+    }
+    public void setMe()
+    {
+        appThreadLocal.set(this);
+    }
 
     public VSMCMain( Application _app )
     {
         super("VSMCClient");
 
         app = _app;
+        appThreadLocal.set(this);
 
         //String mainClass = app.getProperty("servermain");
 
-        me = this;
+        //me = this;
 
         root.setSizeFull();
         root.setStyleName("vsm");
@@ -918,14 +943,14 @@ public class VSMCMain extends GenericMain
     {
         Window win = c.getWindow();
         if (win == null)
-            win = me.getRoot();
+            win = getMe().getRoot();
         win.showNotification(bigTxt,smallTxt, Notification.TYPE_WARNING_MESSAGE);
     }
     public static void info( Component c, String bigTxt, String smallTxt )
     {
          Window win = c.getWindow();
         if (win == null)
-            win = me.getRoot();
+            win = getMe().getRoot();
         win.showNotification(bigTxt,smallTxt, Notification.TYPE_HUMANIZED_MESSAGE);
     }
 
@@ -972,7 +997,8 @@ public class VSMCMain extends GenericMain
     private static List<StoragePool> filterPoolForRoleOptions(List<StoragePool> poolList)
     {
         List<StoragePool> list = new ArrayList<>();
-        
+                    VSMCMain me = getMe();
+
         try
         {
             if (me.getGuiUser().getUser().getRole() != null && 

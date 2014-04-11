@@ -1,3 +1,9 @@
+Veränderungen in V0.9.1
+UPD: Trace in Diagnosewin
+
+Veränderungen in V0.9.0
+FIX: Sessionbezogene Userdaten
+
 Veränderungen in V0.8.2
 UPD: Checks für StoragePool
 UPD: Checks für StorageNode

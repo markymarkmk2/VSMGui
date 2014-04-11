@@ -92,6 +92,11 @@ public class AppServlet extends ApplicationServlet
         app = super.getNewApplication(request);
         return app;
     }
+
+    public Application getApp() {
+        return app;
+    }
+    
    
     
 }

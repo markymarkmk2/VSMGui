@@ -17,11 +17,13 @@ public class VSMSearchApplication extends TPTApplication implements ClickListene
     
     @Override
     public void applicationInit() 
-    {
-        
+    {        
         initClientMain();
-
     }
+    
+    public VSMCMain getMain() {
+        return main;
+    }    
     void initClientMain()
     {
         setTheme("vsm");

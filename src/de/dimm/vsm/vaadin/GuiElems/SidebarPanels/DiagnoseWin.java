@@ -12,6 +12,7 @@ import com.vaadin.ui.AbsoluteLayout;
 import com.vaadin.ui.AbstractLayout;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
@@ -48,6 +49,7 @@ public class DiagnoseWin extends SidebarPanel
     Charts charts;
 
     boolean abortBusy;
+    CheckBox trcb;
 
     public DiagnoseWin( VSMCMain _main )
     {        
@@ -93,10 +95,22 @@ public class DiagnoseWin extends SidebarPanel
 
         });
         
-        final Button bt_busy = new Button("Busytest");
-        //al.addComponent( bt_busy, "top:50px;left:10px" );
+        // al.addComponent( bt_busy_abort, "top:50px;left:110px" );
+        
+        trcb = new CheckBox("Tracelogging");        
+        trcb.setImmediate(true);
+        al.addComponent( trcb, "top:60px;left:10px" );
+        trcb.addListener( new Button.ClickListener() {
 
-        bt_busy.addListener(new Button.ClickListener() {
+            @Override
+            public void buttonClick( ClickEvent event ) {
+                VSMCMain.setTrace(trcb.booleanValue());
+            }
+            
+        });
+
+       final Button bt_busy = new Button("Buytest");
+       bt_busy.addListener(new Button.ClickListener() {
 
             @Override
             public void buttonClick( ClickEvent event )
@@ -297,6 +311,8 @@ public class DiagnoseWin extends SidebarPanel
 
         if (hotFolderSplitter.getSecondComponent() != null)
             hotFolderSplitter.removeComponent(hotFolderSplitter.getSecondComponent());
+        
+        trcb.setValue(VSMCMain.getTrace().booleanValue());
        
     }
 

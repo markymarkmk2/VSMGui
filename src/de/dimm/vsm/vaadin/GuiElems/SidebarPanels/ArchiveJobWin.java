@@ -481,7 +481,7 @@ public class ArchiveJobWin extends SidebarPanel
         }
 
 
-        final MountLocationDlg dlg = VSMCMain.mountDlg;
+        final MountLocationDlg dlg = main.mountDlg;
         dlg.setIP( main.getHost() );
         
         dlg.setOkListener( new Button.ClickListener()

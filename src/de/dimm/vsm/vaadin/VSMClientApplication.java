@@ -49,6 +49,10 @@ public class VSMClientApplication extends TPTApplication implements ClickListene
 
     }
 
+    public VSMCMain getMain() {
+        return main;
+    }
+    
     @Override
     public void firstApplicationStartup()
     {
@@ -96,4 +100,8 @@ public class VSMClientApplication extends TPTApplication implements ClickListene
         // TODO Auto-generated method stub
         
     }    
+
+    public void setMe() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
