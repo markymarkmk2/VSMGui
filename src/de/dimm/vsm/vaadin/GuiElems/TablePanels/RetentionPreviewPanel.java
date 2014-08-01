@@ -136,7 +136,8 @@ public class RetentionPreviewPanel extends PreviewPanel<Retention>
 
 
         // ADD TO LAYOUT
-        addComponent(checkBoxDisabled);
+        JPAField disabled = table.getField("disabled");
+        addComponent(disabled.createGui(node));
         
         JPAField mode = table.getField("mode");
         addComponent(mode.createGui(node));
@@ -156,7 +157,8 @@ public class RetentionPreviewPanel extends PreviewPanel<Retention>
         addComponent(action.createGui(node));
 
 
-        addComponent(checkBoxNeg);
+        JPAField neg = table.getField("neg");
+        addComponent(neg.createGui(node));
 
 
         // HAS TO BE AFTER createGui

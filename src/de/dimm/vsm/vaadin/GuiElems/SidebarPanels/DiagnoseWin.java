@@ -18,20 +18,27 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.VerticalSplitPanel;
-import de.dimm.vsm.fsengine.JDBCEntityManager;
+import de.dimm.vsm.net.AttributeContainer;
 import de.dimm.vsm.net.RemoteCallFactory;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.StoragePoolWrapper;
+import de.dimm.vsm.net.VSMAclEntry;
 import de.dimm.vsm.net.interfaces.AgentApi;
 import de.dimm.vsm.records.TextBase;
 import de.dimm.vsm.vaadin.GuiElems.Charts;
+import de.dimm.vsm.vaadin.GuiElems.Dialogs.AttributeContainerEditor;
 import de.dimm.vsm.vaadin.GuiElems.TablePanels.TextBaseEntryTable;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.net.InetAddress;
+import java.nio.file.attribute.AclEntryFlag;
+import java.nio.file.attribute.AclEntryPermission;
+import java.nio.file.attribute.AclEntryType;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 
 
@@ -174,6 +181,25 @@ public class DiagnoseWin extends SidebarPanel
                 main.runInBusyCancel("Geht?", r, aboret);
             }
         });
+        
+        Button aclBt = new Button("ACL", new Button.ClickListener() {
+
+            @Override
+            public void buttonClick( ClickEvent event ) {
+                String name = "test";
+                AttributeContainer cont = new AttributeContainer();
+                Set<AclEntryPermission> perms = new HashSet<>();
+                perms.add(AclEntryPermission.READ_DATA);
+                perms.add(AclEntryPermission.READ_ATTRIBUTES);
+                Set<AclEntryFlag> flags = new HashSet<>();
+                flags.add(AclEntryFlag.NO_PROPAGATE_INHERIT);
+                cont.setAcl( new ArrayList<VSMAclEntry>());
+                cont.getAcl().add( new VSMAclEntry(AclEntryType.DENY, "Hullo", false, perms, flags ));
+                AttributeContainerEditor ed = new AttributeContainerEditor(main, name, cont);
+                main.getRootWin().addWindow(ed);
+            }
+        });
+        al.addComponent( aclBt, "top:60px;left:90px" );
 
 
         ArrayList<RemoteFSElem> root_list = new ArrayList<RemoteFSElem>();

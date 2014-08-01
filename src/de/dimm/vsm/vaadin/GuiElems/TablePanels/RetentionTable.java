@@ -257,6 +257,7 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         actionList.add( new ComboEntry(Retention.AC_SCRIPT, Txt("Script starten")));
         fieldList.add( new JPAComboField(Txt("Aktion"), "followAction", actionList ) );
 
+        fieldList.add(new JPACheckBox(VSMCMain.Txt("Negiert"), "neg"));
 
         return new RetentionTable( main, pool, list, fieldList, listener);
     }
