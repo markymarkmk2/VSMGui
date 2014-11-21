@@ -16,6 +16,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TreeTable;
+import de.dimm.vsm.Exceptions.PathResolveException;
+import de.dimm.vsm.Exceptions.PoolReadOnlyException;
 import de.dimm.vsm.Utilities.SizeStr;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.auth.UserManager;
@@ -592,14 +594,15 @@ public class FSTreePanel extends HorizontalLayout
                                 main.Msg().errmOk(VSMCMain.Txt("Hotfolderobjekte_können_nicht_an_Original_restauriert_werden"));
                                 return;
                             }
-                            ip = getIpFromPath(rfstreeelem);
-                            port = getPortFromPath(rfstreeelem);
+                            String realPath = main.getGuiServerApi().resolvePath(wrapper, rfstreeelem.getElem());
 
+                            ip = getIpFromPath(realPath);
+                            port = getPortFromPath(realPath);
 
                             Properties p = main.getGuiServerApi().getAgentProperties(ip, port, false);
                             boolean isWindows = (p != null && p.getProperty(AgentApi.OP_OS).startsWith("Win"));
 
-                            path = getTargetpathFromPath(rfstreeelem, isWindows);
+                            path = getTargetpathFromPath(realPath, isWindows);
                         }
 
                         int rflags = GuiServerApi.RF_RECURSIVE;
@@ -675,9 +678,9 @@ public class FSTreePanel extends HorizontalLayout
                         main.Msg().info(VSMCMain.Txt("Der_Restore_wurde_gestartet"), null);
                     }
                 }
-                catch (Exception ex)
-                {
-                    main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_abgebrochen"));
+                catch (SQLException | PathResolveException | PoolReadOnlyException | IOException ex)
+                {                    
+                    main.Msg().errmOk(VSMCMain.Txt("Der_Restore_wurde_abgebrochen: " + ex.getMessage()));
                 }
             }
         };
@@ -732,47 +735,48 @@ public class FSTreePanel extends HorizontalLayout
         return fp.startsWith("/" + HotFolder.HOTFOLDERBASE);
     }
 
-    private static String getIpFromPath( RemoteFSElemTreeElem elem )
+    private static String getIpFromPath( String path)
     {
-        String fp = getClientAddressPath(elem);
+        String fp = path;
         String[] pathArr = fp.split("/");
 
-        if (pathArr.length < 2)
+        if (pathArr.length < 3)
         {
             return null;
         }
 
         if (isHotfolderPath(fp))
         {
-            return pathArr[2];
+            return pathArr[3];
         }
 
         // 0 IS ROOT
-        return pathArr[1];
+        return pathArr[2];
     }
+    
 
-    private static int getPortFromPath( RemoteFSElemTreeElem elem )
+    private static int getPortFromPath(  String path)
     {
-        String fp = getClientAddressPath(elem);
+        String fp = path;
         String[] pathArr = fp.split("/");
 
 
-        if (pathArr.length < 3)
+        if (pathArr.length < 4)
         {
             return 0;
         }
 
         if (isHotfolderPath(fp))
         {
-            return Integer.parseInt(pathArr[3]);
+            return Integer.parseInt(pathArr[4]);
         }
 
-        return Integer.parseInt(pathArr[2]);
+        return Integer.parseInt(pathArr[3]);
     }
 
-    private static String getTargetpathFromPath( RemoteFSElemTreeElem elem, boolean isWindows )
+    private static String getTargetpathFromPath( String path, boolean isWindows )
     {
-        String fp = getClientAddressPath(elem);
+        String fp = path;
 
         if (isHotfolderPath(fp))
         {
@@ -782,7 +786,7 @@ public class FSTreePanel extends HorizontalLayout
         String[] pathArr = fp.split("/");
 
 
-        if (pathArr.length < 4)
+        if (pathArr.length < 5)
         {
             return null;
         }
@@ -790,10 +794,10 @@ public class FSTreePanel extends HorizontalLayout
         StringBuilder sb = new StringBuilder();
 
         // THE FIRST ENTRTIES ARE ROOT/IP/PORT, THE LAST ENTRY IS OURSELVES
-        for (int i = 3; i < pathArr.length - 1; i++)
+        for (int i = 4; i < pathArr.length - 1; i++)
         {
             // RECREATE WINDOWS DRIVE
-            if (i == 3 && isWindows)
+            if (i == 4 && isWindows)
             {
                 if (pathArr[i].length() == 1
                         && pathArr[i].toLowerCase().charAt(0) >= 'a'

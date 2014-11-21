@@ -28,32 +28,41 @@ import java.util.List;
  *
  * @author Administrator
  */
-public class FsMappingUi extends VerticalLayout
+public abstract class MappingFileUi extends VerticalLayout
 {
     ComboBox cb;
     List<ComboEntry> cdelist;
+    abstract protected String getCbName();
+    abstract protected String getDirName();
+    abstract protected String getNewContent();
+
+    
+    
     public void buildUi( final TextField optionString, final RoleOption node)
-{
+    {
         optionString.setVisible(false );
         cdelist = new ArrayList<>();
         cdelist.add( new ComboEntry("", ""));
-        File dir = new File(getFsMappingFolder());
+        File dir = new File(getMappingFolder());
         if (!dir.exists())
             dir.mkdir();
 
-        File[] fs = new File(getFsMappingFolder()).listFiles();
+        File[] fs = new File(getMappingFolder()).listFiles();
         int actIndex = -1;
 
         for (int i = 0; i < fs.length; i++)
         {
             File file = fs[i];
-
-            ComboEntry cbe = new ComboEntry(file, file.getName());
+            String name = file.getName();
+            if (name.endsWith(User.MAPPING_EXT))
+                name = name.substring(0, name.lastIndexOf(User.MAPPING_EXT));
+            
+            ComboEntry cbe = new ComboEntry(file, name);
             cdelist.add(cbe);
-            if (file.getName().equals(node.getOptionStr()))
+            if (name.equals(node.getOptionStr()))
                 actIndex = i;
         }
-        cb = new ComboBox("Filesystemmapping", cdelist);
+        cb = new ComboBox(getCbName(), cdelist);
         cb.setNewItemsAllowed(false);
         cb.setNullSelectionAllowed(false);
 
@@ -107,9 +116,9 @@ public class FsMappingUi extends VerticalLayout
         this.addComponent(editEntry);        
     }
 
-    String getFsMappingFolder()
+    String getMappingFolder()
     {
-        return User.FS_MAPPINGFOLDER;
+        return getDirName();
     }
     void newFsmapping()
     {
@@ -118,25 +127,32 @@ public class FsMappingUi extends VerticalLayout
             @Override
             public boolean isValid( Object value )
             {
-                File f = new File( getFsMappingFolder(), value.toString() );
+                File f = new File( getMappingFolder(), value.toString() + User.MAPPING_EXT );
                 if (f.exists())
+                {
+                    VSMCMain.notify(MappingFileUi.this, "Mappingdatei existiert bereits: ", f.toString());
                     return false;
+                }
                 
                 try
                 {
                     if (!f.createNewFile())
+                    {
+                        VSMCMain.notify(MappingFileUi.this, "Mappingdatei kann nicht angelegt werden: ", f.toString());
                         return false;
+                    }
                     
                     f.delete();
                 }
                 catch (Exception exc)
                 {
+                    VSMCMain.notify(MappingFileUi.this, "Mappingdatei kann nicht angelegt werden: ", f.toString());
                     return false;
                 }
                 return true;                
             }
         };
-        final TextFieldDlg dlg = new TextFieldDlg("Neues VSM-Dateisystemmapping", "Name", "Mapping " + cdelist.size() + 1, fsv);
+        final TextFieldDlg dlg = new TextFieldDlg("Neues Mapping", "Name", "Mapping " + cdelist.size(), fsv);
 
         dlg.setOkActionListener( new Button.ClickListener() {
 
@@ -153,31 +169,21 @@ public class FsMappingUi extends VerticalLayout
 
     void createMapping(String name)
     {
-        File f = new File( getFsMappingFolder(), name);
-        String txt = "# Diese Datei stellt ein Mapping zwischen VSM-Dateisystem <-> Benutzersicht dar.\n";
-        txt += "# Linke Spalte ist der reale VSM-Systempfad, rechte Spalte der Pfad aus der Sicht des Benutzers\n";
-        txt += "# Trennung der Spalten mit einem ',' Leerzeichen um den Trenner herum werden ignoriert\n"
-                + "# \n"
-                + "# \n"
-                + "# Beispiel:\n"
-                + "# Rolle 'Standardnutzer' hat folgendes Mapping: \n"
-                + "# /192.168.2.1/8082/raid/daten/BenutzerDaten/Piet,    /Benutzerdaten/Piet\n"
-                + "# /192.168.2.42/8082/raid/daten1/BenutzerDaten/Mark,   /Benutzerdaten/Mark\n"
-                + "# 192.168.2.47/8082/raid/daten99/BenutzerDaten,   /Benutzerdaten\n"
-                + "# Im Dateibaum ist dann für die Benutzer Piet und Mark nur noch folgendes zu sehen:\n"
-                + "# \n"
-                + "# /Benutzerdaten\n"
-                + "#         /Piet\n"
-                + "#         /Mark\n"
-                + "#         /< alle Benutzer von 192.168.2.47>\n"
-                + "# ";
+        File folder = new File( getMappingFolder());
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+        File f = new File( getMappingFolder(), name + User.MAPPING_EXT);
+        String txt = getNewContent();
 
         try (FileWriter fw = new FileWriter(f))
         {
             fw.write(txt);
-            ComboEntry cbe = new ComboEntry(f, f.getName());
+            ComboEntry cbe = new ComboEntry(f, name);
             cdelist.add(cbe);
+            cb.addItem(cbe);
             cb.setValue(cbe);
+            cb.select(cdelist.size() - 1);
         }
         catch (IOException iOException)
         {
@@ -194,16 +200,30 @@ public class FsMappingUi extends VerticalLayout
             return;
 
 
-        File f = new File( getFsMappingFolder(), sel.getGuiEntryKey());
+        File f = new File( getMappingFolder(), sel.getGuiEntryKey() + User.MAPPING_EXT);
         if (f.exists())
+        {
             f.delete();
-        else
-            VSMCMain.notify(this, "Fehler beim Löschen der Mappingdatei" , "Datei existiert nicht");
-
+            cdelist.remove(sel);
+            cb.removeItem(sel);
+            cb.select(cdelist.size() - 1);
+        }
+        else {
+            f = new File( getMappingFolder(), sel.getGuiEntryKey());
+            if (f.exists())
+            {
+                f.delete();
+                cdelist.remove(sel);
+                cb.removeItem(sel);
+                cb.select(cdelist.size() - 1);
+            }
+            else
+                VSMCMain.notify(this, "Fehler beim Löschen der Mappingdatei" , "Datei existiert nicht");
+        }
     }
     void editFsmapping()
     {
-        ComboEntry sel = (ComboEntry)cb.getValue();
+        final ComboEntry sel = (ComboEntry)cb.getValue();
         if (sel == null)
             return;
 
@@ -211,13 +231,16 @@ public class FsMappingUi extends VerticalLayout
             return;
 
         String content = null;
-        final File f = new File( getFsMappingFolder(), sel.getGuiEntryKey());
+        File f = new File( getMappingFolder(), sel.getGuiEntryKey()+ User.MAPPING_EXT );
+        if (!f.exists()) {
+            f = new File( getMappingFolder(), sel.getGuiEntryKey());
+        }
             
         try (FileReader fw = new FileReader(f))
         {
             char[] cbuff = new char[(int)f.length()];
-            fw.read(cbuff);
-            content = new String(cbuff);
+            int len = fw.read(cbuff);
+            content = new String(cbuff, 0, len);
         }
         catch (Exception iOException)
         {
@@ -233,7 +256,7 @@ public class FsMappingUi extends VerticalLayout
             {
                 boolean ret = checkMapping( value.toString() );
                 if (!ret)
-                    this.setErrorMessage("Fehler in Zeile " + lastParsedLine);
+                    this.setErrorMessage("Fehler in Zeile " + lastParsedLine + ": " + parseErrText);
                 
                 return ret;
             }
@@ -245,58 +268,20 @@ public class FsMappingUi extends VerticalLayout
 
             @Override
             public void buttonClick( Button.ClickEvent event )
-            {
+            {   File f = new File( getMappingFolder(), sel.getGuiEntryKey()+ User.MAPPING_EXT );
                 writeFsMapping( f, dlg.getText()  );
+                f = new File( getMappingFolder(), sel.getGuiEntryKey());
+                if (f.exists())
+                    f.delete();
             }
         });
         this.getApplication().getMainWindow().addWindow(dlg);
     }
     String lastParsedLine = "";
+    String parseErrText = "";
 
-    boolean checkMapping( String s )
-    {
-        s = s.replace('\r', '\n');
-        String[] arr = s.split("\n");
-        for (int i = 0; i < arr.length; i++)
-        {
-            String string = arr[i];
-            if (string.trim().isEmpty())
-                continue;
-            if (string.charAt(0) == '#')
-                continue;
-            
-            lastParsedLine = string;
-            if (string.startsWith("Exclude"))
-            {
-                String[] entry = string.split(",");
-                if (entry.length < 1)
-                    return false;
-                
-                String mask = entry[0].trim();
-                if (mask.isEmpty())
-                    return false;
-                
-                continue;
-            }
-            else
-            {
-                String[] entry = string.split(",");
-                if (entry.length < 2)
-                    return false;
-                String v = entry[0].trim();
-                String u = entry[1].trim();
-                if (v.isEmpty())
-                    return false;
-                if (u.isEmpty())
-                    return false;
-                if (v.charAt(0) != '/')
-                    return false;
-            }
-           
-        }
-        return true;
-
-    }
+    protected abstract boolean checkMapping( String s );
+    
     void  writeFsMapping( File f, String txt )
     {
         try (FileWriter fw = new FileWriter(f))
@@ -305,7 +290,7 @@ public class FsMappingUi extends VerticalLayout
         }
         catch (IOException iOException)
         {
-            VSMCMain.notify(this, "Fehler beim Erzeugen der Mappingdatei" , iOException.getMessage());
+            VSMCMain.notify(this, "Fehler beim Schreiben der Mappingdatei" , iOException.getMessage());
         }
     }
     

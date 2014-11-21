@@ -234,11 +234,13 @@ public class AttributeContainerEditor extends Window implements LayoutClickListe
         aclLayout = new VerticalLayout();
         vl.addComponent(aclLayout);
         
-        for (VSMAclEntry entry: ac.getAcl()) {
-            VSMAclEntryEditor ed = createAclEntryEditor( entry);
-            aclLayout.addComponent(ed);
-            editorMap.put(entry, ed);            
-        }  
+        if (ac.getAcl() != null) {
+            for (VSMAclEntry entry: ac.getAcl()) {
+                VSMAclEntryEditor ed = createAclEntryEditor( entry);
+                aclLayout.addComponent(ed);
+                editorMap.put(entry, ed);            
+            }  
+        }
         HorizontalLayout btLayout = new HorizontalLayout();
         vl.addComponent(btLayout);
         Button bt = new Button("+", new Button.ClickListener() {

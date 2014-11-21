@@ -126,6 +126,7 @@ public class RoleTable extends BaseDataEditTable<Role>
         roe.add( new ComboEntry(RoleOption.RL_READ_WRITE, VSMCMain.Txt("Schreibrechte")));
         roe.add( new ComboEntry(RoleOption.RL_USERPATH, VSMCMain.Txt("Restorepfad")));
         roe.add( new ComboEntry(RoleOption.RL_FSMAPPINGFILE, VSMCMain.Txt("VSM-Filesystem Mapping")));
+        roe.add( new ComboEntry(RoleOption.RL_GROUPMAPPINGFILE, VSMCMain.Txt("ACL-Gruppen Mapping")));
         roe.add( new ComboEntry(RoleOption.RL_GROUP, VSMCMain.Txt("Gruppenzugehörigkeit")));
         roe.add( new ComboEntry(RoleOption.RL_VALID_POOLS, VSMCMain.Txt("Sichtbare Pools")));
 

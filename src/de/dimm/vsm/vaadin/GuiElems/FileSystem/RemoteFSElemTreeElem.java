@@ -10,6 +10,7 @@ import com.vaadin.terminal.ThemeResource;
 import de.dimm.vsm.Utilities.SizeStr;
 import de.dimm.vsm.net.IpResolver;
 import de.dimm.vsm.net.RemoteFSElem;
+import de.dimm.vsm.vaadin.VSMCMain;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -98,9 +99,12 @@ public class RemoteFSElemTreeElem
         if (m.equals("name"))
         {
             String name = elem.getName();
-            if (IpResolver.isValidIp(name))
+            if (!VSMCMain.noIpResolve())
             {
-                name = IpResolver.resolveIp(name);
+                if (IpResolver.isValidIp(name))
+                {
+                    name = IpResolver.resolveIp(name);
+                }
             }
             return new ObjectProperty(" " + name, String.class);
         }

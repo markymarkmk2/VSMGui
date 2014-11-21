@@ -67,6 +67,7 @@ import org.vaadin.jouni.animator.AnimatorProxy;
 public class VSMCMain extends GenericMain
 {
     private static boolean enableTextInputWin = false;
+
     protected String ip;
     protected String host;
     protected String args;
@@ -93,12 +94,22 @@ public class VSMCMain extends GenericMain
     protected String lastPwd= null;
     
 
-    private final static String version = "0.9.1 trunk";
+    private final static String version = "0.9.2 trunk";
+    
+    static Boolean noIpResolve = null;
 
     public static String getVersion()
     {
         return version;
     }
+    
+    public static boolean noIpResolve() {
+        if (noIpResolve == null) {
+            noIpResolve = (Boolean)callLogicControl("getPrefBoolean", "NoIpResolve");
+        }
+        return noIpResolve.booleanValue();
+    }
+
 
     public static boolean isFTPStorageLicensed()
     {

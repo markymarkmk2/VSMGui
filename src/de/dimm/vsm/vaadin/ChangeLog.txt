@@ -1,3 +1,6 @@
+Veränderungen in V0.9.2
+UPD: ACL-Mapping in Rollen
+
 Veränderungen in V0.9.1
 UPD: Trace in Diagnosewin
 

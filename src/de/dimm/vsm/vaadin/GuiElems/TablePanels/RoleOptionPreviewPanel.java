@@ -12,7 +12,9 @@ import com.vaadin.ui.TextField;
 import de.dimm.vsm.records.RoleOption;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAComboField;
 import de.dimm.vsm.vaadin.GuiElems.Table.PreviewPanel;
-import de.dimm.vsm.vaadin.GuiElems.TablePanels.ext.FsMappingUi;
+import de.dimm.vsm.vaadin.GuiElems.TablePanels.ext.FsMappingFileUi;
+import de.dimm.vsm.vaadin.GuiElems.TablePanels.ext.AclMappingFileUi;
+import de.dimm.vsm.vaadin.GuiElems.TablePanels.ext.MappingFileUi;
 import de.dimm.vsm.vaadin.VSMCMain;
 
 /**
@@ -22,11 +24,13 @@ import de.dimm.vsm.vaadin.VSMCMain;
 public class RoleOptionPreviewPanel extends PreviewPanel<RoleOption>
 {
 
-    FsMappingUi mappingUi;
+    MappingFileUi fsMappingUi;
+    MappingFileUi aclMappingUi;
     public RoleOptionPreviewPanel( RoleOptionTable j, boolean readOnly )
     {
         super(j, readOnly);
-        mappingUi = new FsMappingUi();
+        fsMappingUi = new FsMappingFileUi();
+        aclMappingUi = new AclMappingFileUi();
     }
 
 
@@ -66,12 +70,19 @@ public class RoleOptionPreviewPanel extends PreviewPanel<RoleOption>
         optionString = (TextField)table.getField("optionStr").getGuiforField(this);
         optionString.setVisible(node.hasOptionField());
         
+        MappingFileUi mappingUi = null;
         if (node.getToken().endsWith(RoleOption.RL_FSMAPPINGFILE))
         {
+            mappingUi = fsMappingUi;
+        }
+        if (node.getToken().endsWith(RoleOption.RL_GROUPMAPPINGFILE))
+        {
+            mappingUi = aclMappingUi;
+        }
+        if (mappingUi != null) {
             mappingUi.buildUi(optionString, node);                                
             this.addComponent(mappingUi);            
         }
-        //TODO: if Field == RoleOption.RL_FSMAPPINGFILE -> Make ComboBox for Selection of File in FS-Mapping-Folder -> New -> Delete -> Edit
 
         if (node.getToken().endsWith(RoleOption.RL_USERPATH))
         {
