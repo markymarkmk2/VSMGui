@@ -229,6 +229,9 @@ public class SearchClientWin extends SidebarPanel
         Panel pn_options = new Panel();
         pn_options.setCaption(VSMCMain.Txt("Optionen"));
         pn_options.setSizeFull();
+        VerticalLayout pn_options_layout = (VerticalLayout) pn_search.getContent();
+        pn_options_layout.setSpacing(true);
+        pn_options_layout.setSizeFull();
         
 
 

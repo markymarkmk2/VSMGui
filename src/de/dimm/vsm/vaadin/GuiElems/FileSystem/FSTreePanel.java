@@ -412,7 +412,7 @@ public class FSTreePanel extends HorizontalLayout
         String txt = elem.getName() + " vom " + verFmt.format(elem.getMtime()) + " " + SizeStr.format(elem.getDataSize());
         return txt;
     }
-    static void openVersionCtxMenu(final VSMCMain main, final IWrapper wrapper, final TreeTable tree,
+    public static void openVersionCtxMenu(final VSMCMain main, final IWrapper wrapper, final TreeTable tree,
             final FSTreeContainer container, final ItemClickEvent event, final RemoteFSElemTreeElem singleRfstreeelem
             )
     {

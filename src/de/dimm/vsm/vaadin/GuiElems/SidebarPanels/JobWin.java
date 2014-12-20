@@ -27,6 +27,9 @@ public class JobWin extends SidebarPanel implements Refresher.RefreshListener
     TasksPanel tasksPanel;
     final Refresher refresher = new Refresher();
     public static final int RF_INTERVALL = 1000;
+    // MIN ABSTAND ZWISCHEN REFRESHES BEI BEI STAU 
+    public static final int MIN_REFRESH_MS = 100;
+    long lastRefresh = 0;
     
 
     public JobWin( VSMCMain _main )
@@ -101,12 +104,20 @@ public class JobWin extends SidebarPanel implements Refresher.RefreshListener
 
     @Override
     public void refresh( Refresher source )
-    {
-        source.setRefreshInterval(0);
+    {        
         long s = System.currentTimeMillis();
+        if (s - lastRefresh < MIN_REFRESH_MS)
+        {
+            lastRefresh = s;
+            return;
+        }
+        
+        source.setRefreshInterval(0);
+        
         jobPanel.refresh();
         tasksPanel.refresh();
         long e = System.currentTimeMillis();
+        lastRefresh = e;
 
         // COMM TIME SHOULD NOT EXCEED 20% OF CYCLE TIME
         int rfi = (int)((e-s) * 5);

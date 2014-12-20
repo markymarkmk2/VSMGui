@@ -44,7 +44,7 @@ class VolumeColumnGenerator implements Table.ColumnGenerator
     }
     static String toString(  BackupVolumeResult job )
     {
-        return job.getVolume().getClinfo().toString() + "->" + job.getVolume().toString();
+        return job.getVolume().toString();
     }
 }
 
