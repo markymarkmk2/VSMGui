@@ -793,7 +793,13 @@ public class ArchiveJobWin extends SidebarPanel
                 if (!checkWrapperValid())
                     return; 
                 DownloadResource downloadResource = FSTreePanel.createDownloadResource( main, getApplication(), searchWrapper, singleRfstreeelem);
-                getWindow().open(downloadResource);
+                try {
+                    if (downloadResource != null)
+                        getWindow().open(downloadResource);
+                }
+                catch (Exception e) {
+                    main.Msg().errmOk(VSMCMain.Txt("Fehler beim Download: " + e.getMessage()));
+                }
             }
             
         };
