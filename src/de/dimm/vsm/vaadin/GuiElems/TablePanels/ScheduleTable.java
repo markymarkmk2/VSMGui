@@ -219,7 +219,6 @@ class SchedStartColumnGenerator implements Table.ColumnGenerator
 
 class JPAJobDBLinkField extends JPADBLinkField
 {
-
     public JPAJobDBLinkField(GenericEntityManager em)
     {
         super( em, VSMCMain.Txt("Jobs"), "jobs", Job.class);
@@ -305,9 +304,6 @@ class JPAJobDBLinkField extends JPADBLinkField
         }
         return null;
     }
-
-
-
 }
 
 /**
