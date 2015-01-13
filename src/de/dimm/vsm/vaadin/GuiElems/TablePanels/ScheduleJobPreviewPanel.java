@@ -59,8 +59,8 @@ public class ScheduleJobPreviewPanel extends PreviewPanel<Job>
     {
         super(j, readOnly);
 
-        List<String> hdim = new ArrayList<String>();
-        List<String> mdim = new ArrayList<String>();
+        List<String> hdim = new ArrayList<>();
+        List<String> mdim = new ArrayList<>();
         for (int i = 0; i < 24; i++)
         {
             hdim.add(Integer.toString(i));
