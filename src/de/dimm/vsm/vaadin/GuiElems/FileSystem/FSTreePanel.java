@@ -190,7 +190,13 @@ public class FSTreePanel extends HorizontalLayout
                         return;
                     RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
                     DownloadResource downloadResource = createDownloadResource(main, getApplication(), viewWrapper, rfstreeelem);
-                    getWindow().open(downloadResource);
+                    try {
+                        if (downloadResource != null)
+                            getWindow().open(downloadResource);
+                    }
+                    catch (Exception e) {
+                        main.Msg().errmOk(VSMCMain.Txt("Fehler beim Download: " + e.getMessage()));
+                    }
                 }
             }
         });
@@ -456,7 +462,13 @@ public class FSTreePanel extends HorizontalLayout
             public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
             {
                 DownloadResource downloadResource = createDownloadResource(main, tree.getApplication(), wrapper, singleRfstreeelem);
-                tree.getWindow().open(downloadResource);
+                try {
+                    if (downloadResource != null)
+                        tree.getWindow().open(downloadResource);
+                }
+                catch (Exception e) {
+                    main.Msg().errmOk(VSMCMain.Txt("Fehler beim Download: " + e.getMessage()));
+                }                
             }           
         };        
 
@@ -505,7 +517,13 @@ public class FSTreePanel extends HorizontalLayout
             public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
             {
                 DownloadResource downloadResource = createDownloadResource(main, getApplication(), viewWrapper, singleRfstreeelem);
-                getWindow().open(downloadResource);
+                try {
+                    if (downloadResource != null)
+                        getWindow().open(downloadResource);
+                }
+                catch (Exception e) {
+                    main.Msg().errmOk(VSMCMain.Txt("Fehler beim Download: " + e.getMessage()));
+                }
             }
            
         };
@@ -517,13 +535,15 @@ public class FSTreePanel extends HorizontalLayout
         RemoteFSElem fs = rfstreeelem.getElem();
 
         InputStream is = main.getGuiServerApi().openStream(wrapper, fs);
-        if (is == null)
+        if (is == null) {            
+            main.Msg().errmOk(VSMCMain.Txt("Fehler beim Öffnen des Downloads"));
             return null;
-
+        }
         DownloadResource downloadResource = new DownloadResource(is, fs.getName(), app);
 
         return downloadResource;
     }
+    
     public static RestoreLocationDlg createRestoreTargetDialog( final VSMCMain main, final IWrapper wrapper, final List<RemoteFSElemTreeElem> rfstreeelems )
     {
         return createRestoreTargetDialog(main, wrapper, rfstreeelems, false);
