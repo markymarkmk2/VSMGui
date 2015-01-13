@@ -642,7 +642,13 @@ public class SearchClientWin extends SidebarPanel
                     
                     RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
                     DownloadResource downloadResource = FSTreePanel.createDownloadResource( main, getApplication(), searchWrapper, rfstreeelem);
-                    getWindow().open(downloadResource);
+                    try {
+                    if (downloadResource != null)
+                        getWindow().open(downloadResource);
+                }
+                catch (Exception e) {
+                    main.Msg().errmOk(VSMCMain.Txt("Fehler beim Download: " + e.getMessage()));
+                }
                 }
             }
         });
@@ -682,7 +688,13 @@ public class SearchClientWin extends SidebarPanel
                 {
                     VSMCMain.notify(txt_search_name,  VSMCMain.Txt("Auf die Ergebnisse kann nicht mehr zugegriffen werden"), mountedIP + "->" + mountedDrive);
                 }
-                getWindow().open(downloadResource);
+                try {
+                    if (downloadResource != null)
+                        getWindow().open(downloadResource);
+                }
+                catch (Exception e) {
+                    main.Msg().errmOk(VSMCMain.Txt("Fehler beim Download: " + e.getMessage()));
+                }
             }
         };
 
