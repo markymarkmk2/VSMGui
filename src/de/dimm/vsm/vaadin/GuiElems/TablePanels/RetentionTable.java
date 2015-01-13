@@ -17,15 +17,19 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.Window;
 import de.dimm.vsm.fsengine.GenericEntityManager;
 import de.dimm.vsm.records.Retention;
+import de.dimm.vsm.records.RetentionJob;
+import de.dimm.vsm.records.RetentionWindow;
 import de.dimm.vsm.records.StoragePool;
 import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
 import de.dimm.vsm.vaadin.GuiElems.Fields.ColumnGeneratorField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAComboField;
+import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBLinkField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAReadOnlyDateField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPATextField;
 import de.dimm.vsm.vaadin.GuiElems.Table.BaseDataEditTable;
+import static de.dimm.vsm.vaadin.GuiElems.Table.BaseDataEditTable.setTableColumnVisible;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -127,18 +131,16 @@ class RetentionColumnGenerator implements Table.ColumnGenerator
         return null;
     }
 }
+
 /**
  *
  * @author Administrator
  */
 public class RetentionTable extends BaseDataEditTable<Retention>
 {
-    StoragePool pool;
-    
-
-    static final List<ComboEntry> retentionDurationDim = new ArrayList<ComboEntry>();
-
-    static final List<ComboEntry> argFieldList = new ArrayList<ComboEntry>();
+    StoragePool pool;    
+    static final List<ComboEntry> retentionDurationDim = new ArrayList<>();
+    static final List<ComboEntry> argFieldList = new ArrayList<>();
 
     static
     {
@@ -182,7 +184,7 @@ public class RetentionTable extends BaseDataEditTable<Retention>
 
     static List<ComboEntry> getOperationComboList( String argType )
     {
-        List<ComboEntry> l = new ArrayList<ComboEntry>();
+        List<ComboEntry> l = new ArrayList<>();
 
         if (argType == null)
             return l;
@@ -205,6 +207,18 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         this.pool = pool;
 
     }
+    
+    @Override
+    public <S> BaseDataEditTable createChildTable( VSMCMain main, Retention sched, List<S> list, Class child, ItemClickListener listener )
+    {
+        if (  child.isAssignableFrom(RetentionWindow.class))
+            return RetentionWindowTable.createTable(main, sched, (List) list, listener);
+        if (  child.isAssignableFrom(RetentionJob.class))
+            return RetentionJobTable.createTable(main, sched, (List) list, listener);
+
+        return null;
+    }
+    
 
     static String getNiceDim(String normDim)
     {
@@ -238,9 +252,8 @@ public class RetentionTable extends BaseDataEditTable<Retention>
 
         List<Retention> list = VSMCMain.get_util_em(pool).createQuery("select T1 from Retention T1 where T1.pool_idx=" + pool.getIdx(), Retention.class);
         
-        ArrayList<JPAField> fieldList = new ArrayList<JPAField>();
-
-        List<ComboEntry> modeList = new ArrayList<ComboEntry>();
+        ArrayList<JPAField> fieldList = new ArrayList<>();
+        List<ComboEntry> modeList = new ArrayList<>();
         modeList.add( new ComboEntry(Retention.MD_BACKUP, Txt("Backup")));
         modeList.add( new ComboEntry(Retention.MD_ARCHIVE, Txt("Archiv")));
         fieldList.add( new JPAComboField(Txt("Modus"), "mode", modeList, 
@@ -251,14 +264,21 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         fieldList.add(new JPAReadOnlyDateField(VSMCMain.Txt("Estellt"), "creation", DateField.RESOLUTION_DAY));
         fieldList.add(new JPARetentionField());
 
-        List<ComboEntry> actionList = new ArrayList<ComboEntry>();
+        List<ComboEntry> actionList = new ArrayList<>();
         actionList.add( new ComboEntry(Retention.AC_DELETE, Txt("Löschen")));
         actionList.add( new ComboEntry(Retention.AC_MOVE, Txt("Verschieben")));
         actionList.add( new ComboEntry(Retention.AC_SCRIPT, Txt("Script starten")));
         fieldList.add( new JPAComboField(Txt("Aktion"), "followAction", actionList ) );
 
         fieldList.add(new JPACheckBox(VSMCMain.Txt("Negiert"), "neg"));
+        fieldList.add(new JPADBLinkField(VSMCMain.get_util_em(pool), VSMCMain.Txt("Zeitfenster"), "retentionWindows", RetentionWindow.class));
+        fieldList.add(new JPADBLinkField(VSMCMain.get_util_em(pool), VSMCMain.Txt("Akt. Aufträge"), "retentionJobs", RetentionJob.class));
 
+        setTableColumnVisible( fieldList, "neg", false );
+        setTableColumnVisible(fieldList, "retentionWindows", false);
+        setTableColumnVisible(fieldList, "retentionJobs", false);
+        setFieldVisible( fieldList, "neg", false );
+        
         return new RetentionTable( main, pool, list, fieldList, listener);
     }
 

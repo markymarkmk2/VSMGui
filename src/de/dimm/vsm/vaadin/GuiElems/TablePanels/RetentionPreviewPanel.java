@@ -10,12 +10,14 @@ import com.vaadin.data.validator.IntegerValidator;
 import com.vaadin.data.validator.StringLengthValidator;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TextField;
 import de.dimm.vsm.Utilities.SizeStr;
 import de.dimm.vsm.records.Retention;
 import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
+import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBLinkField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
 import de.dimm.vsm.vaadin.GuiElems.Table.PreviewPanel;
 import de.dimm.vsm.vaadin.GuiElems.VaadinHelpers;
@@ -85,7 +87,7 @@ public class RetentionPreviewPanel extends PreviewPanel<Retention>
     {
         removeAllComponents();
 
-        dimList = new ArrayList<ComboEntry>();
+        dimList = new ArrayList<>();
         String[] dimArray = SizeStr.getDimArray();
         for (int i = 0; i < dimArray.length; i++)
         {
@@ -160,6 +162,16 @@ public class RetentionPreviewPanel extends PreviewPanel<Retention>
         JPAField neg = table.getField("neg");
         addComponent(neg.createGui(node));
 
+        JPADBLinkField wins = (JPADBLinkField) table.getField("retentionWindows");
+        Component gui = wins.createGui(node);
+        addComponent(gui);
+        addDBLinkClickListener( gui, wins );
+        
+        JPADBLinkField jobs = (JPADBLinkField) table.getField("retentionJobs");
+        gui = jobs.createGui(node);
+        addComponent(gui);
+        addDBLinkClickListener( gui, jobs );
+        
 
         // HAS TO BE AFTER createGui
         //JPAField.addValidator(this, new StringLengthValidator(X("Bitte geben Sie eine Bezeichnung ein"), 1, 255, false));
