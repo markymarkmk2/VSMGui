@@ -61,14 +61,12 @@ public class ScheduleJobPreviewPanel extends PreviewPanel<Job>
 
         List<String> hdim = new ArrayList<>();
         List<String> mdim = new ArrayList<>();
-        for (int i = 0; i < 24; i++)
-        {
-            hdim.add(Integer.toString(i));
+        for (int i = 0; i < 24; i++) {
+            hdim.add(String.format("%02d", i));
         }
-        for (int i = 0; i < 60; i+=5)
-        {
-            mdim.add(Integer.toString(i));
-        }
+        for (int i = 0; i < 60; i+=5) {
+            mdim.add(String.format("%02d", i));
+        }        
         comboHour = new HourComboBox(VSMCMain.Txt("Startzeit"), hdim);
         comboHour.setWidth("60px");
         comboMin = new MinuteComboBox(":", mdim);

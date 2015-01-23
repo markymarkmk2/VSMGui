@@ -32,6 +32,7 @@ import de.dimm.vsm.vaadin.GuiElems.Fields.JPAComboField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPATextField;
 import de.dimm.vsm.vaadin.GuiElems.OkAbortPanel;
+import de.dimm.vsm.vaadin.GuiElems.Table.BaseDataEditTable;
 import de.dimm.vsm.vaadin.GuiElems.Table.ComboColumnGenerator;
 import de.dimm.vsm.vaadin.VSMCMain;
 import java.text.SimpleDateFormat;
@@ -146,16 +147,20 @@ public class TasksPanel extends Table
     public TasksPanel( VSMCMain main )
     {
         this.main = main;
-        bc = new BeanContainer<Long, TaskEntry>(TaskEntry.class);
+        bc = new BeanContainer<>(TaskEntry.class);
         bc.setBeanIdProperty("idx");
 
 
-        ArrayList<JPAField> fl = new ArrayList<JPAField>();
+        ArrayList<JPAField> fl = new ArrayList<>();
         fl.add(new JPATextField(VSMCMain.Txt("Name"), "name"));
         fl.add( new TaskStatusField());
         fl.add(new JPATextField(VSMCMain.Txt("Status"), "statusStr"));
         fl.add(new JPATextField(VSMCMain.Txt("Statistik"), "statistic"));
         
+        BaseDataEditTable.setTableColumnExpandRatio(fl, "statusStr", 1.0f);
+        BaseDataEditTable.setTableColumnWidth(fl, "name", 120);
+        BaseDataEditTable.setTableColumnWidth(fl, "taskStatus", 90);
+        BaseDataEditTable.setTableColumnWidth(fl, "statistic", 160);        
         
         initTable( fl, true, true );
 
@@ -208,11 +213,7 @@ public class TasksPanel extends Table
                                 {
                                     return "paused";
                                 }
-                            }
-                            else
-                            {
-                                return null;
-                            }
+                            }                            
 
                             return "running";
                         }
@@ -477,13 +478,11 @@ public class TasksPanel extends Table
                     callTaskPause(item);
                 }
             };
-            if (item.getTaskStatus() != TASKSTATE.PAUSED)
-            {
-                main.Msg().errmOkCancel(VSMCMain.Txt("Wollen Sie diese Task pausieren?"), ok, null);
+            if (item.getTaskStatus() != TASKSTATE.PAUSED) {
+                main.Msg().errmOkCancel(String.format(VSMCMain.Txt("Wollen Sie den %s anhalten?"), item.getName()), ok, null);
             }
-            else
-            {
-                callTaskPause(item);
+            else {
+                main.Msg().errmOkCancel(String.format(VSMCMain.Txt("Wollen Sie den %s starten?"), item.getName()), ok, null);
             }
         }
         else if (item.getTaskStatus() == TASKSTATE.NEEDS_INTERACTION)

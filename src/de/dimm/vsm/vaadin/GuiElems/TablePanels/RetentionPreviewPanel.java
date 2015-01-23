@@ -17,6 +17,7 @@ import com.vaadin.ui.TextField;
 import de.dimm.vsm.Utilities.SizeStr;
 import de.dimm.vsm.records.Retention;
 import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
+import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPADBLinkField;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPAField;
 import de.dimm.vsm.vaadin.GuiElems.Table.PreviewPanel;
@@ -63,6 +64,8 @@ public class RetentionPreviewPanel extends PreviewPanel<Retention>
     CheckBox checkBoxDisabled;
     CheckBox checkBoxNeg;
     ComboBox comboRetentionDim;
+    JPACheckBox clearFreeBlocks;
+    
     TextField retentionDuration;
     TextField retentionSize;
     TextField retentionName;
@@ -172,7 +175,9 @@ public class RetentionPreviewPanel extends PreviewPanel<Retention>
         addComponent(gui);
         addDBLinkClickListener( gui, jobs );
         
-
+        clearFreeBlocks = new JPACheckBox(VSMCMain.Txt("Freie Blöcke entfernen"), "clearFreeBlocks");
+        addComponent( clearFreeBlocks.createGui(node) );
+        
         // HAS TO BE AFTER createGui
         //JPAField.addValidator(this, new StringLengthValidator(X("Bitte geben Sie eine Bezeichnung ein"), 1, 255, false));
         retentionDuration.addValidator(new PositiveIntegerValidator(Txt("Bitte geben Sie gültige Zahl ein")));

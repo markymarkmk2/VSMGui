@@ -6,13 +6,10 @@ package de.dimm.vsm.vaadin.GuiElems.TablePanels;
 
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
-import static com.vaadin.terminal.Sizeable.UNITS_PICAS;
-import static com.vaadin.terminal.Sizeable.UNITS_PIXELS;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import de.dimm.vsm.hash.StringUtils;
 import de.dimm.vsm.records.RetentionWindow;
 import de.dimm.vsm.vaadin.GuiElems.ComboEntry;
 import de.dimm.vsm.vaadin.GuiElems.Fields.JPACheckBox;
@@ -58,10 +55,10 @@ public class RetentionWindowPreviewPanel extends PreviewPanel<RetentionWindow>
         List<String> hdim = new ArrayList<>();
         List<String> mdim = new ArrayList<>();
         for (int i = 0; i < 24; i++) {
-            hdim.add(Integer.toString(i));
+            hdim.add(String.format("%02d", i));
         }
         for (int i = 0; i < 60; i+=5) {
-            mdim.add(Integer.toString(i));
+            mdim.add(String.format("%02d", i));
         }        
         
         cycleCycle = new ComboBox(VSMCMain.Txt("Zyklus"), RetentionWindowTable.getCycleComboList() );
@@ -84,11 +81,11 @@ public class RetentionWindowPreviewPanel extends PreviewPanel<RetentionWindow>
             week_number_list.addBean("KW " + i);            
         }
         
-        startComboHour = new HourComboBox(VSMCMain.Txt("Startzeit"), hdim);
+        startComboHour = new HourComboBox(VSMCMain.Txt("Start"), hdim);
         startComboHour.setWidth("60px");
         startComboMin = new MinuteComboBox("", mdim);
         startComboMin.setWidth("60px");        
-        endComboHour = new HourComboBox(VSMCMain.Txt("Startzeit"), hdim);
+        endComboHour = new HourComboBox(VSMCMain.Txt("Ende"), hdim);
         endComboHour.setWidth("60px");
         endComboMin = new MinuteComboBox("", mdim);
         endComboMin.setWidth("60px");        
@@ -140,7 +137,7 @@ public class RetentionWindowPreviewPanel extends PreviewPanel<RetentionWindow>
         HorizontalLayout endLayout = new HorizontalLayout();
         endLayout.addComponent( endComboHour );
         Label lbe = new Label(":");
-        startLayout.addComponent( lbe);
+        endLayout.addComponent( lbe);
         endLayout.addComponent( endComboMin );
         addComponent( endLayout );
         endLayout.setComponentAlignment(lbe, Alignment.BOTTOM_CENTER);
@@ -159,7 +156,7 @@ public class RetentionWindowPreviewPanel extends PreviewPanel<RetentionWindow>
         
         negated = new JPACheckBox(VSMCMain.Txt("Invertiert"), "negated");
         addComponent( negated.createGui(node) );
-
+               
         setData(node);
         
         setValues(node);
@@ -264,15 +261,6 @@ public class RetentionWindowPreviewPanel extends PreviewPanel<RetentionWindow>
         boolean fail = false;
         String cycleString = getTyp(t);
         
-        int h = VaadinHelpers.getSelectedIndex(startComboHour);
-        int m = VaadinHelpers.getSelectedIndex(startComboMin);
-        long startOffsetMS = (h*3600 + m*5*60) * 1000l;
-        
-        
-        h = VaadinHelpers.getSelectedIndex(endComboHour);
-        m = VaadinHelpers.getSelectedIndex(endComboMin);
-        long endOffsetMS = (h*3600 + m*5*60) * 1000l;
-
         int sdn = VaadinHelpers.getSelectedIndex(start_day_number);        
         int edn = VaadinHelpers.getSelectedIndex(end_day_number);        
         int swn = VaadinHelpers.getSelectedIndex(start_week_number);        
@@ -280,10 +268,11 @@ public class RetentionWindowPreviewPanel extends PreviewPanel<RetentionWindow>
                 
         if (cycleString.equals(RetentionWindow.DAILY))
         {
-            if (endOffsetMS <= startOffsetMS) {
-                fail = true;
-                main.Msg().errmOk("Endzeitpunkt liegt vor Startzeitpunkt");
-            }            
+            // Ist zulässig als "outside"
+//            if (endOffsetMS <= startOffsetMS) {
+//                fail = true;
+//                main.Msg().errmOk("Endzeitpunkt liegt vor Startzeitpunkt");
+//            }            
         }
         if (cycleString.equals(RetentionWindow.WEEKLY))
         {            
@@ -294,11 +283,12 @@ public class RetentionWindowPreviewPanel extends PreviewPanel<RetentionWindow>
         }
         if (cycleString.equals(RetentionWindow.YEARLY))
         {
-            if (ewn  < swn) {
-                fail = true;
-                main.Msg().errmOk("Start-KW liegt vor Ende-KW");
-            }
-            if (ewn  == ewn) {
+            // Ist zulässig als "outside"
+//            if (ewn  < swn) {
+//                fail = true;
+//                main.Msg().errmOk("Start-KW liegt vor Ende-KW");
+//            }
+            if (ewn  == swn) {
                 fail = true;
                 main.Msg().errmOk("Start-KW gleich Ende-KW, wählen Sie bitte Zyklusdauer wöchentlich");
             }

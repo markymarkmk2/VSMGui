@@ -141,7 +141,7 @@ class PercentField extends JPATextField implements ColumnGeneratorField
 
         JobEntry job = (JobEntry)node;
 
-        TextField tf = new TextField("Speed");
+        TextField tf = new TextField("Fortschritt");
 
         tf.setValue( colgen.label.getValue());
         tf.setData(this);
@@ -187,7 +187,7 @@ public class JobTable extends Table
         fl.add( new PercentField());
 
         BaseDataEditTable.setTableColumnExpandRatio(fl, "statusStr", 1.0f);
-        BaseDataEditTable.setTableColumnWidth(fl, "jobStatus", 80);
+        BaseDataEditTable.setTableColumnWidth(fl, "jobStatus", 90);
         BaseDataEditTable.setTableColumnWidth(fl, "processPercent", 50);
         BaseDataEditTable.setTableColumnWidth(fl, "statistic", 280);
 

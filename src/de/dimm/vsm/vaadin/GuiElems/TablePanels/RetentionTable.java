@@ -271,6 +271,7 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         fieldList.add( new JPAComboField(Txt("Aktion"), "followAction", actionList ) );
 
         fieldList.add(new JPACheckBox(VSMCMain.Txt("Negiert"), "neg"));
+        fieldList.add(new JPACheckBox(VSMCMain.Txt("Freie Blöcke entfernen"), "clearFreeBlocks"));
         fieldList.add(new JPADBLinkField(VSMCMain.get_util_em(pool), VSMCMain.Txt("Zeitfenster"), "retentionWindows", RetentionWindow.class));
         fieldList.add(new JPADBLinkField(VSMCMain.get_util_em(pool), VSMCMain.Txt("Akt. Aufträge"), "retentionJobs", RetentionJob.class));
 
@@ -320,6 +321,8 @@ public class RetentionTable extends BaseDataEditTable<Retention>
         n.setPool(pool);
         n.setArgType( Retention.ARG_TS);
         n.setArgOp(Retention.OP_LT);
+        n.setMode(Retention.MD_BACKUP);
+        n.setDisabled(true);
         // 4 WOCHEN
         n.setArgValue(Long.toString(4 * 7 * 24 * 3600 * 1000l));
         n.setFollowAction(Retention.AC_DELETE);
