@@ -47,6 +47,7 @@ import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.LogoutPanel;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.NotificationWin;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.StartBackupWin;
 import de.dimm.vsm.auth.GuiUser;
+import de.dimm.vsm.preview.IPreviewReader;
 import de.dimm.vsm.text.MissingTextException;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.TextBaseInputWin;
 import de.dimm.vsm.vaadin.net.GuiServerProxy;
@@ -55,7 +56,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import org.vaadin.jouni.animator.AnimatorProxy;
@@ -89,6 +92,8 @@ public class VSMCMain extends GenericMain
     LogWin logWin;    
     Sidebar sidebar;
     GuiWrapper guiWrapper;
+    
+    Window singlePreviewWin = null;
 
     protected String lastUser = null;
     protected String lastPwd= null;
@@ -102,6 +107,15 @@ public class VSMCMain extends GenericMain
     {
         return version;
     }
+
+    public Window getSinglePreviewWin() {
+        return singlePreviewWin;
+    }
+
+    public void setSinglePreviewWin( Window singlePreviewWin ) {
+        this.singlePreviewWin = singlePreviewWin;
+    }
+    
     
     public static boolean noIpResolve() {
         if (noIpResolve == null) {
@@ -114,6 +128,17 @@ public class VSMCMain extends GenericMain
     public static boolean isFTPStorageLicensed()
     {
         Object o = callLogicControl("isFTPStorageLicensed");
+        if (o != null && o instanceof Boolean)
+        {
+            return ((Boolean) o).booleanValue();
+        }
+
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    public static boolean isPreviewLicensed()
+    {
+        Object o = callLogicControl("isPreviewLicensed");
         if (o != null && o instanceof Boolean)
         {
             return ((Boolean) o).booleanValue();
@@ -222,6 +247,17 @@ public class VSMCMain extends GenericMain
         if (o != null && o instanceof NotificationServer)
         {
             return (NotificationServer) o;
+        }
+
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+    
+    public static IPreviewReader getPreviewReader()
+    {
+        Object o = callLogicControl("getPreviewReader");
+        if (o != null && o instanceof IPreviewReader)
+        {
+            return (IPreviewReader) o;
         }
 
         throw new UnsupportedOperationException("Not yet implemented");
@@ -1156,6 +1192,51 @@ public class VSMCMain extends GenericMain
         }
         return true;
     }
+
+    public Application getApp() {
+        return app;
+    }
+
+    private class WinCoord {
+
+        public WinCoord( Window win) {
+            x = win.getPositionX();
+            y = win.getPositionY();
+            width =win.getWidth();
+            height =win.getHeight();
+            widthUnits =win.getWidthUnits();
+            heightUnits =win.getHeightUnits();
+            
+        }
+        
+        int x;
+        int y;
+        int widthUnits;
+        int heightUnits;
+        float width;
+        float height;
+        
+        void setWinCoord( Window win) {
+            win.setPositionX(x);
+            win.setPositionY(y);
+            win.setHeight(height, heightUnits);
+            win.setWidth(width, widthUnits);
+        }
+    }
+    Map<String,WinCoord> winCoordMap = new HashMap<>();
+    
+    public void storeWinPos( Window win ) {
+        winCoordMap.put(win.getCaption(), new WinCoord(win));
+    }
+    public boolean restoreWinPos( Window win ) {
+        WinCoord coord = winCoordMap.get(win.getCaption());
+        if (coord != null) {
+            coord.setWinCoord(win);
+            return true;
+        }
+        return false;
+    }
+    
 
 
 }

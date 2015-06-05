@@ -12,11 +12,7 @@ import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.terminal.ThemeResource;
 import com.vaadin.ui.treetable.Collapsible;
-import de.dimm.vsm.auth.User;
-import de.dimm.vsm.auth.User.VsmFsEntry;
-import de.dimm.vsm.auth.User.VsmFsMapper;
 import de.dimm.vsm.net.RemoteFSElem;
-import de.dimm.vsm.records.FileSystemElemNode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,8 +38,8 @@ public class FSTreeContainer implements Collapsible, Container.Sortable
     {
         this.provider = provider;
         
-        this.root_list = new ArrayList<RemoteFSElemTreeElem>();
-        visibleList = new ArrayList<RemoteFSElemTreeElem>();
+        this.root_list = new ArrayList<>();
+        visibleList = new ArrayList<>();
 
 //        this.rootNodes = rootNodes;
         this.fields = fields;

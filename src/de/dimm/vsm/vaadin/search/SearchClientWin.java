@@ -12,6 +12,7 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.event.ShortcutListener;
+import com.vaadin.terminal.ExternalResource;
 import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -25,6 +26,8 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.VerticalLayout;
+import de.dimm.vsm.Exceptions.PathResolveException;
+import de.dimm.vsm.Exceptions.PoolReadOnlyException;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.SearchEntry;
 import de.dimm.vsm.net.SearchWrapper;
@@ -44,6 +47,8 @@ import de.dimm.vsm.vaadin.GuiElems.FileSystem.RemoteItemDescriptionGenerator;
 import de.dimm.vsm.vaadin.SelectObjectCallback;
 import de.dimm.vsm.vaadin.VSMCMain;
 import de.dimm.vsm.vaadin.net.DownloadResource;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -79,6 +84,7 @@ public class SearchClientWin extends SidebarPanel
 
     final Button btMountVol;
     final Button btStartSearch;
+    final Button btWebDav;
 
     final ComboBox cb_maxResults;
 
@@ -199,6 +205,18 @@ public class SearchClientWin extends SidebarPanel
                 startSearch();
             }
         });
+        
+        btWebDav = new Button(VSMCMain.Txt("WebDav öffnen"));
+        btWebDav.addListener(new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( ClickEvent event )
+            {
+                doOpenWebDav();
+            }
+        });
+        btWebDav.setImmediate(true);
+        btWebDav.setVisible(false);
 
         
 
@@ -257,6 +275,7 @@ public class SearchClientWin extends SidebarPanel
         hl.setSizeFull();
         hl.addComponent(btUpdateReadIndex);
         hl.addComponent(btMountVol);
+        hl.addComponent(btWebDav);
         hl.addComponent( btStartSearch);
         hl.setComponentAlignment(btStartSearch, Alignment.BOTTOM_RIGHT);
 
@@ -282,7 +301,7 @@ public class SearchClientWin extends SidebarPanel
             main.getGuiServerApi().closeSearch(searchWrapper);
             searchWrapper = null;
         }
-
+        
         hideFS();
     }
     
@@ -419,7 +438,21 @@ public class SearchClientWin extends SidebarPanel
 
                 searchWrapper = main.getGuiServerApi().search( pool, slist, max );
 
-                showFs();
+                showFs();  
+                if (webDavPort != -1) {
+                    try {
+                        webDavPort = main.getGuiServerApi().createWebDavSearchServer(searchWrapper);
+                    }
+                    catch (IOException ex) {
+                        Logger.getLogger(SearchClientWin.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    catch (PoolReadOnlyException ex) {
+                        Logger.getLogger(SearchClientWin.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    catch (PathResolveException ex) {
+                        Logger.getLogger(SearchClientWin.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
             }
         };
         StoragePool p =(StoragePool) poolSelector.getValue();
@@ -427,6 +460,23 @@ public class SearchClientWin extends SidebarPanel
 
 //        List<StoragePool> list = main.getStoragePoolList();
 //        main.SelectObject(StoragePool.class, VSMCMain.Txt("Pool"), VSMCMain.Txt("Weiter"), list, cb);
+    }
+    int webDavPort = -1;
+     private void doOpenWebDav() {
+        
+        try {
+            webDavPort = main.getGuiServerApi().createWebDavSearchServer(searchWrapper);
+            if (webDavPort < 0) {
+                main.Msg().errmOk(VSMCMain.Txt("WebDav wurde nicht erstellt"));
+            }           
+            else {
+                URL url = main.getRoot().getURL();       
+                main.getRoot().open(new ExternalResource(url.getProtocol() + "://" + url.getHost() + ":" + webDavPort ),"_new");
+            }
+        }
+        catch (IOException | PoolReadOnlyException | PathResolveException ex) {
+            main.Msg().errmOk(VSMCMain.Txt("WebDav wurde abgebrochen: " + ex.getMessage()));
+        }
     }
 
     void startMount()
@@ -510,6 +560,7 @@ public class SearchClientWin extends SidebarPanel
     {
 
         btMountVol.setVisible(false);
+        btWebDav.setVisible(false);
 
         mountedView = false;
 
@@ -519,6 +570,7 @@ public class SearchClientWin extends SidebarPanel
     void showFs()
     {
         btMountVol.setVisible(true);
+        btWebDav.setVisible(true);
         List<RemoteFSElem> ret = main.getGuiServerApi().getSearchResult(searchWrapper, 0, 100);
 
         mountedView = true;

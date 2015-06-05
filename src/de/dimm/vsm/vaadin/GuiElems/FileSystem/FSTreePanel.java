@@ -16,9 +16,11 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TreeTable;
+import com.vaadin.ui.Window;
 import de.dimm.vsm.Exceptions.PathResolveException;
 import de.dimm.vsm.Exceptions.PoolReadOnlyException;
 import de.dimm.vsm.Utilities.SizeStr;
+import de.dimm.vsm.VSMFSLogger;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.auth.UserManager;
 import de.dimm.vsm.net.RemoteFSElem;
@@ -27,11 +29,14 @@ import de.dimm.vsm.net.StoragePoolWrapper;
 import de.dimm.vsm.net.interfaces.AgentApi;
 import de.dimm.vsm.net.interfaces.GuiServerApi;
 import de.dimm.vsm.net.interfaces.IWrapper;
+import de.dimm.vsm.preview.IPreviewData;
 import de.dimm.vsm.records.HotFolder;
 import de.dimm.vsm.records.MountEntry;
+import de.dimm.vsm.vaadin.GuiElems.Dialogs.ComboBoxDlg;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.FileinfoWindow;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.RestoreLocationDlg;
 import de.dimm.vsm.vaadin.GuiElems.SidebarPanels.FileSystemViewer;
+import de.dimm.vsm.vaadin.GuiElems.preview.LeuchtTisch;
 import de.dimm.vsm.vaadin.VSMCMain;
 import de.dimm.vsm.vaadin.net.DownloadResource;
 import java.io.IOException;
@@ -39,7 +44,6 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -54,6 +58,9 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
  */
 public class FSTreePanel extends HorizontalLayout
 {
+    private static int MAX_PREVIEW_CNT = 50;
+
+    
 
     VSMCMain main;
     FSTreeContainer container;
@@ -68,7 +75,7 @@ public class FSTreePanel extends HorizontalLayout
 
     Component initFsTree( final StoragePoolWrapper wrapper )
     {
-        ArrayList<FSTreeColumn> fields = new ArrayList<FSTreeColumn>();
+        ArrayList<FSTreeColumn> fields = new ArrayList<>();
         fields.add(new FSTreeColumn("name", VSMCMain.Txt("Name"), -1, 1.0f, Table.ALIGN_LEFT, String.class));
         fields.add(new FSTreeColumn("date", VSMCMain.Txt("Datum"), 100, -1, Table.ALIGN_LEFT, String.class));
         fields.add(new FSTreeColumn("size", VSMCMain.Txt("Größe"), 80, -1, Table.ALIGN_RIGHT, String.class));
@@ -87,7 +94,7 @@ public class FSTreePanel extends HorizontalLayout
             @Override
             public List<RemoteFSElemTreeElem> getChildren( RemoteFSElemTreeElem elem )
             {
-                List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
+                List<RemoteFSElemTreeElem> childList = new ArrayList<>();
                 try
                 {
                     RemoteFSElem dir = new RemoteFSElem(elem.getElem());
@@ -126,7 +133,7 @@ public class FSTreePanel extends HorizontalLayout
         container.setSkipEmptyDirs(true);
 
 
-        List<RemoteFSElem> poolRootList = new ArrayList<RemoteFSElem>();
+        List<RemoteFSElem> poolRootList = new ArrayList<>();
         RemoteFSElem slash = RemoteFSElem.createDir("/");
         poolRootList.add(slash);
 /*        try
@@ -174,12 +181,12 @@ public class FSTreePanel extends HorizontalLayout
                     if (sel instanceof Set<?> && ((Set<?>) sel).size() > 1)
                     {
                         Set<RemoteFSElemTreeElem> set = (Set<RemoteFSElemTreeElem>) sel;
-                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>(set);
+                        List<RemoteFSElemTreeElem> list = new ArrayList<>(set);
                         create_fs_popup(event, list);
                     }
                     else
                     {
-                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>();
+                        List<RemoteFSElemTreeElem> list = new ArrayList<>();
                         list.add(clickedItem);
                         create_fs_popup(event, list);
                     }
@@ -234,6 +241,7 @@ public class FSTreePanel extends HorizontalLayout
         ContextMenuItem _del = null;
         ContextMenuItem _info = null;
         ContextMenuItem _versions = null;
+        ContextMenuItem _preview = null;
 
         boolean hasFile = false;
         boolean oneSelected = false;
@@ -268,6 +276,9 @@ public class FSTreePanel extends HorizontalLayout
                 _del = contextMenu.addItem(rfstreeelems.get(0).getElem().isDeleted() ? VSMCMain.Txt("Undelete") : VSMCMain.Txt("Delete"));
             }
         }
+        if (VSMCMain.isPreviewLicensed()) {
+            _preview = contextMenu.addItem(VSMCMain.Txt("Preview"));
+        }
 
         final ContextMenuItem restore = contextMenu.addItem(VSMCMain.Txt("Restore"));
         if (oneSelected && hasFile)
@@ -280,6 +291,7 @@ public class FSTreePanel extends HorizontalLayout
         final ContextMenuItem remove = _remove;
         final ContextMenuItem info = _info;
         final ContextMenuItem versions = _versions;
+        final ContextMenuItem preview = _preview;
 
         // Enable separator line under this item
         if (versions != null)
@@ -325,7 +337,7 @@ public class FSTreePanel extends HorizontalLayout
                                 tree.setCollapsed(singleRfstreeelem.getParent(), false);
                                 tree.requestRepaint();
                             }
-                            catch (Exception ex)
+                            catch (SQLException | PoolReadOnlyException ex)
                             {
                                 main.Msg().errmOk(VSMCMain.Txt("Der_Löscheintrag_kann_nicht_verändert_werden"));
                             }
@@ -369,7 +381,7 @@ public class FSTreePanel extends HorizontalLayout
                                 tree.setCollapsed(singleRfstreeelem.getParent(), false);
                                 tree.requestRepaint();
                             }
-                            catch (Exception ex)
+                            catch (SQLException | PoolReadOnlyException | UnsupportedOperationException ex)
                             {
                                 main.Msg().errmOk(VSMCMain.Txt("Eintrag_konnte_nicht_entfernt_werden"));
                             }
@@ -397,9 +409,11 @@ public class FSTreePanel extends HorizontalLayout
                 {                    
                     openVersionCtxMenu(main, wrapper, tree, container, event, singleRfstreeelem);
                 }
+                if (clickedItem == preview)
+                {                    
+                    openPreview(main, wrapper, rfstreeelems);
+                }
             }
-
-            
         }); // Open Context Menu to mouse coordinates when user right clicks layout
 
 
@@ -418,6 +432,7 @@ public class FSTreePanel extends HorizontalLayout
         String txt = elem.getName() + " vom " + verFmt.format(elem.getMtime()) + " " + SizeStr.format(elem.getDataSize());
         return txt;
     }
+    
     public static void openVersionCtxMenu(final VSMCMain main, final IWrapper wrapper, final TreeTable tree,
             final FSTreeContainer container, final ItemClickEvent event, final RemoteFSElemTreeElem singleRfstreeelem
             )
@@ -496,6 +511,68 @@ public class FSTreePanel extends HorizontalLayout
         });
         tree.getApplication().getMainWindow().addComponent(versionsMenu);
         versionsMenu.show(event.getClientX(), event.getClientY());        
+    }
+    
+    private static void showPreviewWindow( final VSMCMain main, final List<IPreviewData> pData ) throws IllegalArgumentException, NullPointerException {
+        Window win = LeuchtTisch.createPreviewWindow( main, pData);
+        win.center();
+        main.getApp().getMainWindow().addWindow(win);
+    }
+    
+    private static void openPreview( final VSMCMain main, final IWrapper wrapper, final List<RemoteFSElemTreeElem> rfstreeelems ) {
+        
+        List<RemoteFSElem> rfsElem = new ArrayList<>();
+        for (RemoteFSElemTreeElem telem: rfstreeelems) {
+            rfsElem.add(telem.getElem());
+        }
+        showPreview(main, wrapper, rfsElem);
+    }
+    static void showPreview(final VSMCMain main, final IWrapper wrapper, List<RemoteFSElem> rfsElem) {
+        try {
+            final List<IPreviewData> pData = main.getGuiServerApi().getPreviewData(wrapper, rfsElem);
+            if (pData != null && !pData.isEmpty()) {
+                if (pData.size() == 1) {
+                    LeuchtTisch.openSinglePreviewWin(main, pData.get(0));
+                }
+                else {
+                    
+                    if (pData.size() > MAX_PREVIEW_CNT) {
+                        final List<String> bereiche = new ArrayList<>();
+                        for (int i = 0; i < pData.size(); i+=MAX_PREVIEW_CNT) {
+                            int max = (i+ 1 + MAX_PREVIEW_CNT);
+                            if (max >= pData.size()) {
+                                max = pData.size();
+                            }
+                            bereiche.add("Bild " + (i+ 1) + " - " + max);
+                        }
+                        final ComboBoxDlg<String> cbxDlg = new ComboBoxDlg<>("Auswahl Vorschau", "Bereich", bereiche);
+                        cbxDlg.setOkActionListener( new Button.ClickListener() {
+
+                            @Override
+                            public void buttonClick( ClickEvent event ) {
+                                int idx = bereiche.indexOf(cbxDlg.getValue());
+                                List<IPreviewData> rfsElem = new ArrayList<>();
+                                int end = (idx + 1)*MAX_PREVIEW_CNT;
+                                if (end > pData.size()) {
+                                    end = pData.size();
+                                }
+                                for (int i = idx*MAX_PREVIEW_CNT; i < end; i++) {
+                                    rfsElem.add(pData.get(i));
+                                }
+                                showPreviewWindow(main, rfsElem);
+                            }
+                        });
+                        main.getApp().getMainWindow().addWindow(cbxDlg);
+                        return;
+                    }                    
+                    showPreviewWindow(main, pData);
+                }
+            }
+        }
+        catch (SQLException | IOException | IllegalArgumentException | NullPointerException e) {
+            e.printStackTrace();
+            main.Msg().errmOk(VSMCMain.Txt("Fehler beim Öffnen der Vorschau: " + e.getMessage()));
+        }
     }
     
     void create_fs_popup( ItemClickEvent event, final List<RemoteFSElemTreeElem> rfstreeelems )
@@ -593,7 +670,7 @@ public class FSTreePanel extends HorizontalLayout
                 try
                 {
                     boolean rret = true;
-                    List<RemoteFSElem> restoreList = new ArrayList<RemoteFSElem>();
+                    List<RemoteFSElem> restoreList = new ArrayList<>();
                     String lastIp = "";
                     int lastPort = 0;
                     String lastPath = "";
@@ -868,6 +945,8 @@ public class FSTreePanel extends HorizontalLayout
         StoragePoolQry qry = StoragePoolQry.createMountEntryStoragePoolQry( usr, me);
         viewWrapper = main.getGuiServerApi().openPoolView(me.getPool(),qry, "");
         
+        
+        
         Component c = initFsTree(viewWrapper);
         c.setSizeFull();
         addComponent(tree);
@@ -879,6 +958,10 @@ public class FSTreePanel extends HorizontalLayout
     public boolean isMounted()
     {
         return mounted;
+    }
+
+    public StoragePoolWrapper getViewWrapper() {
+        return viewWrapper;
     }
 
 }

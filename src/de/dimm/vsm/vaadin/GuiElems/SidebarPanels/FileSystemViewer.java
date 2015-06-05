@@ -5,12 +5,15 @@
 package de.dimm.vsm.vaadin.GuiElems.SidebarPanels;
 
 import com.github.wolfie.refresher.Refresher;
+import com.vaadin.terminal.ExternalResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
+import de.dimm.vsm.Exceptions.PathResolveException;
+import de.dimm.vsm.Exceptions.PoolReadOnlyException;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.auth.UserManager;
 import de.dimm.vsm.hash.StringUtils;
@@ -21,6 +24,8 @@ import de.dimm.vsm.vaadin.GuiElems.Dialogs.NewMountDlg;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.NewPoolQryDlg;
 import de.dimm.vsm.vaadin.GuiElems.FileSystem.FSTreePanel;
 import de.dimm.vsm.vaadin.VSMCMain;
+import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -33,6 +38,7 @@ public class FileSystemViewer extends SidebarPanel
     StoragePoolWrapper mountWrapper;
     
     Button btViewVol;
+    Button btWebDavVol;
     
     MountEntryViewTable mountpanel;
     final Refresher refresher = new Refresher();
@@ -117,23 +123,35 @@ public class FileSystemViewer extends SidebarPanel
         vl.addComponent(hlMount);
 
         btViewVol = new Button(VSMCMain.Txt("Dateisystem anzeigen"));
+        btWebDavVol = new Button(VSMCMain.Txt("WebDav öffnen"));
+        btWebDavVol.setImmediate(true);
         
         Button.ClickListener listener = new Button.ClickListener()
         {
-
             @Override
             public void buttonClick( com.vaadin.ui.Button.ClickEvent event )
             {
                 doOpenFsTree();
             }
         };
+        Button.ClickListener webDavlistener = new Button.ClickListener()
+        {
+            @Override
+            public void buttonClick( com.vaadin.ui.Button.ClickEvent event )
+            {
+                doOpenWebDav();
+            }
+
+        };
 
         btViewVol.addListener(listener);
+        btWebDavVol.addListener(webDavlistener);
 
         HorizontalLayout hl3 = new HorizontalLayout();
         hl3.setSpacing(true);
 
         hl3.addComponent(btViewVol);
+        hl3.addComponent(btWebDavVol);
          hl3.setMargin(false, false, true, false);
 
         
@@ -353,6 +371,7 @@ public class FileSystemViewer extends SidebarPanel
         {
             treePanel.unMount();
             btViewVol.setCaption(VSMCMain.Txt("Dateisystem anzeigen"));
+            btWebDavVol.setVisible(false);
             return;
         }
 
@@ -366,9 +385,27 @@ public class FileSystemViewer extends SidebarPanel
                 MountEntry me = dlg.getMountEntry();
                 treePanel.mount(me);
                 btViewVol.setCaption(VSMCMain.Txt("Dateisystem ausblenden"));
+                btWebDavVol.setVisible(true);
             }
         };
         dlg.setOkClick(ok);
         dlg.openDlg();
     }
+    private void doOpenWebDav() {
+        int port = -1;
+        try {
+            port = main.getGuiServerApi().createWebDavServer(treePanel.getViewWrapper());
+            if (port < 0) {
+                main.Msg().errmOk(VSMCMain.Txt("WebDav wurde nicht erstellt"));
+            }           
+            else {
+                URL url = main.getRoot().getURL();       
+                main.getRoot().open(new ExternalResource(url.getProtocol() + "://" + url.getHost() + ":" + port ),"_new");
+            }
+        }
+        catch (IOException | PoolReadOnlyException | PathResolveException ex) {
+            main.Msg().errmOk(VSMCMain.Txt("WebDav wurde abgebrochen: " + ex.getMessage()));
+        }
+    }
+    
 }
