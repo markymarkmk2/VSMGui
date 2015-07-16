@@ -145,6 +145,7 @@ public class ErrMsgHandler extends Window
 
         setModal(true);
 
+        main.getRootWin().removeWindow(this);
         main.getRootWin().addWindow(this);
     }
     public void errmOk(String txt)
@@ -176,6 +177,7 @@ public class ErrMsgHandler extends Window
 
         setModal(true);
 
+        main.getRootWin().removeWindow(this);
         main.getRootWin().addWindow(this);
     }
     public void infoOkCancel( String txt, ClickListener ok_listener, ClickListener abort_listener)
@@ -203,6 +205,7 @@ public class ErrMsgHandler extends Window
 
         setModal(true);
 
+        main.getRootWin().removeWindow(this);
         main.getRootWin().addWindow(this);
     }
 
@@ -222,7 +225,7 @@ public class ErrMsgHandler extends Window
         ok.setCaption(VSMCMain.Txt("Okay"));
 
         setModal(true);
-
+        main.getRootWin().removeWindow(this);
         main.getRootWin().addWindow(this);
     }
     void info( String txt)

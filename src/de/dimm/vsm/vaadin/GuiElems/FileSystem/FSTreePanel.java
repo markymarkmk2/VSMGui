@@ -23,6 +23,7 @@ import de.dimm.vsm.Utilities.SizeStr;
 import de.dimm.vsm.VSMFSLogger;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.auth.UserManager;
+import de.dimm.vsm.hash.StringUtils;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.StoragePoolQry;
 import de.dimm.vsm.net.StoragePoolWrapper;
@@ -471,7 +472,7 @@ public class FSTreePanel extends HorizontalLayout
             public void handleRestoreTargetDialog( List<RemoteFSElemTreeElem> rfstreeelems )
             {
                 RestoreLocationDlg dlg = createRestoreTargetDialog(main, wrapper, rfstreeelems, /*versioned*/ true);
-                tree.getApplication().getMainWindow().addWindow(dlg);
+                tree.getApplication().getMainWindow().addWindow(dlg);                
             }
             @Override
             public void handleDownload( RemoteFSElemTreeElem singleRfstreeelem )
@@ -610,6 +611,12 @@ public class FSTreePanel extends HorizontalLayout
     public static DownloadResource createDownloadResource( final VSMCMain main, Application app, final IWrapper wrapper, final RemoteFSElemTreeElem rfstreeelem )
     {
         RemoteFSElem fs = rfstreeelem.getElem();
+        
+        String errText = main.getGuiServerApi().checkRestoreErrFSElem( wrapper, fs);
+        if (!StringUtils.isEmpty(errText)) {
+            main.Msg().errmOk(VSMCMain.Txt("Fehler beim Download:\n" +errText));
+            return null;
+        }
 
         InputStream is = main.getGuiServerApi().openStream(wrapper, fs);
         if (is == null) {            
@@ -679,6 +686,10 @@ public class FSTreePanel extends HorizontalLayout
                     for (int i = 0; i < rfstreeelems.size(); i++)
                     {
                         RemoteFSElemTreeElem rfstreeelem = rfstreeelems.get(i);
+                        String errText = main.getGuiServerApi().checkRestoreErrFSElem( wrapper, rfstreeelem.getElem());
+                        if (!StringUtils.isEmpty(errText)) {
+                            throw new IOException(errText);
+                        }     
 
 
                         String ip = dlg.getIP();

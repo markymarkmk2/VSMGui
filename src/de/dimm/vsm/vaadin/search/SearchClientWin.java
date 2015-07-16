@@ -28,6 +28,7 @@ import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.VerticalLayout;
 import de.dimm.vsm.Exceptions.PathResolveException;
 import de.dimm.vsm.Exceptions.PoolReadOnlyException;
+import de.dimm.vsm.hash.StringUtils;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.SearchEntry;
 import de.dimm.vsm.net.SearchWrapper;
@@ -469,9 +470,11 @@ public class SearchClientWin extends SidebarPanel
             if (webDavPort < 0) {
                 main.Msg().errmOk(VSMCMain.Txt("WebDav wurde nicht erstellt"));
             }           
-            else {
+            else {                
                 URL url = main.getRoot().getURL();       
-                main.getRoot().open(new ExternalResource(url.getProtocol() + "://" + url.getHost() + ":" + webDavPort ),"_new");
+                String path = url.getProtocol() + "://" + url.getHost() + ":" + webDavPort + "/" + searchWrapper.getWebDavToken();
+                getWindow().executeJavaScript("window.open('" + path + "', '_blank')");
+                //main.getRoot().open(new ExternalResource(path),"_blank");                
             }
         }
         catch (IOException | PoolReadOnlyException | PathResolveException ex) {
@@ -692,7 +695,7 @@ public class SearchClientWin extends SidebarPanel
                     if (!checkWrapperValid())
                         return;                    
                     
-                    RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();
+                    RemoteFSElemTreeElem rfstreeelem = (RemoteFSElemTreeElem) event.getItemId();                                  
                     DownloadResource downloadResource = FSTreePanel.createDownloadResource( main, getApplication(), searchWrapper, rfstreeelem);
                     try {
                     if (downloadResource != null)
@@ -725,8 +728,8 @@ public class SearchClientWin extends SidebarPanel
             @Override
             public void handleRestoreTargetDialog( List<RemoteFSElemTreeElem> rfstreeelems )
             {
-                 RestoreLocationDlg dlg = FSTreePanel.createRestoreTargetDialog(main, searchWrapper, rfstreeelems );
-                 treePanel.getApplication().getMainWindow().addWindow( dlg );
+                RestoreLocationDlg dlg = FSTreePanel.createRestoreTargetDialog(main, searchWrapper, rfstreeelems );
+                treePanel.getApplication().getMainWindow().addWindow( dlg );
             }
 
             @Override

@@ -99,7 +99,7 @@ public class VSMCMain extends GenericMain
     protected String lastPwd= null;
     
 
-    private final static String version = "0.9.2 trunk";
+    private final static String version = "0.9.4 trunk";
     
     static Boolean noIpResolve = null;
 

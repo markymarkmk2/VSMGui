@@ -6,6 +6,7 @@ package de.dimm.vsm.vaadin.GuiElems.SidebarPanels;
 
 import com.github.wolfie.refresher.Refresher;
 import com.vaadin.terminal.ExternalResource;
+import com.vaadin.terminal.gwt.server.WebBrowser;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -152,6 +153,7 @@ public class FileSystemViewer extends SidebarPanel
 
         hl3.addComponent(btViewVol);
         hl3.addComponent(btWebDavVol);
+        btWebDavVol.setVisible(false);
          hl3.setMargin(false, false, true, false);
 
         
@@ -207,6 +209,7 @@ public class FileSystemViewer extends SidebarPanel
 
         btViewVol.setVisible(true);
         btViewVol.setCaption(VSMCMain.Txt("Dateisystem anzeigen"));
+        btWebDavVol.setVisible(false);
     }
 
     @Override
@@ -394,13 +397,21 @@ public class FileSystemViewer extends SidebarPanel
     private void doOpenWebDav() {
         int port = -1;
         try {
+            
+//            WebBrowser browser = (WebBrowser) getWindow().getTerminal();
+//            if (browser.isIE() && browser.isWindows()) {
+//                
+//            }
             port = main.getGuiServerApi().createWebDavServer(treePanel.getViewWrapper());
             if (port < 0) {
                 main.Msg().errmOk(VSMCMain.Txt("WebDav wurde nicht erstellt"));
             }           
             else {
-                URL url = main.getRoot().getURL();       
-                main.getRoot().open(new ExternalResource(url.getProtocol() + "://" + url.getHost() + ":" + port ),"_new");
+                URL url = main.getRoot().getURL();     
+                String path = url.getProtocol() + "://" + url.getHost() + ":" + port + "/" + treePanel.getViewWrapper().getWebDavToken();
+                
+                getWindow().executeJavaScript("window.open('" + path + "', '_blank')");
+                //main.getRoot().open(new ExternalResource(path),"_blank");
             }
         }
         catch (IOException | PoolReadOnlyException | PathResolveException ex) {

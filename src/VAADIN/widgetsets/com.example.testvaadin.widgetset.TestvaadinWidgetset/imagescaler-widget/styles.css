@@ -1,0 +1,8 @@
+.v-imagescaler {
+	position: relative;
+	overflow: hidden;
+}
+
+.v-imagescaler img {
+	position: absolute;
+}
