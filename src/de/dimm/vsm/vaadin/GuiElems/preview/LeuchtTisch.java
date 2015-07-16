@@ -5,11 +5,11 @@
 package de.dimm.vsm.vaadin.GuiElems.preview;
 
 import com.github.wolfie.refresher.Refresher;
+import com.vaadin.Application;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.terminal.FileResource;
 import com.vaadin.terminal.Resource;
 import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Panel;
@@ -17,7 +17,6 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import de.dimm.vsm.preview.IPreviewData;
 import de.dimm.vsm.vaadin.VSMCMain;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -34,6 +33,7 @@ public class LeuchtTisch extends Panel implements Refresher.RefreshListener {
     static int maxPerRow = 3;
     VSMCMain main;
     GridLayout array;
+    Application app;
 
     // final Refresher refresher = new Refresher();
     public static Window createPreviewWindow( final VSMCMain main, List<IPreviewData> nodes ) {
@@ -91,7 +91,9 @@ public class LeuchtTisch extends Panel implements Refresher.RefreshListener {
     public LeuchtTisch( VSMCMain main, List<IPreviewData> nodes ) {
         array = new GridLayout(getCols(nodes), getRows(nodes));
         array.setWidth("450px");
-        this.setStyleName("Leuchttisch");
+        array.setStyleName("Leuchtgrid");
+        
+        this.addStyleName("Leuchttisch");
         this.nodes = new ArrayList<>();
         this.busynodes = new ArrayList<>();
         double f = 450.0 / getCols(nodes);
@@ -99,15 +101,25 @@ public class LeuchtTisch extends Panel implements Refresher.RefreshListener {
         f *= getRows(nodes);
         array.setHeight("" + f + "px");
         this.main = main;
+        if (main != null) {
+            this.app = main.getApp();
+        }
         setNodes(nodes);
         this.setSizeFull();
         this.setImmediate(true);
 
         VerticalLayout rootLayout = new VerticalLayout();
         rootLayout.setSizeFull();
+        rootLayout.addStyleName("Leuchtroot");
         this.setContent(rootLayout);
         this.setContent(array);
     }
+
+    public void setApp( Application app ) {
+        this.app = app;
+    }
+    
+    
 
     @Override
     public void refresh( Refresher source ) {
@@ -195,17 +207,18 @@ public class LeuchtTisch extends Panel implements Refresher.RefreshListener {
         }
         
         
-        void createImgComponent( final IPreviewData node ) {
+        final void createImgComponent( final IPreviewData node ) {
 
             final Resource res = getEffectivePreviewResource(node);
             image = new Embedded(node.getName(), res);
             image.setWidth("100%");
             image.setImmediate(true);
+            image.addStyleName("Leuchtbild");
             //image.setHeight("");  
             this.addComponent(image);
             this.setSizeFull();
             this.setExpandRatio(image, 1);
-            this.addStyleName("LeuchtBild");
+            this.addStyleName("LtImage");
             
         }
         public void addListener(MouseEvents.ClickListener listener) {
@@ -221,7 +234,7 @@ public class LeuchtTisch extends Panel implements Refresher.RefreshListener {
         }
         
     }
-    Embedded createImgComponent( final IPreviewData node ) {
+    final Embedded createImgComponent( final IPreviewData node ) {
         final Resource res = getEffectivePreviewResource(node);
         Embedded image = new Embedded(node.getName(), res);
         image.setWidth("100%");
@@ -242,45 +255,45 @@ public class LeuchtTisch extends Panel implements Refresher.RefreshListener {
         }
         main.getApp().getMainWindow().addWindow(main.getSinglePreviewWin());
     }
-
-    private File getEffectivePreviewFile( IPreviewData node ) {
-        if (node.getMetaData().isDone() && !node.getMetaData().isError()) {
-            return node.getPreviewImageFile();
-        }
-        if (node.getMetaData().isError()) {
-            return new File(ERROR_FILE);
-        }
-        if (!node.getMetaData().isDone()) {
-            return new File(BUSY_FILE);
-        }
-        return new File(UNKNOWN_FILE);
-    }
-
-    private void setImageOrg( final IPreviewData node, int col, int row ) {
-        final Window win = this.getWindow();
-        Embedded c = createImgComponent(node);
-        array.removeComponent(col, row);
-        array.addComponent(c, col, row);
-        array.setComponentAlignment(c, Alignment.TOP_CENTER);
-
-        // Clicklistener für Singleview falls erforderlich
-        if (nodes.size() > 1) {
-            c.addListener(new MouseEvents.ClickListener() {
-                @Override
-                public void click( MouseEvents.ClickEvent event ) {
-                    openSinglePreviewWin(main, node);
-                }
-            });
-        }
-        else {
-            c.addListener(new MouseEvents.ClickListener() {
-                @Override
-                public void click( MouseEvents.ClickEvent event ) {
-                    main.getApp().getMainWindow().removeWindow(win);
-                }
-            });
-        }
-    }
+//
+//    private File getEffectivePreviewFile( IPreviewData node ) {
+//        if (node.getMetaData().isDone() && !node.getMetaData().isError()) {
+//            return node.getPreviewImageFile();
+//        }
+//        if (node.getMetaData().isError()) {
+//            return new File(ERROR_FILE);
+//        }
+//        if (!node.getMetaData().isDone()) {
+//            return new File(BUSY_FILE);
+//        }
+//        return new File(UNKNOWN_FILE);
+//    }
+//
+//    private void setImageOrg( final IPreviewData node, int col, int row ) {
+//        final Window win = this.getWindow();
+//        Embedded c = createImgComponent(node);
+//        array.removeComponent(col, row);
+//        array.addComponent(c, col, row);
+//        array.setComponentAlignment(c, Alignment.TOP_CENTER);
+//
+//        // Clicklistener für Singleview falls erforderlich
+//        if (nodes.size() > 1) {
+//            c.addListener(new MouseEvents.ClickListener() {
+//                @Override
+//                public void click( MouseEvents.ClickEvent event ) {
+//                    openSinglePreviewWin(main, node);
+//                }
+//            });
+//        }
+//        else {
+//            c.addListener(new MouseEvents.ClickListener() {
+//                @Override
+//                public void click( MouseEvents.ClickEvent event ) {
+//                    main.getApp().getMainWindow().removeWindow(win);
+//                }
+//            });
+//        }
+//    }
     private void setImage( final IPreviewData node, int col, int row ) {
         final Window win = this.getWindow();
         LtImage img = new LtImage(node);
@@ -289,36 +302,38 @@ public class LeuchtTisch extends Panel implements Refresher.RefreshListener {
         array.setComponentAlignment(img, Alignment.TOP_CENTER);
 
         // Clicklistener für Singleview falls erforderlich
-        if (nodes.size() > 1) {
-            img.addListener(new MouseEvents.ClickListener() {
-                @Override
-                public void click( MouseEvents.ClickEvent event ) {
-                    openSinglePreviewWin(main, node);
-                }
-            });
+        if (main != null) {
+            if (nodes.size() > 1) {
+                img.addListener(new MouseEvents.ClickListener() {
+                    @Override
+                    public void click( MouseEvents.ClickEvent event ) {
+                        openSinglePreviewWin(main, node);
+                    }
+                });
+            }
+            else {
+                img.addListener(new MouseEvents.ClickListener() {
+                    @Override
+                    public void click( MouseEvents.ClickEvent event ) {
+                        app.getMainWindow().removeWindow(win);
+                    }
+                });
+            }
         }
-        else {
-            img.addListener(new MouseEvents.ClickListener() {
-                @Override
-                public void click( MouseEvents.ClickEvent event ) {
-                    main.getApp().getMainWindow().removeWindow(win);
-                }
-            });
-        }
     }
-
-    private int getColForNode( IPreviewData node ) {
-
-        return 0;
-    }
-
-    private int getRowForNode( IPreviewData node ) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+//
+//    private int getColForNode( IPreviewData node ) {
+//
+//        return 0;
+//    }
+//
+//    private int getRowForNode( IPreviewData node ) {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//    }
 
     private Resource getEffectivePreviewResource( IPreviewData node ) {
         if (node.getMetaData().isDone() && !node.getMetaData().isError()) {
-            final Resource res = new FileResource(node.getPreviewImageFile(), main.getApp());
+            final Resource res = new FileResource(node.getPreviewImageFile(), app);
             return res;
         }
         String path = "/VAADIN/themes/vsm/images/";
@@ -333,7 +348,7 @@ public class LeuchtTisch extends Panel implements Refresher.RefreshListener {
             filename= UNKNOWN_FILE;
         }
         
-        JarFileResource res = new JarFileResource(path, filename, main.getApp());
+        JarFileResource res = new JarFileResource(path, filename, app);
         return res;
     }    
 }
