@@ -23,14 +23,15 @@ import java.util.Collection;
 import java.util.List;
 
 
-class PreviewData implements IPreviewData {
+
+class LeuchtTischPreviewData implements IPreviewData {
 
     long attrIdx;
     File file;
     IMetaData metaData;
     String name;
 
-    public PreviewData( long attrIdx, File file, IMetaData metaData, String name ) {
+    public LeuchtTischPreviewData( long attrIdx, File file, IMetaData metaData, String name ) {
         this.attrIdx = attrIdx;
         this.file = file;
         this.metaData = metaData;
@@ -63,7 +64,7 @@ class PreviewData implements IPreviewData {
     }    
 }
 
-class MetaData implements IMetaData {
+class LeuchtTischMetaData implements IMetaData {
 
     @Override
     public String getAttribute( String key ) {
@@ -134,7 +135,6 @@ class MetaData implements IMetaData {
  */
 @SuppressWarnings("serial")
 public class LeuchtTisch extends TPTApplication  {
-
     
 @Override
     public void firstApplicationStartup()
@@ -274,11 +274,11 @@ public class LeuchtTisch extends TPTApplication  {
         
     void loadLt() {
             List<IPreviewData> nodes = new ArrayList<>();
-        IMetaData doneMd = new MetaData();
-        nodes.add( new PreviewData(0, new File("D:\\Bilder\\Terrassentür.png"), doneMd, "Blah"));
-        nodes.add( new PreviewData(0, new File("D:\\Bilder\\Terrassentür.png"), doneMd, "Blah2"));
-        nodes.add( new PreviewData(0, new File("D:\\Bilder\\Terrassentür.png"), doneMd, "Blah"));
-        nodes.add( new PreviewData(0, new File("D:\\Bilder\\Terrassentür.png"), doneMd, "Blah2"));
+        IMetaData doneMd = new LeuchtTischMetaData();
+        nodes.add( new LeuchtTischPreviewData(0, new File("D:\\Bilder\\Terrassentür.png"), doneMd, "Blah"));
+        nodes.add( new LeuchtTischPreviewData(0, new File("D:\\Bilder\\Terrassentür.png"), doneMd, "Blah2"));
+        nodes.add( new LeuchtTischPreviewData(0, new File("D:\\Bilder\\Terrassentür.png"), doneMd, "Blah"));
+        nodes.add( new LeuchtTischPreviewData(0, new File("D:\\Bilder\\Terrassentür.png"), doneMd, "Blah2"));
         
         lt = new de.dimm.vsm.vaadin.GuiElems.preview.LeuchtTisch(null, nodes);
         lt.setApp(this);

@@ -779,10 +779,10 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
     }
 
     @Override
-    public List<IPreviewData> getPreviewData( IWrapper wrapper, List<RemoteFSElem> path ) throws SQLException, IOException {
+    public List<IPreviewData> getPreviewData( IWrapper wrapper, List<RemoteFSElem> path, Properties props ) throws SQLException, IOException {
         GuiServerApi guiServerApi = checkLogin();
         if (guiServerApi != null)
-            return guiServerApi.getPreviewData(wrapper, path);
+            return guiServerApi.getPreviewData(wrapper, path, props);
         return null;
     }
 

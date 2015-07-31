@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -175,7 +176,7 @@ public class FSTreePanel extends HorizontalLayout
                 {
                     if (!checkWrapperValid())
                         return;
-                    
+                                                           
                     RemoteFSElemTreeElem clickedItem = (RemoteFSElemTreeElem) event.getItemId();
                     Object sel = tree.getValue();
 
@@ -243,6 +244,8 @@ public class FSTreePanel extends HorizontalLayout
         ContextMenuItem _info = null;
         ContextMenuItem _versions = null;
         ContextMenuItem _preview = null;
+        ContextMenuItem _recursivePreview = null;
+        ContextMenuItem _deleteRecursivePreview = null;
 
         boolean hasFile = false;
         boolean oneSelected = false;
@@ -276,9 +279,16 @@ public class FSTreePanel extends HorizontalLayout
                 _remove = contextMenu.addItem(VSMCMain.Txt("Endgültig aus dem Dateisystem entfernen"));
                 _del = contextMenu.addItem(rfstreeelems.get(0).getElem().isDeleted() ? VSMCMain.Txt("Undelete") : VSMCMain.Txt("Delete"));
             }
+            if (VSMCMain.isPreviewLicensed() && main.isSuperUser() && rfstreeelems.get(0).getElem().isDirectory())
+            {
+                _recursivePreview = contextMenu.addItem(event.isCtrlKey() ? 
+                        VSMCMain.Txt("Neue Previewgenerierung rekursiv starten") : 
+                        VSMCMain.Txt("Previewgenerierung rekursiv starten"));
+                _deleteRecursivePreview = contextMenu.addItem(VSMCMain.Txt("Previews rekursiv löschen"));
+            }
         }
-        if (VSMCMain.isPreviewLicensed()) {
-            _preview = contextMenu.addItem(VSMCMain.Txt("Preview"));
+        if (VSMCMain.isPreviewLicensed()) {            
+            _preview = contextMenu.addItem(event.isCtrlKey() ? VSMCMain.Txt("Neue Preview") :  VSMCMain.Txt("Preview"));
         }
 
         final ContextMenuItem restore = contextMenu.addItem(VSMCMain.Txt("Restore"));
@@ -293,6 +303,8 @@ public class FSTreePanel extends HorizontalLayout
         final ContextMenuItem info = _info;
         final ContextMenuItem versions = _versions;
         final ContextMenuItem preview = _preview;
+        final ContextMenuItem recursivePreview = _recursivePreview;
+        final ContextMenuItem deleteRecursivePreview = _deleteRecursivePreview;
 
         // Enable separator line under this item
         if (versions != null)
@@ -411,10 +423,34 @@ public class FSTreePanel extends HorizontalLayout
                     openVersionCtxMenu(main, wrapper, tree, container, event, singleRfstreeelem);
                 }
                 if (clickedItem == preview)
-                {                    
-                    openPreview(main, wrapper, rfstreeelems);
+                {       
+                    boolean cached = true;
+                    if (event.isCtrlKey()) {
+                        cached = false;                        
+                    }
+                    openPreview(main, wrapper, rfstreeelems, cached);
+                }
+                if (clickedItem == recursivePreview)
+                {                           
+                    Properties props = new Properties();
+                    if (event.isCtrlKey()) {                        
+                        props.setProperty(IPreviewData.NOT_CACHED, IPreviewData.TRUE);
+                    }
+                    props.setProperty(IPreviewData.RECURSIVE, IPreviewData.TRUE);
+                    startRecursivePreview(main, wrapper, rfstreeelems.get(0).getElem(), props);
+                    VSMCMain.notify(tree, "Achtung", "Dieses Fenster nicht schließen bis das Rendern abgeschlossen ist!");
+                }
+                if (clickedItem == deleteRecursivePreview)
+                {       
+                    Properties props = new Properties();
+                    props.setProperty(IPreviewData.DELETE, IPreviewData.TRUE);
+                    props.setProperty(IPreviewData.RECURSIVE, IPreviewData.TRUE);
+                    startRecursivePreview(main, wrapper, rfstreeelems.get(0).getElem(), props);
+                    VSMCMain.notify(tree, "Achtung", "Dieses Fenster nicht schließen bis das Löschen abgeschlossen ist!");
                 }
             }
+
+          
         }); // Open Context Menu to mouse coordinates when user right clicks layout
 
 
@@ -514,23 +550,37 @@ public class FSTreePanel extends HorizontalLayout
         versionsMenu.show(event.getClientX(), event.getClientY());        
     }
     
+    private static void startRecursivePreview( VSMCMain main, IWrapper wrapper, RemoteFSElem elem, Properties props ) {
+         try {
+             main.getGuiServerApi().getPreviewData(wrapper, Arrays.asList(elem), props);
+         }
+         catch (SQLException | IOException e) {
+             main.Msg().errmOk(VSMCMain.Txt("Fehler beim Starten des Vorschaujobs: " + e.getMessage()));
+         }
+    }
+    
     private static void showPreviewWindow( final VSMCMain main, final List<IPreviewData> pData ) throws IllegalArgumentException, NullPointerException {
         Window win = LeuchtTisch.createPreviewWindow( main, pData);
         win.center();
         main.getApp().getMainWindow().addWindow(win);
     }
     
-    private static void openPreview( final VSMCMain main, final IWrapper wrapper, final List<RemoteFSElemTreeElem> rfstreeelems ) {
+    private static void openPreview( final VSMCMain main, final IWrapper wrapper, final List<RemoteFSElemTreeElem> rfstreeelems, boolean cached ) {
         
         List<RemoteFSElem> rfsElem = new ArrayList<>();
         for (RemoteFSElemTreeElem telem: rfstreeelems) {
             rfsElem.add(telem.getElem());
         }
-        showPreview(main, wrapper, rfsElem);
+        showPreview(main, wrapper, rfsElem, cached);
     }
-    static void showPreview(final VSMCMain main, final IWrapper wrapper, List<RemoteFSElem> rfsElem) {
+    static void showPreview(final VSMCMain main, final IWrapper wrapper, List<RemoteFSElem> rfsElem, boolean cached) {
         try {
-            final List<IPreviewData> pData = main.getGuiServerApi().getPreviewData(wrapper, rfsElem);
+            Properties props = null;
+            if (!cached) {
+                props = new Properties();
+                props.setProperty(IPreviewData.NOT_CACHED, IPreviewData.TRUE);
+            }
+            final List<IPreviewData> pData = main.getGuiServerApi().getPreviewData(wrapper, rfsElem, props);
             if (pData != null && !pData.isEmpty()) {
                 if (pData.size() == 1) {
                     LeuchtTisch.openSinglePreviewWin(main, pData.get(0));
