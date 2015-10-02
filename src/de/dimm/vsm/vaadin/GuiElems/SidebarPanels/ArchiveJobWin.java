@@ -93,7 +93,7 @@ public class ArchiveJobWin extends SidebarPanel
 
     final TextField txt_status = new TextField(VSMCMain.Txt("Status"));
     //final Button btViewVol = new NativeButton(VSMCMain.Txt("View file system"));
-    final String mntText = VSMCMain.Txt("Suchergebnisse_als_Dateisystem_laden");
+    final String mntText = VSMCMain.Txt("Ergebnisse_als_Dateisystem_laden");
     final String umntText = VSMCMain.Txt("Dateisystem_entfernen");
 
     final Button btMountVol;
@@ -242,9 +242,16 @@ public class ArchiveJobWin extends SidebarPanel
         VerticalLayout pn_search_layout = (VerticalLayout) pn_search.getContent();
         pn_search_layout.setSpacing(true);
         pn_search_layout.setSizeFull();
+        
+         HorizontalLayout hlSearch = new HorizontalLayout();
+        hlSearch.addComponent(txt_search_name);
+        hlSearch.addComponent(btStartSearch);
+        hlSearch.setComponentAlignment(btStartSearch, Alignment.MIDDLE_RIGHT);
+        hlSearch.setSpacing(true);
+        hlSearch.setWidth("100%");
 
 
-        pn_search.addComponent(txt_search_name);
+        pn_search.addComponent(hlSearch);
         pn_search.addComponent(cb_file_dir);
         pn_search.addComponent(cb_type);
         
@@ -280,9 +287,7 @@ public class ArchiveJobWin extends SidebarPanel
 
         hl.addComponent(btUpdateReadIndex);
         hl.addComponent(btMountVol);
-        hl.addComponent( btStartSearch);
-        hl.setComponentAlignment(btStartSearch, Alignment.BOTTOM_RIGHT);
-
+        
 
         pn_search.addComponent(hl);
         pn_search_layout.setComponentAlignment(hl, Alignment.BOTTOM_LEFT);

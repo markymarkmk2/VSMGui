@@ -12,7 +12,6 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.event.ShortcutListener;
-import com.vaadin.terminal.ExternalResource;
 import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -28,7 +27,6 @@ import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.VerticalLayout;
 import de.dimm.vsm.Exceptions.PathResolveException;
 import de.dimm.vsm.Exceptions.PoolReadOnlyException;
-import de.dimm.vsm.hash.StringUtils;
 import de.dimm.vsm.net.RemoteFSElem;
 import de.dimm.vsm.net.SearchEntry;
 import de.dimm.vsm.net.SearchWrapper;
@@ -80,7 +78,7 @@ public class SearchClientWin extends SidebarPanel
 
     final TextField txt_status = new TextField(VSMCMain.Txt("Status"));
     //final Button btViewVol = new NativeButton(VSMCMain.Txt("View file system"));
-    final String mntText = VSMCMain.Txt("Suchergebnisse_als_Dateisystem_laden");
+    final String mntText = VSMCMain.Txt("Ergebnisse_als_Dateisystem_laden");
     final String umntText = VSMCMain.Txt("Dateisystem_entfernen");
 
     final Button btMountVol;
@@ -94,7 +92,7 @@ public class SearchClientWin extends SidebarPanel
 
 
     String[] typ = {SearchEntry.OP_EQUAL, SearchEntry.OP_BEGINS, SearchEntry.OP_CONTAINS, SearchEntry.OP_ENDS };
-    String[] niceTyp = {VSMCMain.Txt("enthält Begriff"),VSMCMain.Txt("beginnt_mit"), VSMCMain.Txt("enthält"),  VSMCMain.Txt("endet_mit") };
+    String[] niceTyp = {VSMCMain.Txt("enthält Begriff"),VSMCMain.Txt("beginnt_mit_(langsam)"), VSMCMain.Txt("enthält_(langsam)"),  VSMCMain.Txt("endet_mit_(langsam)") };
 
     String[] df = {"file", "dir"};
     String[] niceDf = {VSMCMain.Txt("Datei"), VSMCMain.Txt("Verzeichnis")};
@@ -131,7 +129,7 @@ public class SearchClientWin extends SidebarPanel
         mainLayout.addComponent(pshl);
         txt_status.setReadOnly(true);
 
-        List<ComboEntry> entries = new ArrayList<ComboEntry>();
+        List<ComboEntry> entries = new ArrayList<>();
         for (int i = 0; i < niceTyp.length; i++)
         {
             entries.add( new ComboEntry( typ[i],  niceTyp[i]) );
@@ -139,9 +137,9 @@ public class SearchClientWin extends SidebarPanel
         
         cb_type = new ComboBox(VSMCMain.Txt("Suche"), entries);
         cb_type.setNullSelectionAllowed(false);
-        cb_type.select(entries.get(2));
+        cb_type.select(entries.get(0)); // Default enthät begriff -> schnell
 
-        entries = new ArrayList<ComboEntry>();
+        entries = new ArrayList<>();
         for (int i = 0; i < niceDf.length; i++)
         {
             entries.add( new ComboEntry( df[i],  niceDf[i]) );
@@ -161,7 +159,7 @@ public class SearchClientWin extends SidebarPanel
             }
         });
 
-        entries = new ArrayList<ComboEntry>();
+        entries = new ArrayList<>();
 
         entries.add( new ComboEntry( new Integer(20),  "20") );
         entries.add( new ComboEntry( new Integer(200),  "200") );
@@ -234,16 +232,21 @@ public class SearchClientWin extends SidebarPanel
         pn_search.setSizeFull();
         
         VerticalLayout pn_search_layout = (VerticalLayout) pn_search.getContent();
+        HorizontalLayout hlSearch = new HorizontalLayout();
+        hlSearch.addComponent(txt_search_name);
+        hlSearch.addComponent(btStartSearch);
+        hlSearch.setComponentAlignment(btStartSearch, Alignment.MIDDLE_RIGHT);
+        hlSearch.setSpacing(true);
+        hlSearch.setWidth("100%");
+                
         pn_search_layout.setSpacing(true);
         pn_search_layout.setSizeFull();
 
 
-        pn_search.addComponent(txt_search_name);
+        pn_search.addComponent(hlSearch);
         pn_search.addComponent(cb_file_dir);
         pn_search.addComponent(cb_type);
         
-
-
 
         Panel pn_options = new Panel();
         pn_options.setCaption(VSMCMain.Txt("Optionen"));
@@ -251,8 +254,6 @@ public class SearchClientWin extends SidebarPanel
         VerticalLayout pn_options_layout = (VerticalLayout) pn_search.getContent();
         pn_options_layout.setSpacing(true);
         pn_options_layout.setSizeFull();
-        
-
 
         
         for (int i = 0; i < t_panels.length; i++)
@@ -276,9 +277,7 @@ public class SearchClientWin extends SidebarPanel
         hl.setSizeFull();
         hl.addComponent(btUpdateReadIndex);
         hl.addComponent(btMountVol);
-        hl.addComponent(btWebDav);
-        hl.addComponent( btStartSearch);
-        hl.setComponentAlignment(btStartSearch, Alignment.BOTTOM_RIGHT);
+        hl.addComponent(btWebDav);       
 
 
         pn_search.addComponent(hl);
@@ -389,7 +388,7 @@ public class SearchClientWin extends SidebarPanel
             @Override
             public void SelectedAction( StoragePool pool )
             {
-                ArrayList<SearchEntry> slist = new ArrayList<SearchEntry>();
+                ArrayList<SearchEntry> slist = new ArrayList<>();
 
                 boolean ci = true;
 
@@ -444,13 +443,7 @@ public class SearchClientWin extends SidebarPanel
                     try {
                         webDavPort = main.getGuiServerApi().createWebDavSearchServer(searchWrapper);
                     }
-                    catch (IOException ex) {
-                        Logger.getLogger(SearchClientWin.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    catch (PoolReadOnlyException ex) {
-                        Logger.getLogger(SearchClientWin.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    catch (PathResolveException ex) {
+                    catch (IOException | PoolReadOnlyException | PathResolveException ex) {
                         Logger.getLogger(SearchClientWin.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
@@ -575,7 +568,11 @@ public class SearchClientWin extends SidebarPanel
         btMountVol.setVisible(true);
         btWebDav.setVisible(true);
         List<RemoteFSElem> ret = main.getGuiServerApi().getSearchResult(searchWrapper, 0, 100);
-
+        if (ret.isEmpty()) {
+            VSMCMain.notify(this, "Keine Treffer", "");
+        } else {
+            VSMCMain.notify(this, ret.size() +" Treffer", "");
+        }
         mountedView = true;
 
         Component _tree = initFsTree(ret);
@@ -596,7 +593,7 @@ public class SearchClientWin extends SidebarPanel
 
     Component initFsTree( List<RemoteFSElem> root_list )
     {
-        ArrayList<FSTreeColumn> fields = new ArrayList<FSTreeColumn>();
+        ArrayList<FSTreeColumn> fields = new ArrayList<>();
         fields.add(new FSTreeColumn("name", VSMCMain.Txt("Name"), -1, 1.0f, Table.ALIGN_LEFT, String.class));
         fields.add(new FSTreeColumn("date", VSMCMain.Txt("Datum"), 100, -1, Table.ALIGN_LEFT, String.class));
         fields.add(new FSTreeColumn("size", VSMCMain.Txt("Größe"), 80, -1, Table.ALIGN_RIGHT, String.class));
@@ -614,7 +611,7 @@ public class SearchClientWin extends SidebarPanel
             @Override
             public List<RemoteFSElemTreeElem> getChildren( RemoteFSElemTreeElem elem )
             {
-                List<RemoteFSElemTreeElem> childList = new ArrayList<RemoteFSElemTreeElem>();
+                List<RemoteFSElemTreeElem> childList = new ArrayList<>();
                 try
                 {
                     if (!checkWrapperValid())
@@ -680,12 +677,12 @@ public class SearchClientWin extends SidebarPanel
                     if (sel instanceof Set<?> && ((Set<?>)sel).size() > 1)
                     {
                         Set<RemoteFSElemTreeElem> set = (Set<RemoteFSElemTreeElem>)sel;
-                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>(set);
+                        List<RemoteFSElemTreeElem> list = new ArrayList<>(set);
                         create_fs_popup(event, list);
                     }
                     else
                     {
-                        List<RemoteFSElemTreeElem> list = new ArrayList<RemoteFSElemTreeElem>();
+                        List<RemoteFSElemTreeElem> list = new ArrayList<>();
                         list.add(clickedItem);
                         create_fs_popup(event, list);
                     }

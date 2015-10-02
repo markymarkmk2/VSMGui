@@ -131,7 +131,7 @@ class PercentField extends JPATextField implements ColumnGeneratorField
 
     public PercentField()
     {
-        super("Speed", "processPercent");
+        super("Fortschritt", "processPercent");
     }
 
     @Override

@@ -5,20 +5,21 @@
 package de.dimm.vsm.vaadin.GuiElems.SidebarPanels;
 
 import com.github.wolfie.refresher.Refresher;
-import com.vaadin.terminal.ExternalResource;
-import com.vaadin.terminal.gwt.server.WebBrowser;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import de.dimm.vsm.Exceptions.PathResolveException;
 import de.dimm.vsm.Exceptions.PoolReadOnlyException;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.auth.UserManager;
 import de.dimm.vsm.hash.StringUtils;
+import de.dimm.vsm.net.SearchWrapper;
 import de.dimm.vsm.net.StoragePoolWrapper;
+import de.dimm.vsm.net.interfaces.IWrapper;
 import de.dimm.vsm.records.MountEntry;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.ComboBoxDlg;
 import de.dimm.vsm.vaadin.GuiElems.Dialogs.NewMountDlg;
@@ -135,14 +136,11 @@ public class FileSystemViewer extends SidebarPanel
                 doOpenFsTree();
             }
         };
-        Button.ClickListener webDavlistener = new Button.ClickListener()
-        {
+        Button.ClickListener webDavlistener = new Button.ClickListener() {
             @Override
-            public void buttonClick( com.vaadin.ui.Button.ClickEvent event )
-            {
-                doOpenWebDav();
+            public void buttonClick( com.vaadin.ui.Button.ClickEvent event ) {
+                doOpenWebDav(main, treePanel.getViewWrapper(), getWindow(), null);
             }
-
         };
 
         btViewVol.addListener(listener);
@@ -381,7 +379,6 @@ public class FileSystemViewer extends SidebarPanel
         final NewPoolQryDlg dlg = new NewPoolQryDlg(main);
         ClickListener ok = new Button.ClickListener()
         {
-
             @Override
             public void buttonClick( ClickEvent event )
             {
@@ -394,23 +391,27 @@ public class FileSystemViewer extends SidebarPanel
         dlg.setOkClick(ok);
         dlg.openDlg();
     }
-    private void doOpenWebDav() {
-        int port = -1;
+    
+    public static void doOpenWebDav(VSMCMain main, IWrapper viewWrapper, Window window, String vsmPath) {        
         try {
-            
-//            WebBrowser browser = (WebBrowser) getWindow().getTerminal();
-//            if (browser.isIE() && browser.isWindows()) {
-//                
-//            }
-            port = main.getGuiServerApi().createWebDavServer(treePanel.getViewWrapper());
+            int port = -1;
+            if (viewWrapper instanceof StoragePoolWrapper) {
+                port = main.getGuiServerApi().createWebDavServer((StoragePoolWrapper)viewWrapper);
+            }
+            else if (viewWrapper instanceof SearchWrapper) {
+                port = main.getGuiServerApi().createWebDavSearchServer((SearchWrapper)viewWrapper);
+            }
             if (port < 0) {
                 main.Msg().errmOk(VSMCMain.Txt("WebDav wurde nicht erstellt"));
             }           
             else {
                 URL url = main.getRoot().getURL();     
-                String path = url.getProtocol() + "://" + url.getHost() + ":" + port + "/" + treePanel.getViewWrapper().getWebDavToken();
+                String path = url.getProtocol() + "://" + url.getHost() + ":" + port + "/" + viewWrapper.getWebDavToken();
+                if (!StringUtils.isEmpty(vsmPath)) {
+                    path += "/" + vsmPath;
+                }
                 
-                getWindow().executeJavaScript("window.open('" + path + "', '_blank')");
+                window.executeJavaScript("window.open('" + path + "', '_blank')");
                 //main.getRoot().open(new ExternalResource(path),"_blank");
             }
         }

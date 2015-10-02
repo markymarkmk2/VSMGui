@@ -246,6 +246,8 @@ public class FSTreePanel extends HorizontalLayout
         ContextMenuItem _preview = null;
         ContextMenuItem _recursivePreview = null;
         ContextMenuItem _deleteRecursivePreview = null;
+        ContextMenuItem _mountWebDav = null;
+        
 
         boolean hasFile = false;
         boolean oneSelected = false;
@@ -286,6 +288,9 @@ public class FSTreePanel extends HorizontalLayout
                         VSMCMain.Txt("Previewgenerierung rekursiv starten"));
                 _deleteRecursivePreview = contextMenu.addItem(VSMCMain.Txt("Previews rekursiv löschen"));
             }
+            if (rfstreeelems.get(0).getElem().isDirectory()) {
+                _mountWebDav = contextMenu.addItem(VSMCMain.Txt("in WebDav öffnen"));
+            }
         }
         if (VSMCMain.isPreviewLicensed()) {            
             _preview = contextMenu.addItem(event.isCtrlKey() ? VSMCMain.Txt("Neue Preview") :  VSMCMain.Txt("Preview"));
@@ -305,6 +310,7 @@ public class FSTreePanel extends HorizontalLayout
         final ContextMenuItem preview = _preview;
         final ContextMenuItem recursivePreview = _recursivePreview;
         final ContextMenuItem deleteRecursivePreview = _deleteRecursivePreview;
+        final ContextMenuItem mountWebDav = _mountWebDav;
 
         // Enable separator line under this item
         if (versions != null)
@@ -448,8 +454,16 @@ public class FSTreePanel extends HorizontalLayout
                     startRecursivePreview(main, wrapper, rfstreeelems.get(0).getElem(), props);
                     VSMCMain.notify(tree, "Achtung", "Dieses Fenster nicht schließen bis das Löschen abgeschlossen ist!");
                 }
+                if (clickedItem == mountWebDav)  {
+                    try {
+                        String vsmPath = main.getGuiServerApi().resolvePath(wrapper, rfstreeelems.get(0).getElem());
+                        FileSystemViewer.doOpenWebDav(main, wrapper, tree.getWindow(), getRelativePathFromPath(vsmPath));
+                    }
+                    catch (SQLException | PathResolveException sQLException) {
+                        VSMCMain.notify(tree, "Fehler beim Auflösen des Pfades", sQLException.getMessage());
+                    }
+                }
             }
-
           
         }); // Open Context Menu to mouse coordinates when user right clicks layout
 
@@ -910,6 +924,15 @@ public class FSTreePanel extends HorizontalLayout
 
         // 0 IS ROOT
         return pathArr[2];
+    }
+    private static String getRelativePathFromPath( String path)
+    {
+        // 0 ist Poolname
+        int idx = path.indexOf('/', 1);
+        if (idx < 0 || idx == path.length() - 1) {
+            return null;
+        }
+        return path.substring(idx + 1);
     }
     
 
