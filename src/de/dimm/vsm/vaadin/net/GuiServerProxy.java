@@ -810,7 +810,17 @@ public class GuiServerProxy implements GuiServerApi, GuiLoginApi
         
         return "Kein valides Login";
     }
-    
+
+    @Override
+    public boolean fixDoubleDir( IWrapper wrapper, RemoteFSElem path ) throws SQLException, IOException {
+        GuiServerApi guiServerApi = checkLogin();
+        if (guiServerApi != null) {
+            return guiServerApi.fixDoubleDir(wrapper, path);
+        }
+
+        return false;
+    }
+
 
     
 

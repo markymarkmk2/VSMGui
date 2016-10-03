@@ -169,6 +169,10 @@ public class BusyHandler extends Window  implements Refresher.RefreshListener
     }
     boolean doHide = false;
 
+    public void updateText( String txt ) {
+        ta.setValue(txt + "...");
+    }
+
     @Override
     public boolean isVisible()
     {

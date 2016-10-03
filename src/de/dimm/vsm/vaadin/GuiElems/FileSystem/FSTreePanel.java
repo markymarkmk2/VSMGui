@@ -7,8 +7,6 @@ package de.dimm.vsm.vaadin.GuiElems.FileSystem;
 import com.vaadin.Application;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
-
-
 import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -20,7 +18,6 @@ import com.vaadin.ui.Window;
 import de.dimm.vsm.Exceptions.PathResolveException;
 import de.dimm.vsm.Exceptions.PoolReadOnlyException;
 import de.dimm.vsm.Utilities.SizeStr;
-import de.dimm.vsm.VSMFSLogger;
 import de.dimm.vsm.auth.User;
 import de.dimm.vsm.auth.UserManager;
 import de.dimm.vsm.hash.StringUtils;
@@ -247,7 +244,8 @@ public class FSTreePanel extends HorizontalLayout
         ContextMenuItem _recursivePreview = null;
         ContextMenuItem _deleteRecursivePreview = null;
         ContextMenuItem _mountWebDav = null;
-        
+        ContextMenuItem _fixDoubleDir = null;
+
 
         boolean hasFile = false;
         boolean oneSelected = false;
@@ -273,8 +271,12 @@ public class FSTreePanel extends HorizontalLayout
             }
             _info = contextMenu.addItem(VSMCMain.Txt("Information"));
             
-            if (wrapper.getQry().isShowVersions())
+            if (wrapper.getQry().isShowVersions()) {
                 _versions = contextMenu.addItem(VSMCMain.Txt("Versions"));
+            }
+            if (main.isSuperUser()) {
+                _fixDoubleDir = contextMenu.addItem(VSMCMain.Txt("Verzeichnisse gleichen Namens verschmelzen"));
+            }
         
             if (main.isSuperUser() && !wrapper.isReadOnly())
             {
@@ -311,6 +313,7 @@ public class FSTreePanel extends HorizontalLayout
         final ContextMenuItem recursivePreview = _recursivePreview;
         final ContextMenuItem deleteRecursivePreview = _deleteRecursivePreview;
         final ContextMenuItem mountWebDav = _mountWebDav;
+        final ContextMenuItem fixDoubleDir = _fixDoubleDir;
 
         // Enable separator line under this item
         if (versions != null)
@@ -416,12 +419,13 @@ public class FSTreePanel extends HorizontalLayout
                         main.Msg().errmOkCancel(VSMCMain.Txt("Wollen_Sie_diese_Datei_endgültig_entfernen?"), caption, ok, null);
                     }
                 }
-                if (clickedItem == restore)
-                {
+                if (clickedItem == restore) {
                     callback.handleRestoreTargetDialog(rfstreeelems);
                 }
-                if (clickedItem == download)
-                {
+                if (clickedItem == fixDoubleDir) {
+                    handleFixDoubleDir(main, wrapper, tree, singleRfstreeelem);
+                }
+                if (clickedItem == download)                {
                     callback.handleDownload(singleRfstreeelem);
                 }
                 if (clickedItem == versions)
@@ -476,7 +480,24 @@ public class FSTreePanel extends HorizontalLayout
 
         return contextMenu;
     }
-    
+
+    static void handleFixDoubleDir( final VSMCMain main, final IWrapper wrapper, final TreeTable tree, final RemoteFSElemTreeElem singleRfstreeelem ) {
+        try {
+            if (main.getGuiServerApi().fixDoubleDir(wrapper, singleRfstreeelem.getElem())) {
+                VSMCMain.notify(tree, "Info", "Es wurden ein oder mehrere Verzeichnisse verschmolzen");
+            }
+            else {
+                VSMCMain.notify(tree, "Info", "Es wurden keine Verzeichnisse verschmolzen");
+            }
+        }
+        catch (SQLException sQLException) {
+            main.Msg().errmOk(VSMCMain.Txt("Abbruch bei FixDoubleDir") + ": " + sQLException.getMessage());
+        }
+        catch (IOException iOException) {
+            main.Msg().errmOk(VSMCMain.Txt("Fehler bei FixDoubleDir") + ": " + iOException.getMessage());
+        }
+    }
+
     static SimpleDateFormat verFmt = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     static private String genVerText( RemoteFSElem elem )
     {        

@@ -202,7 +202,9 @@ public class BlockStatusDlg extends Window
 
                     if (l.longValue() > 0)
                     {
-                        calcStatus();
+                        main.getBusy().updateText("Berechnung läuft");
+                        VSMCMain.callLogicControl("calcPoolStatusResult", pool);
+                        updateContent();
                     }
                 }
             }
